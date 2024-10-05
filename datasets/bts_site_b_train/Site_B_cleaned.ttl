@@ -4,6 +4,7 @@
 @prefix p8f5ae31d_283c_4320_9a89_f914b37dc8d4: <dch:org/df125f8d_93e4_4a4f_bc87_1c4e332f32b8/site/c495fbd8_7a71_44b4_ad2a_014ac2df7ce9#> .
 @prefix brick: <https://brickschema.org/schema/Brick#> .
 @prefix senaps: <http://senaps.io/schema/1.0/senaps#> .
+@prefix unit: <http://qudt.org/vocab/unit/> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 p33f3e0c2_f2cd_471c_b5a0_4655c2bd4623:da5873de_e112_4f9b_9e0f_149bd1221894.8084c259_152b_4607_808b_0fd0a92973e2.d851e5bd_1766_4aae_a571_d5070bcc3493 a brick:Temperature_Setpoint ;
