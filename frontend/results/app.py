@@ -281,7 +281,7 @@ def render_page_content(pathname):
                 className='tab-class'
             ),
             html.Div(id="tab-content"),
-            html.Br(),
+            html.Hr(),
             get_download_buttons()
         ])
     else:
