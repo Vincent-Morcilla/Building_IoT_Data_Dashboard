@@ -18,6 +18,9 @@ class DBManager:
         self.db = {}
         self.load_db()
 
+    def __len__(self):
+        return len(self.db)
+
     def load_db(self):
         mapping_df = pd.read_csv(self.mapping_path, index_col=0)
 
