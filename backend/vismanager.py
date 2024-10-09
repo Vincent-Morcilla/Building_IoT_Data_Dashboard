@@ -94,7 +94,7 @@ class VisManager:
         gap_analysis_results = self.analyse_sensor_gaps(self.sensor_df)
         self.sensor_df = pd.concat([self.sensor_df, gap_analysis_results], axis=1)
         self.calculate_group_gap_percentages()
-        # self.create_summary_table()
+        self.create_sumary_table()
 
     def prepare_data_for_preprocessing(self):
         prepared_data = {}
