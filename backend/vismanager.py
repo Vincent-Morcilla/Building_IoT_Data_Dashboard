@@ -77,6 +77,7 @@ class VisManager:
         self.sensor_df = self.profile_groups(self.sensor_df)
         gap_analysis_results = self.analyse_sensor_gaps(self.sensor_df)
         self.sensor_df = pd.concat([self.sensor_df, gap_analysis_results], axis=1)
+        self.calculate_group_gap_percentages()
         self.create_summary_table()
 
     def prepare_data_for_preprocessing(self):
@@ -249,6 +250,20 @@ class VisManager:
             results.append(categorise_gaps(sorted_divided_counter))
 
         return pd.DataFrame(results)
+
+    def calculate_group_gap_percentages(self):
+        if 'Gap_Percentage' not in self.sensor_df.columns:
+            print("Warning: 'Gap_Percentage' column not found. Skipping group gap percentage calculation.")
+            return
+
+        aggregated_results = self.sensor_df.groupby('Label').agg({
+            'Gap_Percentage': 'mean'
+        }).reset_index()
+        aggregated_results_sorted = aggregated_results.sort_values('Gap_Percentage', ascending=False)
+        aggregated_results_sorted.columns = ["Label", "Group_Mean_Gap_Percentage"]
+        
+        self.sensor_df = self.sensor_df.merge(aggregated_results_sorted, on='Label', how='left')
+        self.sensor_df['Gap_Percentage_Stream_vs_Group'] = self.sensor_df['Group_Mean_Gap_Percentage'] - self.sensor_df['Gap_Percentage']
 
     def create_summary_table(self):
         self.summary_table = self.sensor_df.groupby('Label').agg({
