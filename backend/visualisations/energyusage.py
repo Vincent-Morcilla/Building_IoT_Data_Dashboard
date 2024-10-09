@@ -148,6 +148,7 @@ class EnergyUsage:
             
             # Place the legend outside the plot, on the right side
             plt.legend(loc="upper left", bbox_to_anchor=(1, 1))
+            plt.grid(True)
             
             # Show the plot
             plt.show()
