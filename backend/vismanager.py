@@ -522,4 +522,4 @@ class VisManager:
     def plot_building_hierarchy(self):
         fig = self.create_hierarchical_sunburst()
         fig.show()
-        # pio.write_html(fig, file='location_sunburst.html', auto_open=True)
+        pio.write_html(fig, file='location_sunburst.html', auto_open=True)

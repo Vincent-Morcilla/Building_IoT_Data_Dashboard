@@ -129,7 +129,7 @@ class TemperatureMonitor:
                 plt.plot(timestamps, values, label=f"Meter: {meter_identifier} ({static_unit})")
             
             # Set plot title and labels using the meter identifier
-            # plt.title(f"Meter: {title}")
+            plt.title(f"Meter: {title}")
             plt.xlabel("Timestamps")
             plt.ylabel(f"{title} ({static_unit})")  # Use static unit as the y-axis label
             
