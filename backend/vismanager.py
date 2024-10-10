@@ -9,6 +9,8 @@ import plotly.io as pio
 import visualisations.roomtemp as roomtemp
 import visualisations.energyusage as energyusage
 import visualisations.utilitiesusage as utilitiesusage
+import visualisations.TemperatureMonitor as temperaturemonitor
+
 
 import numpy as np
 import pandas as pd
@@ -54,6 +56,10 @@ class VisManager:
 
         # Utilities Usage Visualisation
         self.utilities_usage = utilitiesusage.UtilitiesUsage(self.db, self.g)
+        
+        # Temperature monitor Chiller and Hot Water System
+        self.temperature_monitor = temperaturemonitor.TemperatureMonitor(self.db, self.g)
+
 
         # Initialize data quality analysis
         self.sensor_df = None
@@ -87,6 +93,17 @@ class VisManager:
     def plot_sensor_data_grouped_by_meter(self, df_with_sensor_data, plot_title):
         return self.utilities_usage.plot_sensor_data_grouped_by_meter(df_with_sensor_data, plot_title)
 
+    
+    def get_temperature_meters(self, meter_type, sensor_type):
+        return self.temperature_monitor.get_temperature(meter_type, sensor_type)
+
+    def load_temperature_sensors_from_db(self, df):
+        return self.temperature_monitor.load_sensors_from_db(df)
+
+    def plot_temp_sensor_data_grouped_by_meter(self, df_with_sensor_data, plot_title):
+        return self.temperature_monitor.plot_sensor_data_grouped_by_meter(df_with_sensor_data, plot_title)
+    
+    
     def perform_data_quality_analysis(self):
         prepared_data, labels = self.prepare_data_for_preprocessing()
         self.sensor_df = self.preprocess_to_sensor_rows(prepared_data, labels)
@@ -305,7 +322,8 @@ class VisManager:
             'Missing': 'sum',
             'Zeros': 'sum',
             'FlaggedForRemoval': 'sum',
-            'Deduced_Granularity': lambda x: stats.mode(x)[0][0],
+            # 'Deduced_Granularity': lambda x: stats.mode(x)[0][0],
+            'Deduced_Granularity': lambda x: np.unique(x, return_counts=True)[0][np.argmax(np.unique(x, return_counts=True)[1])],
             'Small_Gap_Count': 'sum',
             'Medium_Gap_Count': 'sum',
             'Large_Gap_Count': 'sum',
@@ -491,7 +509,7 @@ class VisManager:
             color_discrete_map=colour_map,
             hover_data=['hover_text'],
             custom_data=['hover_text'],
-            title="Building Hierarchy (by EntityType with Unique Labels)",
+            title="Building Hierarchy Sunburst Chart",
             height=1500,
             width=1500
         )
