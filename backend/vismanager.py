@@ -94,7 +94,7 @@ class VisManager:
         gap_analysis_results = self.analyse_sensor_gaps(self.sensor_df)
         self.sensor_df = pd.concat([self.sensor_df, gap_analysis_results], axis=1)
         self.calculate_group_gap_percentages()
-        self.create_sumary_table()
+        self.create_summary_table()
 
     def prepare_data_for_preprocessing(self):
         prepared_data = {}
@@ -289,7 +289,8 @@ class VisManager:
             'Missing': 'sum',
             'Zeros': 'sum',
             'FlaggedForRemoval': 'sum',
-            'Deduced_Granularity': lambda x: stats.mode(x)[0][0],
+            # 'Deduced_Granularity': lambda x: stats.mode(x)[0][0],
+            'Deduced_Granularity': lambda x: np.unique(x, return_counts=True)[0][np.argmax(np.unique(x, return_counts=True)[1])],
             'Small_Gap_Count': 'sum',
             'Medium_Gap_Count': 'sum',
             'Large_Gap_Count': 'sum',
