@@ -33,7 +33,7 @@ class VisManager:
        
         # Load the Brick ontology into a separate graph
         self.brick_ontology = rdflib.Graph()
-        self.brick_ontology.parse("/Users/dan/Uni/COMP9900/DIEF_BTS/Brick_v1.2.1.ttl", format="turtle")
+        self.brick_ontology.parse("../datasets/brick_ontology_file/Brick_v1.2.1.ttl", format="turtle")
 
         # Define categories for different entity types (using the ontology)
         self.categories = self.define_categories()
