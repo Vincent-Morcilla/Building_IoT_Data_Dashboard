@@ -1,12 +1,12 @@
 
 services:
-  db:
+  timescaledb:
    build:
      context: ./docker/db
-     args:
-       - BUILDING_IOT_DB_USER=buildingiot
-       - BUILDING_IOT_DB_PASSWORD=buildingiotpassword
-   image: "buildingiot/db"
+    #  args:
+    #    - BUILDING_IOT_DB_USER=buildingiot
+    #    - BUILDING_IOT_DB_PASSWORD=buildingiotpassword
+   image: "buildingiot/timescaledb"
    restart: always
   #  environment:
   #     - POSTGRES_USER=buildingiot
@@ -19,7 +19,7 @@ services:
       # - BUILDING_IOT_DB_USER=buildingiot
       # - BUILDING_IOT_DB_PASSWORD=buildingiotpassword
    ports:
-     - "127.0.0.1:5434:5432"
+     - "127.0.0.1:5432:5432"
    volumes:
      - pg-data:/home/postgres/pgdata/data
     #  - "./pg-data/:/data/"

@@ -9,7 +9,7 @@ ARG BUILDING_IOT_DB_PASSWORD=buildingiotpassword
 # RUN mkdir /data
 # RUN cat /usr/share/postgresql/postgresql.conf.sample > /data/postgresql.conf
 
-RUN mkdir -p "$PGDATA" && chmod 700 "$PGDATA"
+# RUN mkdir -p "$PGDATA" && chmod 700 "$PGDATA"
 
 # PostgreSQL ENV variables
 ENV POSTGRES_DB=$BUILDING_IOT_DB
