@@ -243,6 +243,23 @@ input[type="checkbox"] {
   border: 2px solid #3c9639;
 }
 
+/* Warning Modal Styling */
+#modal-no-button,
+#modal-yes-button {
+  background-color: white;
+  border-color: #3c9639;
+  color: #3c9639;
+}
+
+#modal-yes-button:hover,
+#modal-no-button:hover,
+#modal-yes-button:active,
+#modal-no-button:active {
+  background-color: #3c9639;
+  border-color: #3c9639;
+  color: white;
+}
+
 /* Mobile Responsiveness */
 @media (max-width: 992px) {
   .sidebar {

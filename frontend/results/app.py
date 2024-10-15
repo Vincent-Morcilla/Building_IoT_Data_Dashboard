@@ -1,10 +1,14 @@
 import dash
 import dash_bootstrap_components as dbc
-from dash import Input, Output, dcc, html
+from dash import Input, Output, dcc, html, callback_context, State
 import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
+
+from io import BytesIO
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
 
 # Initialize the app with external stylesheets
 app = dash.Dash(
@@ -34,11 +38,13 @@ data = pd.read_csv('building_iot_data.csv', parse_dates=['Timestamp'])
 # Sidebar layout with navigation links
 sidebar = html.Div(
     [
-        dcc.Link(
+        html.Button(
             html.Div(html.Img(src="/assets/logo.svg", className="sidebar-logo"),
                      className="sidebar-logo-container"),
-            href="/",
-            className="logo-link"
+            id='logo-button',
+            n_clicks=0,
+            className='logo-button',
+            style={'background': 'none', 'border': 'none', 'padding': '0', 'margin': '0', 'cursor': 'pointer'}
         ),
         html.Hr(),
         dbc.Nav(
@@ -64,7 +70,23 @@ app.layout = html.Div([
     dcc.Location(id="url"),
     sidebar,
     content,
-    dcc.Store(id='screen-size', storage_type='session')
+    dcc.Store(id='screen-size', storage_type='session'),
+    dbc.Modal(
+        [
+            dbc.ModalHeader(dbc.ModalTitle("Warning")),
+            dbc.ModalBody("Are you sure you want to go to the homepage? All data and visualizations will be lost."),
+            dbc.ModalFooter(
+                [
+                    dbc.Button("Yes", id="modal-yes-button", color="success", n_clicks=0),
+                    dbc.Button("No", id="modal-no-button", outline=True, color="success", n_clicks=0),
+                ]
+            ),
+        ],
+        id="warning-modal",
+        is_open=False,
+    ),
+    dcc.Download(id="download-data-csv"),
+    dcc.Download(id="download-report-pdf"),
 ])
 
 # Clientside callback to app
@@ -337,7 +359,7 @@ def render_tab_content(active_tab, pathname):
                 options=[
                     {'label': 'Hourly', 'value': 'h'},
                     {'label': 'Daily', 'value': 'D'},
-                    {'label': 'Monthly', 'value': 'ME'},
+                    {'label': 'Monthly', 'value': 'M'},
                 ],
                 value='D',
                 labelStyle={'display': 'inline-block', 'margin-right': '10px'}
@@ -444,7 +466,7 @@ def render_tab_content(active_tab, pathname):
                 options=[
                     {'label': 'Hourly', 'value': 'h'},
                     {'label': 'Daily', 'value': 'D'},
-                    {'label': 'Monthly', 'value': 'ME'},
+                    {'label': 'Monthly', 'value': 'M'},
                 ],
                 value='D',
                 labelStyle={'display': 'inline-block', 'margin-right': '10px'}
@@ -476,12 +498,10 @@ def create_empty_figure(message_text, category, analysis_type):
         plot_bgcolor='white'
     )
     fig.update_xaxes(
-        mirror=True, ticks='outside', showline=True,
-        linecolor='black', gridcolor='lightgrey'
+        visible=False
     )
     fig.update_yaxes(
-        mirror=True, ticks='outside', showline=True,
-        linecolor='black', gridcolor='lightgrey'
+        visible=False
     )
     return fig
 
@@ -559,7 +579,7 @@ def update_data_quality(selected_vars, pathname, screen_width):
     variables = get_variables_for_category(category)
     quality_vars = variables['quality_vars']
     
-    df_filtered = data[['Timestamp'] + quality_vars + selected_vars].dropna()
+    df_filtered = data[['Timestamp'] + selected_vars].dropna()
     if df_filtered.empty or df_filtered[selected_vars].isnull().all().all():
         return create_empty_figure("No data available for the selected variables.", category, "Data Quality")
     
@@ -637,6 +657,82 @@ def update_usage_graph(start_date, end_date, selected_vars, freq, pathname):
         title=f'{category} - Usage Analysis'
     )
     return fig
+
+# Callback to control modal and navigation
+@app.callback(
+    [Output("warning-modal", "is_open"),
+     Output("url", "pathname")],
+    [Input("logo-button", "n_clicks"),
+     Input("modal-yes-button", "n_clicks"),
+     Input("modal-no-button", "n_clicks")],
+    [State("warning-modal", "is_open"),
+     State("url", "pathname")],
+)
+def toggle_modal_and_navigate(n_clicks_logo, n_clicks_yes, n_clicks_no, is_open, current_pathname):
+    ctx = dash.callback_context
+
+    if not ctx.triggered:
+        return is_open, dash.no_update
+    else:
+        button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+
+    if button_id == "logo-button" and n_clicks_logo:
+        return True, dash.no_update
+    elif button_id == "modal-yes-button" and n_clicks_yes:
+        return False, "/"
+    elif button_id == "modal-no-button" and n_clicks_no:
+        return False, current_pathname
+    return is_open, dash.no_update
+
+# Callback for downloading data
+@app.callback(
+    Output("download-data-csv", "data"),
+    Input("download-right", "n_clicks"),
+    prevent_initial_call=True,
+)
+def download_data(n_clicks):
+    if n_clicks:
+        return dcc.send_data_frame(data.to_csv, "data.csv", index=False)
+    else:
+        return dash.no_update
+
+# Callback for downloading report
+@app.callback(
+    Output("download-report-pdf", "data"),
+    Input("download-left", "n_clicks"),
+    prevent_initial_call=True,
+)
+def download_report(n_clicks):
+    if n_clicks:
+        buffer = BytesIO()
+        p = canvas.Canvas(buffer, pagesize=letter)
+        width, height = letter
+
+        p.setFont("Helvetica", 14)
+        p.drawString(100, height - 100, "Main Categories and Subcategories")
+
+        y = height - 130
+        for main_cat, subcats in main_categories.items():
+            p.setFont("Helvetica-Bold", 12)
+            p.drawString(100, y, f"Main Category: {main_cat}")
+            y -= 20
+            p.setFont("Helvetica", 12)
+            for subcat in subcats:
+                p.drawString(120, y, f"- {subcat}")
+                y -= 15
+                if y < 50:
+                    p.showPage()
+                    y = height - 50
+            y -= 10
+            if y < 50:
+                p.showPage()
+                y = height - 50
+
+        p.save()
+        buffer.seek(0)
+        return dcc.send_bytes(buffer.getvalue(), "report.pdf")
+    else:
+        return dash.no_update
 
 # Run the app
 if __name__ == "__main__":
