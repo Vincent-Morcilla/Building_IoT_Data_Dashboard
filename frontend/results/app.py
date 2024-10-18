@@ -7,12 +7,18 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
+################################################################################
+#                               GLOBAL VARIABLES                               #
+################################################################################
+
 # Initialise the Dash app with Bootstrap for styling and allow callbacks for dynamic content
 app = dash.Dash(
     __name__,
     external_stylesheets=[dbc.themes.BOOTSTRAP],
     suppress_callback_exceptions=True,  # Allows callbacks to reference components not yet in the layout
 )
+url_to_key_mapping = {}  # Mapping for dataframes and plot configurations based on URLs
+bottom_buttons = None  # Buttons for downloading reports and data
 
 ################################################################################
 #                                 SAMPLE DATA                                  #
@@ -312,9 +318,6 @@ plot_configs = {
         }
     },
 }
-
-url_to_key_mapping = {}  # Mapping for dataframes and plot configurations based on URLs
-bottom_buttons = None  # Buttons for downloading reports and data
 
 
 def setup_layout():
