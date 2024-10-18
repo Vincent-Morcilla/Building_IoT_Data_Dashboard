@@ -12,7 +12,7 @@ import plotly.graph_objects as go
 #                               GLOBAL VARIABLES                               #
 ################################################################################
 
-APP_NAME = "WE SHOULD REALLY NAME THIS APP!!"
+APP_NAME = "GreenInsight"
 # Initialise the Dash app with Bootstrap for styling and allow callbacks for dynamic content
 app = dash.Dash(
     # __name__,
