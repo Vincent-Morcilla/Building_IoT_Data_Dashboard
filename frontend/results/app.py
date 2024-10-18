@@ -1,3 +1,4 @@
+from collections import defaultdict
 import dash
 import dash_bootstrap_components as dbc
 from dash import Input, Output, dcc, html, callback_context, State, MATCH
@@ -317,10 +318,27 @@ plot_configs = {
             "dataframe": dataframes["Water_UsageAnalysis"],
         }
     },
+    "NoSubcategory": {
+        "HeatMap": {
+            "title": "Water Usage Heat Map",
+            "x-axis": "Month",
+            "y-axis": "Region",
+            "z-axis": "Usage",
+            "x-axis_label": "Month",
+            "y-axis_label": "Region",
+            "z-axis_label": "Water Usage (Liters)",
+            "dataframe": dataframes["Water_UsageAnalysis"],
+        }
+    },
 }
 
 
-def setup_layout():
+################################################################################
+#                                    LAYOUT                                    #
+################################################################################
+
+
+def construct_layout():
 
     # Create a mapping for dataframes and plot configurations based on URLs
     global url_to_key_mapping
@@ -348,10 +366,10 @@ def setup_layout():
     )
 
     # Create main categories and subcategories from the dataframe keys
-    main_categories = create_category_structure(dataframes.keys())
+    categories = create_category_structure(plot_configs.keys())
 
     # Special case: Add "Home" as a top-level category without subcategories
-    main_categories["Home"] = []  # "Home" has no subcategories or associated data
+    categories["Home"] = []  # "Home" has no subcategories or associated data
 
     # Generate the sidebar component
     sidebar = html.Div(
@@ -373,7 +391,7 @@ def setup_layout():
                 },
             ),
             html.Hr(),
-            generate_sidebar(main_categories),
+            generate_sidebar(categories),
         ],
         className="sidebar",
     )
@@ -425,11 +443,6 @@ def setup_layout():
     )
 
 
-################################################################################
-#                                    LAYOUT                                    #
-################################################################################
-
-
 # Function to generate the sidebar navigation based on categories
 def generate_sidebar(categories):
     nav_links = []
@@ -442,6 +455,7 @@ def generate_sidebar(categories):
     for category, subcategories in categories.items():
         if category != "Home":  # Skip "Home" as it's already added
             if subcategories:
+                # @tim: is this a TODO? Code looks identical to `else` block?
                 # If there are subcategories, create a collapsible section or parent link
                 nav_links.append(
                     dbc.NavLink(
@@ -463,7 +477,7 @@ def generate_sidebar(categories):
     return dbc.Nav(nav_links, vertical=True, pills=True)
 
 
-## Callback to control the modal window and handle navigation when the logo is clicked
+# Callback to control the modal window and handle navigation when the logo is clicked
 @app.callback(
     [Output("warning-modal", "is_open"), Output("url", "pathname")],
     [
@@ -514,122 +528,122 @@ def display_page(pathname):
     # Standardise the main category by removing hyphens
     main_category = cleaned_path[0].replace("-", "") if len(cleaned_path) > 0 else None
 
-    # If main category exists in the URL mapping
-    if main_category in url_to_key_mapping:
-        # Find all relevant dataframes that start with the main category key
-        relevant_dataframes = [
-            df for df in dataframes.keys() if df.lower().startswith(main_category)
-        ]
-        # Determine if any dataframe has a subcategory
-        has_subcategories = any("_" in df for df in relevant_dataframes)
-        if has_subcategories:
-            # Create tabs for categories with subcategories
-            tabs = []
-            tab_ids = []
+    # If no matching category is found, display a 404 error page
+    if main_category not in url_to_key_mapping:
+        return html.Div([html.H1("404 Page not found")])
 
-            for df in relevant_dataframes:
-                category_key = df
-                data = dataframes[category_key]
-                config = plot_configs[category_key]
+    # # Find all relevant dataframes that start with the main category key
+    # relevant_dataframes = [
+    #     df for df in dataframes.keys() if df.lower().startswith(main_category)
+    # ]
 
-                # Extract the subcategory (after the underscore) for labeling
-                subcategory = (
-                    pascal_to_words(category_key.split("_")[1])
-                    if "_" in category_key
-                    else "Main"
-                )
+    subcategories = url_to_key_mapping[main_category]
 
-                # Create tabs for each plot type (e.g., HeatMap, SunburstChart, etc.)
-                for plot_type, plot_settings in config.items():
-                    plot_id = f"{category_key}-{plot_type}"
+    if subcategories:
+        # Create tabs for categories with subcategories
+        tabs = []
+        tab_ids = []
 
-                    # Pass the subcategory as the tab label
-                    tab_content = create_tab_content(
-                        plot_type, plot_settings, data, plot_id, subcategory
-                    )
+        for subcategory_key in subcategories:
+            config = plot_configs[subcategory_key]
 
-                    if tab_content:
-                        tabs.append(tab_content)
-                        tab_ids.append(plot_id)
-
-            # Return the tabs within a container if at least one tab was created
-            if len(tabs) >= 1:
-                return dbc.Container(
-                    [
-                        dbc.Tabs(tabs, id="tabs", active_tab=tab_ids[0]),
-                        html.Hr(),
-                        bottom_buttons,  # Add the buttons below the tabs
-                    ],
-                    fluid=True,
-                )
-        else:
-            # Render plots directly for categories without subcategories
-            plots = []
-            for df in relevant_dataframes:
-                category_key = df
-                data = dataframes[category_key]
-                config = plot_configs[category_key]
-
-                # Create plot for each plot type
-                for plot_type, plot_settings in config.items():
-                    plot_id = f"{category_key}-{plot_type}"
-
-                    # Create the plot figure
-                    figure = create_plot(data, plot_type, plot_settings)
-
-                    # Create UI elements
-                    if plot_type == "HeatMap":
-                        ui = create_ui_for_heatmap(plot_type, plot_id)
-                        graph_type = "heatmap-graph"
-                    elif plot_type == "SunburstChart":
-                        ui = create_ui_for_sunburst(plot_type, plot_id)
-                        graph_type = "sunburst-graph"
-                    elif plot_type == "SurfacePlot":
-                        ui = create_ui_for_surface_plot(plot_type, plot_id)
-                        graph_type = "surface-graph"
-                    elif plot_type == "BoxAndWhisker":
-                        ui = create_ui_for_box_and_whisker(
-                            plot_type, plot_id, data, plot_settings
-                        )
-                        graph_type = "box-and-whisker-graph"
-                    elif plot_type == "Timeseries":
-                        ui = create_ui_for_timeseries(plot_type, plot_id, plot_settings)
-                        graph_type = "timeseries-graph"
-                    else:
-                        ui = None
-                        graph_type = f"{plot_type.lower()}-graph"
-
-                    # Create the plot content with graph and UI controls
-                    plot_content = dbc.Container(
-                        [
-                            dcc.Graph(
-                                id={"type": graph_type, "index": plot_id}, figure=figure
-                            ),
-                            ui,  # Add UI controls below the graph
-                        ],
-                        fluid=True,
-                    )
-
-                    plots.append(plot_content)
-
-            # Return all plots within a container along with the download buttons
-            return dbc.Container(
-                [*plots, html.Hr(), bottom_buttons],  # Unpack all plot components
-                fluid=True,
+            # Extract the subcategory (after the underscore) for labeling
+            subcategory_label = (
+                pascal_to_words(subcategory_key.split("_")[1])
+                if "_" in subcategory_key
+                else "Main"
             )
 
-    # If no matching category is found, display a 404 error page
-    return html.Div([html.H1("404 Page not found")])
+            # Create tabs for each plot type (e.g., HeatMap, SunburstChart, etc.)
+            for plot_type, plot_settings in config.items():
+                plot_id = f"{subcategory_key}-{plot_type}"
+
+                # Pass the subcategory as the tab label
+                tab_content = create_tab_content(
+                    plot_type, plot_settings, plot_id, subcategory_label
+                )
+
+                if tab_content:
+                    tabs.append(tab_content)
+                    tab_ids.append(plot_id)
+
+        # Return the tabs within a container if at least one tab was created
+        if len(tabs) >= 1:
+            return dbc.Container(
+                [
+                    dbc.Tabs(tabs, id="tabs", active_tab=tab_ids[0]),
+                    html.Hr(),
+                    bottom_buttons,  # Add the buttons below the tabs
+                ],
+                fluid=True,
+            )
+    # @tim: TODO: Can we actually get here? Doesn't the above account for non-subcategories
+    # by assigning it a main tab?
+    # else:
+    #     # Render plots directly for categories without subcategories
+    #     plots = []
+    #     for df in relevant_dataframes:
+    #         category_key = df
+    #         data = dataframes[category_key]
+    #         config = plot_configs[category_key]
+
+    #         # Create plot for each plot type
+    #         for plot_type, plot_settings in config.items():
+    #             plot_id = f"{category_key}-{plot_type}"
+
+    #             # Create the plot figure
+    #             figure = create_plot(data, plot_type, plot_settings)
+
+    #             # Create UI elements
+    #             if plot_type == "HeatMap":
+    #                 ui = create_ui_for_heatmap(plot_type, plot_id)
+    #                 graph_type = "heatmap-graph"
+    #             elif plot_type == "SunburstChart":
+    #                 ui = create_ui_for_sunburst(plot_type, plot_id)
+    #                 graph_type = "sunburst-graph"
+    #             elif plot_type == "SurfacePlot":
+    #                 ui = create_ui_for_surface_plot(plot_type, plot_id)
+    #                 graph_type = "surface-graph"
+    #             elif plot_type == "BoxAndWhisker":
+    #                 ui = create_ui_for_box_and_whisker(
+    #                     plot_type, plot_id, plot_settings
+    #                 )
+    #                 graph_type = "box-and-whisker-graph"
+    #             elif plot_type == "Timeseries":
+    #                 ui = create_ui_for_timeseries(plot_type, plot_id, plot_settings)
+    #                 graph_type = "timeseries-graph"
+    #             else:
+    #                 ui = None
+    #                 graph_type = f"{plot_type.lower()}-graph"
+
+    #             # Create the plot content with graph and UI controls
+    #             plot_content = dbc.Container(
+    #                 [
+    #                     dcc.Graph(
+    #                         id={"type": graph_type, "index": plot_id}, figure=figure
+    #                     ),
+    #                     ui,  # Add UI controls below the graph
+    #                 ],
+    #                 fluid=True,
+    #             )
+
+    #             plots.append(plot_content)
+
+    #     # Return all plots within a container along with the download buttons
+    #     return dbc.Container(
+    #         [*plots, html.Hr(), bottom_buttons],  # Unpack all plot components
+    #         fluid=True,
+    #     )
 
 
 # Function to create tab content with the graph and UI controls for a given plot type
-def create_tab_content(plot_type, plot_settings, data, plot_id, subcategory):
+def create_tab_content(plot_type, plot_settings, plot_id, subcategory):
     if plot_type == "PieChartAndTable":
-        return create_pie_chart_and_table_tab(plot_settings, data, plot_id, subcategory)
+        return create_pie_chart_and_table_tab(plot_settings, plot_id, subcategory)
 
     else:
         # Handle other plot types
-        figure = create_plot(data, plot_type, plot_settings)
+        figure = create_plot(plot_type, plot_settings)
         if not figure:
             return None  # Skip if the plot figure couldn't be created
 
@@ -644,7 +658,7 @@ def create_tab_content(plot_type, plot_settings, data, plot_id, subcategory):
             ui = create_ui_for_surface_plot(plot_type, plot_id)
             graph_type = "surface-graph"
         elif plot_type == "BoxAndWhisker":
-            ui = create_ui_for_box_and_whisker(plot_type, plot_id, data, plot_settings)
+            ui = create_ui_for_box_and_whisker(plot_type, plot_id, plot_settings)
             graph_type = "box-and-whisker-graph"
         elif plot_type == "Timeseries":
             ui = create_ui_for_timeseries(plot_type, plot_id, plot_settings)
@@ -667,7 +681,8 @@ def create_tab_content(plot_type, plot_settings, data, plot_id, subcategory):
 
 
 # Creates the appropriate plot based on plot type and settings.
-def create_plot(data, plot_type, plot_settings):
+def create_plot(plot_type, plot_settings):
+    data = plot_settings["dataframe"]
     title = plot_settings["title"]
 
     if plot_type == "HeatMap":
@@ -740,13 +755,13 @@ def create_plot(data, plot_type, plot_settings):
 
 # Creates a mapping from URL-friendly paths to dataframe keys. For example, it turns 'Water_UsageAnalysis' into 'water'.
 def create_url_mapping(plot_configs):
-    url_mapping = {}
+    url_mapping = defaultdict(list)
 
     for key in plot_configs.keys():
         # Convert PascalCase to URL-friendly lowercase path, only using the first part (before '_')
         url_friendly_key = key.split("_")[0].lower()
         # Map the URL-friendly path to the original key
-        url_mapping[url_friendly_key] = key
+        url_mapping[url_friendly_key].append(key)
 
     return url_mapping
 
@@ -766,16 +781,16 @@ def pascal_to_words(text):
     return re.sub(r"(?<!^)(?=[A-Z])", " ", text)
 
 
-# Helper function to create a hierarchical category structure from dataframe keys
-def create_category_structure(df_list):
+# Helper function to create a hierarchical category structure from analysis keys
+def create_category_structure(analysis_list):
     categories = {}
-    for df in df_list:
-        if "_" in df:
-            main_cat, sub_cat = df.split(
+    for analysis_name in analysis_list:
+        if "_" in analysis_name:
+            main_cat, sub_cat = analysis_name.split(
                 "_", 1
             )  # Split into main category and subcategory
         else:
-            main_cat, sub_cat = df, None  # If no subcategory, set to None
+            main_cat, sub_cat = analysis_name, None  # If no subcategory, set to None
 
         main_cat = pascal_to_words(main_cat)  # Convert to readable format
         sub_cat = (
@@ -795,7 +810,7 @@ def create_category_structure(df_list):
 #                                VISUALISATIONS                                #
 ################################################################################
 
-# --------------------------------  BOX PLOT  --------------------------------
+# --------------------------------  BOX PLOT  -------------------------------- #
 
 
 # Function to create box and whiskers plot
@@ -829,7 +844,9 @@ def create_box_plot(data, title, x_label, y_label):
 
 
 # Function to dynamically create UI components for BoxAndWhisker plots
-def create_ui_for_box_and_whisker(plot_type, plot_id, data, plot_settings):
+def create_ui_for_box_and_whisker(plot_type, plot_id, plot_settings):
+    data = plot_settings["dataframe"]
+
     if plot_type == "BoxAndWhisker":
         ui_elements = []
         dropdown_config = plot_settings.get("UI", {}).get("dropdown", {})
@@ -893,7 +910,7 @@ def update_box_and_whisker(selected_variables, input_id):
     return updated_figure
 
 
-# --------------------------------  HEATMAP  ---------------------------------
+# --------------------------------  HEATMAP  --------------------------------- #
 
 
 # Create heatmap function
@@ -992,7 +1009,7 @@ def update_heatmap(selected_color_scale, input_id):
     return updated_figure
 
 
-# -------------------------  LINE PLOT / TIMESERIES  -------------------------
+# -------------------------  LINE PLOT / TIMESERIES  ------------------------- #
 
 
 # Function to create line plot (timeseries)
@@ -1109,7 +1126,7 @@ def update_timeseries_plot(start_date, end_date, frequency, input_id):
     return updated_figure
 
 
-# -------------------------------  PIE CHART  --------------------------------
+# -------------------------------  PIE CHART  -------------------------------- #
 
 
 # Create pie chart function
@@ -1137,11 +1154,11 @@ def create_pie_chart(
     return fig
 
 
-# ---------------------------  PIE CHART + TABLE  ----------------------------
+# ---------------------------  PIE CHART + TABLE  ---------------------------- #
 
 
 # Creates a Dash Tab containing pie charts and tables based on the provided settings.
-def create_pie_chart_and_table_tab(plot_settings, data, plot_id, subcategory):
+def create_pie_chart_and_table_tab(plot_settings, plot_id, subcategory):
     # Extract pie charts and tables configurations
     pie_charts = plot_settings.get("pie_charts", [])
     tables = plot_settings.get("tables", [])
@@ -1149,6 +1166,7 @@ def create_pie_chart_and_table_tab(plot_settings, data, plot_id, subcategory):
     pie_content = []
     # Create pie charts
     for pie_chart in pie_charts:
+        data = pie_chart["dataframe"]
         chart_title = pie_chart.get("title", "Pie Chart")
         chart_labels = pie_chart.get("labels", "")
         textinfo = pie_chart.get("textinfo", "percent+label")
@@ -1186,6 +1204,7 @@ def create_pie_chart_and_table_tab(plot_settings, data, plot_id, subcategory):
     table_content = []
     # Create tables with applied filters
     for table in tables:
+        data = table["dataframe"]
         table_title = table.get("title", "Table")
         columns = table.get("columns", [])
         data_source_key = table.get("data_source", "")
@@ -1252,7 +1271,7 @@ def create_pie_chart_and_table_tab(plot_settings, data, plot_id, subcategory):
     )
 
 
-# -----------------------------  SUNBURST CHART  -----------------------------
+# -----------------------------  SUNBURST CHART  ----------------------------- #
 
 
 # Create sunburst function
@@ -1344,7 +1363,7 @@ def update_sunburst(selected_color_scale, input_id):
     return updated_figure
 
 
-# ------------------------------  SURFACE PLOT  ------------------------------
+# ------------------------------  SURFACE PLOT  ------------------------------ #
 
 
 # Function to create surface plot
@@ -1472,7 +1491,7 @@ def update_surface_plot(selected_color_scale, input_id):
     return updated_figure
 
 
-# ---------------------------------  TABLE  ----------------------------------
+# ---------------------------------  TABLE  ---------------------------------- #
 
 
 # Create table function
@@ -1489,5 +1508,5 @@ def create_table(data, columns, title):
 
 # Run the app
 if __name__ == "__main__":
-    setup_layout()
+    construct_layout()
     app.run_server(port=8050, debug=True)
