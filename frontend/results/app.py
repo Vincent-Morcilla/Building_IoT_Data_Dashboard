@@ -14,6 +14,10 @@ app = dash.Dash(
     suppress_callback_exceptions=True,  # Allows callbacks to reference components not yet in the layout
 )
 
+################################################################################
+#                                 SAMPLE DATA                                  #
+################################################################################
+
 # Sample dataframes representing different datasets used in the app
 dataframes = {
     "Area_BuildingStructure": pd.DataFrame(
@@ -309,90 +313,118 @@ plot_configs = {
     },
 }
 
-
-# Creates a mapping from URL-friendly paths to dataframe keys. For example, it turns 'Water_UsageAnalysis' into 'water'.
-def create_url_mapping(plot_configs):
-    url_mapping = {}
-
-    for key in plot_configs.keys():
-        # Convert PascalCase to URL-friendly lowercase path, only using the first part (before '_')
-        url_friendly_key = key.split("_")[0].lower()
-        # Map the URL-friendly path to the original key
-        url_mapping[url_friendly_key] = key
-
-    return url_mapping
+url_to_key_mapping = {}  # Mapping for dataframes and plot configurations based on URLs
+bottom_buttons = None  # Buttons for downloading reports and data
 
 
-# Create a mapping for dataframes and plot configurations based on URLs
-url_to_key_mapping = create_url_mapping(plot_configs)
+def setup_layout():
 
+    # Create a mapping for dataframes and plot configurations based on URLs
+    global url_to_key_mapping
+    url_to_key_mapping = create_url_mapping(plot_configs)
 
-# Filters the dataframe based on the provided date range and resamples it according to frequency.
-def filter_data(df, start_date, end_date, variables, frequency=None):
-    df_filtered = df[(df["Timestamp"] >= start_date) & (df["Timestamp"] <= end_date)]
-    if frequency:
-        df_filtered = (
-            df_filtered.set_index("Timestamp").resample(frequency).mean().reset_index()
-        )
-    return df_filtered[["Timestamp"] + variables]
-
-
-# Define the bottom buttons for downloading reports and data
-bottom_buttons = dbc.Row(
-    [
-        dbc.Col(
-            dbc.Button(
-                "Download Report",
-                id="download-left",
-                color="success",
+    global bottom_buttons
+    # Define the bottom buttons for downloading reports and data
+    bottom_buttons = dbc.Row(
+        [
+            dbc.Col(
+                dbc.Button(
+                    "Download Report",
+                    id="download-left",
+                    color="success",
+                ),
+                width="auto",
             ),
-            width="auto",
-        ),
-        dbc.Col(
-            dbc.Button("Download Data", id="download-right", color="success"),
-            width="auto",
-        ),
-    ],
-    justify="end",
-    className="ml-auto",
-)
+            dbc.Col(
+                dbc.Button("Download Data", id="download-right", color="success"),
+                width="auto",
+            ),
+        ],
+        justify="end",
+        className="ml-auto",
+    )
+
+    # Create main categories and subcategories from the dataframe keys
+    main_categories = create_category_structure(dataframes.keys())
+
+    # Special case: Add "Home" as a top-level category without subcategories
+    main_categories["Home"] = []  # "Home" has no subcategories or associated data
+
+    # Generate the sidebar component
+    sidebar = html.Div(
+        [
+            html.Button(
+                html.Div(
+                    html.Img(src="/assets/logo.svg", className="sidebar-logo"),
+                    className="sidebar-logo-container",
+                ),
+                id="logo-button",
+                n_clicks=0,
+                className="logo-button",
+                style={
+                    "background": "none",
+                    "border": "none",
+                    "padding": "0",
+                    "margin": "0",
+                    "cursor": "pointer",
+                },
+            ),
+            html.Hr(),
+            generate_sidebar(main_categories),
+        ],
+        className="sidebar",
+    )
+
+    # Content area where page-specific content will be displayed
+    content = html.Div(id="page-content", className="content")
+
+    # Define the overall layout of the app, including sidebar and content area
+    app.layout = html.Div(
+        [
+            dcc.Location(id="url"),
+            sidebar,
+            dbc.Spinner(
+                children=[content],
+                color="#3c9639",
+                fullscreen=False,
+                type="border",
+                size="md",
+            ),
+            dcc.Store(id="screen-size", storage_type="session"),
+            dbc.Modal(
+                [
+                    dbc.ModalHeader(dbc.ModalTitle("Navigate to Homepage?")),
+                    dbc.ModalBody("Are you sure you want to go to the homepage?"),
+                    dbc.ModalFooter(
+                        [
+                            dbc.Button(
+                                "Yes",
+                                id="modal-yes-button",
+                                color="success",
+                                n_clicks=0,
+                            ),
+                            dbc.Button(
+                                "No",
+                                id="modal-no-button",
+                                outline=True,
+                                color="success",
+                                n_clicks=0,
+                            ),
+                        ]
+                    ),
+                ],
+                id="warning-modal",
+                is_open=False,
+            ),
+            dcc.Download(id="download-data-csv"),
+            dcc.Download(id="download-report-pdf"),
+        ]
+    )
 
 
-# Helper function to convert PascalCase text to readable words
-def pascal_to_words(text):
-    return re.sub(r"(?<!^)(?=[A-Z])", " ", text)
-
-
-# Helper function to create a hierarchical category structure from dataframe keys
-def create_category_structure(df_list):
-    categories = {}
-    for df in df_list:
-        if "_" in df:
-            main_cat, sub_cat = df.split(
-                "_", 1
-            )  # Split into main category and subcategory
-        else:
-            main_cat, sub_cat = df, None  # If no subcategory, set to None
-
-        main_cat = pascal_to_words(main_cat)  # Convert to readable format
-        sub_cat = (
-            pascal_to_words(sub_cat) if sub_cat else None
-        )  # Convert subcategory if exists
-
-        # Add to dictionary
-        if main_cat not in categories:
-            categories[main_cat] = []  # Initialise subcategory list
-        if sub_cat:
-            categories[main_cat].append(sub_cat)  # Add subcategory if exists
-
-    return categories
-
-
-# Create main categories and subcategories from the dataframe keys
-main_categories = create_category_structure(dataframes.keys())
-
-# Special case: Add "Home" as a top-level category without subcategories
-main_categories["Home"] = []  # "Home" has no subcategories or associated data
+################################################################################
+#                                    LAYOUT                                    #
+################################################################################
 
 
 # Function to generate the sidebar navigation based on categories
@@ -426,75 +458,6 @@ def generate_sidebar(categories):
                 )
 
     return dbc.Nav(nav_links, vertical=True, pills=True)
-
-
-# Generate the sidebar component
-sidebar = html.Div(
-    [
-        html.Button(
-            html.Div(
-                html.Img(src="/assets/logo.svg", className="sidebar-logo"),
-                className="sidebar-logo-container",
-            ),
-            id="logo-button",
-            n_clicks=0,
-            className="logo-button",
-            style={
-                "background": "none",
-                "border": "none",
-                "padding": "0",
-                "margin": "0",
-                "cursor": "pointer",
-            },
-        ),
-        html.Hr(),
-        generate_sidebar(main_categories),
-    ],
-    className="sidebar",
-)
-
-# Content area where page-specific content will be displayed
-content = html.Div(id="page-content", className="content")
-
-# Define the overall layout of the app, including sidebar and content area
-app.layout = html.Div(
-    [
-        dcc.Location(id="url"),
-        sidebar,
-        dbc.Spinner(
-            children=[content],
-            color="#3c9639",
-            fullscreen=False,
-            type="border",
-            size="md",
-        ),
-        dcc.Store(id="screen-size", storage_type="session"),
-        dbc.Modal(
-            [
-                dbc.ModalHeader(dbc.ModalTitle("Navigate to Homepage?")),
-                dbc.ModalBody("Are you sure you want to go to the homepage?"),
-                dbc.ModalFooter(
-                    [
-                        dbc.Button(
-                            "Yes", id="modal-yes-button", color="success", n_clicks=0
-                        ),
-                        dbc.Button(
-                            "No",
-                            id="modal-no-button",
-                            outline=True,
-                            color="success",
-                            n_clicks=0,
-                        ),
-                    ]
-                ),
-            ],
-            id="warning-modal",
-            is_open=False,
-        ),
-        dcc.Download(id="download-data-csv"),
-        dcc.Download(id="download-report-pdf"),
-    ]
-)
 
 
 ## Callback to control the modal window and handle navigation when the logo is clicked
@@ -532,50 +495,6 @@ def toggle_modal_and_navigate(
         return False, current_pathname  # Close modal, stay on current page
 
     return is_open, dash.no_update
-
-
-# Function to create tab content with the graph and UI controls for a given plot type
-def create_tab_content(plot_type, plot_settings, data, plot_id, subcategory):
-    if plot_type == "PieChartAndTable":
-        return create_pie_chart_and_table_tab(plot_settings, data, plot_id, subcategory)
-
-    else:
-        # Handle other plot types
-        figure = create_plot(data, plot_type, plot_settings)
-        if not figure:
-            return None  # Skip if the plot figure couldn't be created
-
-        # Determine which UI components to add based on plot type
-        if plot_type == "HeatMap":
-            ui = create_ui_for_heatmap(plot_type, plot_id)
-            graph_type = "heatmap-graph"
-        elif plot_type == "SunburstChart":
-            ui = create_ui_for_sunburst(plot_type, plot_id)
-            graph_type = "sunburst-graph"
-        elif plot_type == "SurfacePlot":
-            ui = create_ui_for_surface_plot(plot_type, plot_id)
-            graph_type = "surface-graph"
-        elif plot_type == "BoxAndWhisker":
-            ui = create_ui_for_box_and_whisker(plot_type, plot_id, data, plot_settings)
-            graph_type = "box-and-whisker-graph"
-        elif plot_type == "Timeseries":
-            ui = create_ui_for_timeseries(plot_type, plot_id, plot_settings)
-            graph_type = "timeseries-graph"
-        else:
-            ui = None
-            graph_type = f"{plot_type.lower()}-graph"  # Generic graph type
-
-        # Create the tab with the graph and UI components
-        return dbc.Tab(
-            dbc.Container(
-                [
-                    dcc.Graph(id={"type": graph_type, "index": plot_id}, figure=figure),
-                    ui,  # Add UI controls below the graph
-                ]
-            ),
-            label=subcategory,  # Label for the tab
-            tab_id=plot_id,
-        )
 
 
 # Callback to update the main content area based on the current URL path
@@ -700,6 +619,50 @@ def display_page(pathname):
     return html.Div([html.H1("404 Page not found")])
 
 
+# Function to create tab content with the graph and UI controls for a given plot type
+def create_tab_content(plot_type, plot_settings, data, plot_id, subcategory):
+    if plot_type == "PieChartAndTable":
+        return create_pie_chart_and_table_tab(plot_settings, data, plot_id, subcategory)
+
+    else:
+        # Handle other plot types
+        figure = create_plot(data, plot_type, plot_settings)
+        if not figure:
+            return None  # Skip if the plot figure couldn't be created
+
+        # Determine which UI components to add based on plot type
+        if plot_type == "HeatMap":
+            ui = create_ui_for_heatmap(plot_type, plot_id)
+            graph_type = "heatmap-graph"
+        elif plot_type == "SunburstChart":
+            ui = create_ui_for_sunburst(plot_type, plot_id)
+            graph_type = "sunburst-graph"
+        elif plot_type == "SurfacePlot":
+            ui = create_ui_for_surface_plot(plot_type, plot_id)
+            graph_type = "surface-graph"
+        elif plot_type == "BoxAndWhisker":
+            ui = create_ui_for_box_and_whisker(plot_type, plot_id, data, plot_settings)
+            graph_type = "box-and-whisker-graph"
+        elif plot_type == "Timeseries":
+            ui = create_ui_for_timeseries(plot_type, plot_id, plot_settings)
+            graph_type = "timeseries-graph"
+        else:
+            ui = None
+            graph_type = f"{plot_type.lower()}-graph"  # Generic graph type
+
+        # Create the tab with the graph and UI components
+        return dbc.Tab(
+            dbc.Container(
+                [
+                    dcc.Graph(id={"type": graph_type, "index": plot_id}, figure=figure),
+                    ui,  # Add UI controls below the graph
+                ]
+            ),
+            label=subcategory,  # Label for the tab
+            tab_id=plot_id,
+        )
+
+
 # Creates the appropriate plot based on plot type and settings.
 def create_plot(data, plot_type, plot_settings):
     title = plot_settings["title"]
@@ -768,7 +731,65 @@ def create_plot(data, plot_type, plot_settings):
 
 
 ################################################################################
-#                                   LAYOUTS                                    #
+#                               HELPER FUNCTIONS                               #
+################################################################################
+
+
+# Creates a mapping from URL-friendly paths to dataframe keys. For example, it turns 'Water_UsageAnalysis' into 'water'.
+def create_url_mapping(plot_configs):
+    url_mapping = {}
+
+    for key in plot_configs.keys():
+        # Convert PascalCase to URL-friendly lowercase path, only using the first part (before '_')
+        url_friendly_key = key.split("_")[0].lower()
+        # Map the URL-friendly path to the original key
+        url_mapping[url_friendly_key] = key
+
+    return url_mapping
+
+
+# Filters the dataframe based on the provided date range and resamples it according to frequency.
+def filter_data(df, start_date, end_date, variables, frequency=None):
+    df_filtered = df[(df["Timestamp"] >= start_date) & (df["Timestamp"] <= end_date)]
+    if frequency:
+        df_filtered = (
+            df_filtered.set_index("Timestamp").resample(frequency).mean().reset_index()
+        )
+    return df_filtered[["Timestamp"] + variables]
+
+
+# Helper function to convert PascalCase text to readable words
+def pascal_to_words(text):
+    return re.sub(r"(?<!^)(?=[A-Z])", " ", text)
+
+
+# Helper function to create a hierarchical category structure from dataframe keys
+def create_category_structure(df_list):
+    categories = {}
+    for df in df_list:
+        if "_" in df:
+            main_cat, sub_cat = df.split(
+                "_", 1
+            )  # Split into main category and subcategory
+        else:
+            main_cat, sub_cat = df, None  # If no subcategory, set to None
+
+        main_cat = pascal_to_words(main_cat)  # Convert to readable format
+        sub_cat = (
+            pascal_to_words(sub_cat) if sub_cat else None
+        )  # Convert subcategory if exists
+
+        # Add to dictionary
+        if main_cat not in categories:
+            categories[main_cat] = []  # Initialise subcategory list
+        if sub_cat:
+            categories[main_cat].append(sub_cat)  # Add subcategory if exists
+
+    return categories
+
+
+################################################################################
+#                                VISUALISATIONS                                #
 ################################################################################
 
 # --------------------------------  BOX PLOT  --------------------------------
@@ -1465,4 +1486,5 @@ def create_table(data, columns, title):
 
 # Run the app
 if __name__ == "__main__":
+    setup_layout()
     app.run_server(port=8050, debug=True)
