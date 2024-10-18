@@ -322,7 +322,7 @@ def update_progress_or_close_modal(n_intervals, close_clicks, session_id):
                     return f"Error: {error}", 0, "", dash.no_update, dash.no_update, error, True
 
                 if percentage == 100:
-                    # Redirect to results page with session ID
+                    # Redirect to results page with session ID and disable interval
                     return f"Stage: {stage}", percentage, f"{percentage}%", '/results', f"?session_id={session_id}", dash.no_update, False
 
                 return f"Stage: {stage}", percentage, f"{percentage}%", dash.no_update, dash.no_update, dash.no_update, False

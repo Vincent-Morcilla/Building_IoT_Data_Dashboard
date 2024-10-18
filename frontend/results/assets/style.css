@@ -40,6 +40,11 @@ body {
 }
 
 .sidebar-logo {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
   height: auto;
   transition: transform 0.3s ease-in-out;
 }

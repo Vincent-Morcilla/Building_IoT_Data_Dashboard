@@ -1,115 +1,453 @@
 import dash
 import dash_bootstrap_components as dbc
-from dash import Input, Output, dcc, html, callback_context, State
+from dash import Input, Output, dcc, html, callback_context, State, MATCH
+import re
+import numpy as np
+import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-import pandas as pd
-import numpy as np
 
-from io import BytesIO
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import letter
-
-# Initialize the app with external stylesheets
+# Initialise the Dash app with Bootstrap for styling and allow callbacks for dynamic content
 app = dash.Dash(
     __name__,
     external_stylesheets=[dbc.themes.BOOTSTRAP],
-    suppress_callback_exceptions=True
+    suppress_callback_exceptions=True # Allows callbacks to reference components not yet in the layout
 )
 
-# Define main categories and subcategories
-main_categories = {
-    "Home": [],
-    "Electricity": ["General Analysis", "Usage", "Breakout Detection", "Data Quality"],
-    "Temperature": ["General Analysis", "Weather Sensitivity", "Breakout Detection", "Data Quality"],
-    "Area": ["General Analysis", "Breakout Detection", "Data Quality"]
+# Sample dataframes representing different datasets used in the app
+dataframes = {
+    'Water_UsageAnalysis': pd.DataFrame({
+        'Month': pd.date_range(start='2021-01-01', periods=12, freq='ME'),
+        'Region': ['Region A'] * 6 + ['Region B'] * 6,
+        'Usage': [500, 600, 550, 620, 640, 630, 580, 610, 590, 605, 615, 620],
+    }),
+    'Area_BuildingStructure': pd.DataFrame({
+    'BuildingID': ['Building A', 'Building A', 'Building B', 'Building B'],
+    'ParentID': ['Building A', 'Room 1', 'Building B', 'Room 2'],
+    'EntityType': ['Room', 'Device', 'Room', 'Device'],
+    'EntityID': ['Room 1', 'Device 1', 'Room 2', 'Device 2'],
+    'Level': [1, 2, 1, 2]
+    }),
+    'Temperature_WeatherSensitivity': pd.DataFrame({
+        'Day': pd.date_range(start='2021-01-01', periods=365, freq='D'),
+        'Hour': [i % 24 for i in range(365)],
+        'Temperature': [i % 30 + 10 for i in range(365)],
+        'WeatherSensitivity': [i % 50 + 5 for i in range(365)]
+    }),
+    'Water_DataQuality': pd.DataFrame({
+        'Measurement': ['Quality A'] * 50 + ['Quality B'] * 50 + ['Quality C'] * 50,
+        'Value': np.random.normal(loc=50, scale=10, size=150)
+    }),
+    'Area_DataQuality': pd.DataFrame({
+        'Measurement': ['Quality A'] * 50 + ['Quality B'] * 50 + ['Quality C'] * 50,
+        'Value': np.random.normal(loc=50, scale=10, size=150)
+    }),
+    'Water_GeneralAnalysis': pd.DataFrame({
+    'Timestamp': pd.date_range(start='2023-01-01', periods=365, freq='D'),
+    'Usage': np.random.normal(loc=500, scale=50, size=365).cumsum(),
+    'Temperature': np.random.normal(loc=20, scale=5, size=365),
+    'Pressure': np.random.normal(loc=30, scale=3, size=365)
+    }),
+    'Water_UsageAnalysis': pd.DataFrame({
+        'Month': pd.date_range(start='2021-01-01', periods=12, freq='ME'),
+        'Region': ['Region A'] * 6 + ['Region B'] * 6,
+        'Usage': [500, 600, 550, 620, 640, 630, 580, 610, 590, 605, 615, 620],
+    }),
+    'Area_BuildingStructure': pd.DataFrame({
+    'BuildingID': ['Building A', 'Building A', 'Building B', 'Building B'],
+    'ParentID': ['Building A', 'Room 1', 'Building B', 'Room 2'],
+    'EntityType': ['Room', 'Device', 'Room', 'Device'],
+    'EntityID': ['Room 1', 'Device 1', 'Room 2', 'Device 2'],
+    'Level': [1, 2, 1, 2]
+    }),
+    'Temperature_WeatherSensitivity': pd.DataFrame({
+        'Day': pd.date_range(start='2021-01-01', periods=365, freq='D'),
+        'Hour': [i % 24 for i in range(365)],
+        'Temperature': [i % 30 + 10 for i in range(365)],
+        'WeatherSensitivity': [i % 50 + 5 for i in range(365)]
+    }),
+    'Water_DataQuality': pd.DataFrame({
+        'Measurement': ['Quality A'] * 50 + ['Quality B'] * 50 + ['Quality C'] * 50,
+        'Value': np.random.normal(loc=50, scale=10, size=150)
+    }),
+    'Area_DataQuality': pd.DataFrame({
+        'Measurement': ['Quality A'] * 50 + ['Quality B'] * 50 + ['Quality C'] * 50,
+        'Value': np.random.normal(loc=50, scale=10, size=150)
+    }),
+    'Water_GeneralAnalysis': pd.DataFrame({
+    'Timestamp': pd.date_range(start='2023-01-01', periods=365, freq='D'),
+    'Usage': np.random.normal(loc=500, scale=50, size=365).cumsum(),
+    'Temperature': np.random.normal(loc=20, scale=5, size=365),
+    'Pressure': np.random.normal(loc=30, scale=3, size=365)
+    }),
+    'ModelQuality_RecognisedEntities': pd.DataFrame({
+    'entity_id': ['Entity_1', 'Entity_2', 'Entity_3', 'Entity_4', 'Entity_5'],
+    'brick_class': ['Class_A', 'Class_B', 'Class_C', 'Class_D', 'Class_E'],
+    'class_in_provided_brick': [True, False, True, False, True]
+    }),
+    'ModelQuality_MissingTimeseries': pd.DataFrame({
+    'stream_id': ['Stream_1', 'Stream_2', 'Stream_3', 'Stream_4'],
+    'brick_class': ['Class_A', 'Class_B', 'Class_C', 'Class_D'],
+    'has_data': [True, False, True, False],
+    'stream_exists_in_mapping': [True, False, True, False]
+    }),
+    'ModelQuality_ClassInconsistency': pd.DataFrame({
+    'entity': ['Entity_1', 'Entity_2', 'Entity_3', 'Entity_4'],
+    'brick_class': ['Class_A', 'Class_B', 'Class_C', 'Class_D'],
+    'brick_class_in_mapping': ['Class_A', 'Class_E', 'Class_C', 'Class_F'],
+    'brick_class_is_consistent': [True, False, True, False]
+    })
 }
 
-# Map pathnames to category names
-path_to_category = {
-    'electricity': 'Electricity',
-    'temperature': 'Temperature',
-    'area': 'Area',
-}
-
-# Read the data from CSV into a DataFrame
-data = pd.read_csv('building_iot_data.csv', parse_dates=['Timestamp'])
-
-# Sidebar layout with navigation links
-sidebar = html.Div(
-    [
-        html.Button(
-            html.Div(html.Img(src="/assets/logo.svg", className="sidebar-logo"),
-                     className="sidebar-logo-container"),
-            id='logo-button',
-            n_clicks=0,
-            className='logo-button',
-            style={'background': 'none', 'border': 'none', 'padding': '0', 'margin': '0', 'cursor': 'pointer'}
-        ),
-        html.Hr(),
-        dbc.Nav(
-            [
-                dbc.NavLink(
-                    category,
-                    href="/" if category == "Home" else f"/{category.lower().replace(' ', '-')}",
-                    active="exact"
-                )
-                for category in main_categories.keys()
+# Configuration dictionary defining UI components and plot settings for each dataframe
+plot_configs = {
+    "Water_UsageAnalysis": {
+        "HeatMap": {
+            "title": "Water Usage Heat Map",
+            "x-axis": "Month",
+            "y-axis": "Region",
+            "z-axis": "Usage",
+            "x-axis_label": "Month",
+            "y-axis_label": "Region",
+            "z-axis_label": "Water Usage (Liters)"
+        }
+    },
+    "Area_BuildingStructure": {
+        "SunburstChart": {
+            "title": "Building Structure Sunburst",
+            "EntityID": "EntityID",
+            "EntityType": "EntityType",
+            "ParentID": "ParentID",
+            "BuildingID": "BuildingID",
+            "z-axis": "Level",
+            "z-axis_label": "Hierarchy Level"
+        }
+    },
+    "Temperature_WeatherSensitivity": {
+        "SurfacePlot": {
+            "title": "Temperature vs Weather Sensitivity",
+            "X-value": "Day",
+            "Y-values": ["Hour"],
+            "Z-value": "WeatherSensitivity",
+            "x-axis_label": "Day",
+            "y-axis_label": "Hour of the Day",
+            "z-axis_label": "Weather Sensitivity"
+        }
+    },
+    "Water_DataQuality": {
+        "BoxAndWhisker": {
+            "title": "Water Data Quality Box and Whisker Plot",
+            "x-axis": "Measurement",
+            "y-axis": "Value",
+            "x-axis_label": "Measurement Type",
+            "y-axis_label": "Quality Value",
+            "UI": {
+                "dropdown": {
+                    "instructions": "Select measurements to display:",
+                    "controls": "Measurement"  # Specify the column to extract unique values from
+                }
+            }
+        }
+    },
+    "Area_DataQuality": {
+        "BoxAndWhisker": {
+            "title": "Water Data Quality Box and Whisker Plot",
+            "x-axis": "Measurement",
+            "y-axis": "Value",
+            "x-axis_label": "Measurement Type",
+            "y-axis_label": "Quality Value",
+            "UI": {
+                "dropdown": {
+                    "instructions": "Select measurements to display:",
+                    "controls": "Measurement"  # Column to extract unique values from for dropdown
+                }
+            }
+        }
+    },
+    'Water_GeneralAnalysis': {
+        "Timeseries": {
+            "title": "Water Usage Over Time",
+            "x-axis": "Timestamp",
+            "y-axis": ["Usage", "Temperature", "Pressure"],  # Multiple variables to plot
+            "x-axis_label": "Date",
+            "y-axis_label": "Values",
+            "UI": {
+                "datepicker": {
+                    "html.Label": "Select Date Range",
+                    "min_date_allowed": dataframes['Water_GeneralAnalysis']['Timestamp'].min().strftime('%Y-%m-%d'),
+                    "max_date_allowed": dataframes['Water_GeneralAnalysis']['Timestamp'].max().strftime('%Y-%m-%d'),
+                    "start_date": dataframes['Water_GeneralAnalysis']['Timestamp'].min().strftime('%Y-%m-%d'),
+                    "end_date": dataframes['Water_GeneralAnalysis']['Timestamp'].max().strftime('%Y-%m-%d'),
+                    "controls": "Timestamp"
+                },
+                "radioitem": {
+                    "html.Label": "Select Frequency",
+                    "options": [("Hourly", "h"), ("Daily", "D"), ("Monthly", "ME")],
+                    "controls": "Timestamp",
+                    "default_value": "D"
+                }
+            }
+        }
+    },
+    "ModelQuality_RecognisedEntities": {
+        "PieChartAndTable": {
+            "title": "Brick Entities in Building Model Recognised by Brick Schema",
+            "pie_charts": [
+                {
+                    "title": "Proportion of Recognised vs Unrecognised Entities",
+                    "labels": "class_in_provided_brick",
+                    "textinfo": "percent+label",
+                    "filter": None
+                },
+                {
+                    "title": "Unrecognised Entities by Class",
+                    "labels": "brick_class",
+                    "textinfo": "percent+label",
+                    "filter": "class_in_provided_brick == False"
+                }
             ],
-            vertical=True,
-            pills=True,
-        ),
-    ],
-    className="sidebar"
-)
-
-content = html.Div(id="page-content", className="content")
-
-# Layout includes sidebar and content area and used a dcc.Store component to hold screen size data
-app.layout = html.Div([
-    dcc.Location(id="url"),
-    sidebar,
-    content,
-    dcc.Store(id='screen-size', storage_type='session'),
-    dbc.Modal(
-        [
-            dbc.ModalHeader(dbc.ModalTitle("Warning")),
-            dbc.ModalBody("Are you sure you want to go to the homepage? All data and visualizations will be lost."),
-            dbc.ModalFooter(
-                [
-                    dbc.Button("Yes", id="modal-yes-button", color="success", n_clicks=0),
-                    dbc.Button("No", id="modal-no-button", outline=True, color="success", n_clicks=0),
-                ]
-            ),
-        ],
-        id="warning-modal",
-        is_open=False,
-    ),
-    dcc.Download(id="download-data-csv"),
-    dcc.Download(id="download-report-pdf"),
-])
-
-# Clientside callback to app
-app.clientside_callback(
-    """
-    function(pathname) {
-        return window.innerWidth;
+            "tables": [
+                {
+                    "title": "Unrecognised Entities",
+                    "columns": ["Brick Class", "Entity ID"],
+                    "data_source": "ModelQuality_RecognisedEntities",  # Main dataframe
+                    "filter": "class_in_provided_brick == False",
+                    "rows": ["brick_class", "entity_id"]
+                },
+                {
+                    "title": "Recognised Entities",
+                    "columns": ["Brick Class", "Entity ID"],
+                    "data_source": "ModelQuality_RecognisedEntities",
+                    "filter": "class_in_provided_brick == True",
+                    "rows": ["brick_class", "entity_id"]
+                }
+            ]
+        }
+    },
+    "ModelQuality_MissingTimeseries": {
+        "PieChartAndTable": {
+            "title": "Data Sources in Building Model without Timeseries Data",
+            "pie_charts": [
+                {
+                    "title": "Proportion of Data Sources with Timeseries Data",
+                    "labels": "has_data",
+                    "textinfo": "percent+label",
+                    "filter": None
+                },
+                {
+                    "title": "Missing Timeseries Data by Class",
+                    "labels": "brick_class",
+                    "textinfo": "percent+label",
+                    "filter": "has_data == False"
+                }
+            ],
+            "tables": [
+                {
+                    "title": "Data Sources with Missing Timeseries Data",
+                    "columns": ["Brick Class", "Stream ID"],
+                    "data_source": "ModelQuality_MissingTimeseries",
+                    "filter": "has_data == False",
+                    "rows": ["brick_class", "stream_id"]
+                },
+                {
+                    "title": "Data Sources with Available Timeseries Data",
+                    "columns": ["Brick Class", "Stream ID"],
+                    "data_source": "ModelQuality_MissingTimeseries",
+                    "filter": "has_data == True",
+                    "rows": ["brick_class", "stream_id"]
+                }
+            ]
+        }
+    },
+    "ModelQuality_ClassInconsistency": {
+        "PieChartAndTable": {
+            "title": "Data Sources with Inconsistent Brick Class between Model and Mapper",
+            "pie_charts": [
+                {
+                    "title": "Proportion of Consistent vs Inconsistent Classes",
+                    "labels": "brick_class_is_consistent",
+                    "textinfo": "percent+label",
+                    "filter": None
+                },
+                {
+                    "title": "Inconsistent Brick Classes by Class",
+                    "labels": "brick_class",
+                    "values": "count",
+                    "textinfo": "percent+label",
+                    "filter": "brick_class_is_consistent == False"
+                }
+            ],
+            "tables": [
+                {
+                    "title": "Data Sources with Inconsistent Brick Class",
+                    "columns": ["Brick Class in Model", "Brick Class in Mapper", "Entity ID"],
+                    "data_source": "ModelQuality_ClassInconsistency",
+                    "filter": "brick_class_is_consistent == False",
+                    "rows": ["brick_class", "brick_class_in_mapping", "entity"]
+                }
+            ]
+        }
     }
-    """,
-    Output('screen-size', 'data'),
-    Input('url', 'pathname')
-)
+}
 
-# Function to filter data based on date range and frequency
+# Creates a mapping from URL-friendly paths to dataframe keys. For example, it turns 'Water_UsageAnalysis' into 'water'.
+def create_url_mapping(dataframes):
+    url_mapping = {}
+
+    for key in dataframes.keys():
+        # Convert PascalCase to URL-friendly lowercase path, only using the first part (before '_')
+        url_friendly_key = key.split('_')[0].lower()
+        # Map the URL-friendly path to the original key
+        url_mapping[url_friendly_key] = key
+    
+    return url_mapping
+
+# Create a mapping for dataframes and plot configurations based on URLs
+url_to_key_mapping = create_url_mapping(dataframes)
+
+# Filters the dataframe based on the provided date range and resamples it according to frequency.
 def filter_data(df, start_date, end_date, variables, frequency=None):
     df_filtered = df[(df['Timestamp'] >= start_date) & (df['Timestamp'] <= end_date)]
     if frequency:
         df_filtered = df_filtered.set_index('Timestamp').resample(frequency).mean().reset_index()
     return df_filtered[['Timestamp'] + variables]
 
-# Function to create line plot
+# Create heatmap function
+def create_heatmap(data, x_column, y_column, z_column, color_scale, title, x_label, y_label, z_label):
+    fig = px.density_heatmap(
+        data, x=x_column, y=y_column, z=z_column, color_continuous_scale=color_scale
+    )
+    fig.update_layout(
+        title={'text': title, 'x': 0.5, 'xanchor': 'center'},
+        xaxis_title=x_label,
+        yaxis_title=y_label,
+        font_color='black',
+        plot_bgcolor='white',
+        coloraxis_colorbar=dict(
+            title=z_label,
+            orientation='h',
+            yanchor='top',
+            y=-0.4,
+            xanchor='center',
+            x=0.5,
+            title_side='bottom'
+        )
+    )
+
+    fig.update_xaxes(
+        mirror=True, ticks='outside', showline=True,
+        linecolor='black', gridcolor='lightgrey'
+    )
+    fig.update_yaxes(
+        mirror=True, ticks='outside', showline=True,
+        linecolor='black', gridcolor='lightgrey'
+    )
+
+    return fig
+
+# Create sunburst function
+def create_sunburst_chart(data, building_column, parent_column, entity_column, value_column, title, color_scale='Viridis', height=700, width=700):
+    fig = px.sunburst(
+        data, 
+        path=[building_column, parent_column, entity_column], 
+        values=value_column, 
+        color=value_column, 
+        color_continuous_scale=color_scale,
+        title=title, 
+        height=height, 
+        width=width
+    )
+    fig.update_layout(
+        title={'text': title, 'x': 0.5, 'xanchor': 'center'},
+        font_color='black',
+        plot_bgcolor='white',
+        coloraxis_colorbar=dict(
+            title=value_column,
+            orientation='h',
+            yanchor='top',
+            y=-0.2,
+            xanchor='center',
+            x=0.5
+        )
+    )
+    return fig
+
+# Function to create surface plot
+def create_surface_plot(X, Y, Z, color_scale, title, x_label, y_label, z_label):
+    # Ensure Z has the correct shape
+    if len(Z) == len(X):  # If Z only has daily values
+        Z = np.repeat(Z, len(Y))  # Repeat each day's value for 24 hours
+
+    # Reshape Z to match the grid
+    Z_grid = np.array(Z).reshape(len(X), len(Y))
+
+    # Create meshgrid for X and Y
+    X_grid, Y_grid = np.meshgrid(X, Y)
+
+    fig = go.Figure(data=[go.Surface(
+        x=X_grid, y=Y_grid, z=Z_grid, colorscale=color_scale,
+        colorbar=dict(
+            orientation='h',
+            yanchor='top',
+            y=-0.3,
+            xanchor='center',
+            x=0.5,
+            title_side='bottom'
+        )
+    )])
+
+    fig.update_layout(
+        title={'text': title, 'x': 0.5, 'xanchor': 'center'},
+        autosize=True,
+        margin=dict(l=65, r=50, b=65, t=90),
+        font_color='black',
+        plot_bgcolor='white',
+        scene=dict(
+            xaxis=dict(
+                title=x_label,
+                mirror=True, ticks='outside', showline=True,
+                linecolor='black', gridcolor='lightgrey'
+            ),
+            yaxis=dict(
+                title=y_label,
+                mirror=True, ticks='outside', showline=True,
+                linecolor='black', gridcolor='lightgrey'
+            ),
+            zaxis=dict(
+                title=z_label,
+                mirror=True, ticks='outside', showline=True,
+                linecolor='black', gridcolor='lightgrey'
+            ),
+        )
+    )
+    return fig
+
+# Function to create box and whiskers plot
+def create_box_plot(data, title, x_label, y_label):
+    fig = px.box(data, x='Measurement', y='Value')
+    fig.update_layout(
+        title={'text': title, 'x': 0.5, 'xanchor': 'center'},
+        font_color='black',
+        plot_bgcolor='white',
+        margin=dict(l=50, r=50, b=100, t=50), 
+        autosize=True,
+        font=dict(size=10),
+        legend=dict(font=dict(size=10))
+    )
+    fig.update_xaxes(
+        mirror=True, ticks='outside', showline=True,
+        linecolor='black', gridcolor='lightgrey'
+    )
+    fig.update_yaxes(
+        mirror=True, ticks='outside', showline=True,
+        linecolor='black', gridcolor='lightgrey'
+    )
+    fig.update_traces(marker_color='#3c9639')
+    return fig
+
+# Function to create line plot (timeseries)
 def create_line_plot(data, x_column, y_columns, title):
-    fig = px.line(data, x=x_column, y=y_columns)
+    fig = px.line(data, x=x_column, y=y_columns, markers=True)
     fig.update_layout(
         title={'text': title, 'x': 0.5, 'xanchor': 'center'},
         font_color='black',
@@ -132,533 +470,266 @@ def create_line_plot(data, x_column, y_columns, title):
     )
     return fig
 
-# Function to create box plot
-def create_box_plot(data, y_columns, title):
-    fig = px.box(data, y=y_columns)
+# Create pie chart function
+def create_pie_chart(data, labels_column, values_column, title, textinfo="percent+label"):
+    # Calculate the count of occurrences for each label
+    value_counts = data[labels_column].value_counts().reset_index()
+    value_counts.columns = [labels_column, 'count']  # Rename for clarity
+
+    fig = go.Figure(
+        go.Pie(
+            labels=value_counts[labels_column],
+            values=value_counts['count'],
+            textinfo=textinfo
+        )
+    )
+
     fig.update_layout(
         title={'text': title, 'x': 0.5, 'xanchor': 'center'},
         font_color='black',
         plot_bgcolor='white',
-        margin=dict(l=50, r=50, b=100, t=50), 
-        autosize=True,
-        font=dict(size=10),
-        legend=dict(font=dict(size=10))
-    )
-    fig.update_xaxes(
-        mirror=True, ticks='outside', showline=True,
-        linecolor='black', gridcolor='lightgrey'
-    )
-    fig.update_yaxes(
-        mirror=True, ticks='outside', showline=True,
-        linecolor='black', gridcolor='lightgrey'
-    )
-    fig.update_traces(marker_color='#3c9639')
-    return fig
-
-# Function to create heatmap
-def create_heatmap(data, x_column, y_column, z_column, color_scale, title):
-    fig = px.density_heatmap(
-        data, x=x_column, y=y_column, z=z_column,
-        color_continuous_scale=color_scale
-    )
-    fig.update_layout(
-        title={'text': title, 'x': 0.5, 'xanchor': 'center'},
-        font_color='black',
-        plot_bgcolor='white',
-        coloraxis_colorbar=dict(
-            orientation='h',
-            yanchor='top',
-            y=-0.4,
-            xanchor='center',
-            x=0.5,
-            title_side='bottom'
-        )
-    )
-    fig.update_xaxes(
-        mirror=True, ticks='outside', showline=True,
-        linecolor='black', gridcolor='lightgrey'
-    )
-    fig.update_yaxes(
-        mirror=True, ticks='outside', showline=True,
-        linecolor='black', gridcolor='lightgrey'
     )
     return fig
-
-# Function to create surface plot
-def create_surface_plot(X, Y, Z, color_scale, title):
-    fig = go.Figure(data=[go.Surface(
-        x=X, y=Y, z=Z, colorscale=color_scale,
-        colorbar=dict(
-            orientation='h',
-            yanchor='top',
-            y=-0.3,
-            xanchor='center',
-            x=0.5,
-            title_side='bottom'
-        )
-    )])
-    
-    fig.update_layout(
-        title={'text': title, 'x': 0.5, 'xanchor': 'center'},
-        autosize=True,
-        margin=dict(l=65, r=50, b=65, t=90),
-        font_color='black',
-        plot_bgcolor='white',
-        scene=dict(
-            xaxis=dict(
-                mirror=True, ticks='outside', showline=True,
-                linecolor='black', gridcolor='lightgrey'
-            ),
-            yaxis=dict(
-                mirror=True, ticks='outside', showline=True,
-                linecolor='black', gridcolor='lightgrey'
-            ),
-            zaxis=dict(
-                mirror=True, ticks='outside', showline=True,
-                linecolor='black', gridcolor='lightgrey'
-            ),
-        )
-    )
     return fig
 
-# Helper function to get category from pathname
-def get_category_from_pathname(pathname):
-    pathname = pathname.lstrip("/")
-    if pathname == "" or pathname == "home":
-        return "Home"
-    elif pathname in path_to_category:
-        return path_to_category[pathname]
-    else:
-        return None
+# Create table function
+def create_table(data, columns, title):
+    table = dbc.Table.from_dataframe(
+        data[columns],
+        bordered=True,
+        hover=True,
+        responsive=True,
+        striped=True
+    )
+    return html.Div([
+        html.H5(title),
+        table
+    ])
 
-# Helper function to get variables for a category
-def get_variables_for_category(category):
-    if category == "Electricity":
-        return {
-            'general_vars': ['Electricity_General_Equipment_1', 'Electricity_General_Equipment_2', 'Electricity_General_Equipment_3'],
-            'usage_vars': ['Electricity_Usage_Equipment_1', 'Electricity_Usage_Equipment_2', 'Electricity_Usage_Equipment_3'],
-            'breakout_vars': ['Electricity_Breakout_Equipment_1', 'Electricity_Breakout_Equipment_2', 'Electricity_Breakout_Equipment_3'],
-            'quality_vars': ['Electricity_Quality_Equipment_1', 'Electricity_Quality_Equipment_2', 'Electricity_Quality_Equipment_3'],
-            'sensitivity_vars': []
-        }
-    elif category == "Temperature":
-        return {
-            'general_vars': ['Average_Temperature_Inside', 'Average_Temperature_Outside'],
-            'sensitivity_vars': ['Area_Inside_Room_Sensitivity', 'Area_Outside_Building_Sensitivity'],
-            'breakout_vars': ['Temperature_Breakout_Inside', 'Temperature_Breakout_Outside'],
-            'quality_vars': ['Temperature_Quality_Inside', 'Temperature_Quality_Outside'],
-            'usage_vars': []
-        }
-    elif category == "Area":
-        return {
-            'general_vars': ['Area_Inside_Room_Temperature', 'Area_Outside_Building_Temperature'],
-            'sensitivity_vars': [],
-            'breakout_vars': ['Area_Inside_Room_Sensitivity', 'Area_Outside_Building_Sensitivity'],
-            'quality_vars': ['Area_Quality_Inside', 'Area_Quality_Outside'],
-            'usage_vars': []
-        }
-    else:
-        return {
-            'general_vars': [],
-            'usage_vars': [],
-            'breakout_vars': [],
-            'quality_vars': [],
-            'sensitivity_vars': []
-        }
-
-# Function to create the download buttons
-def get_download_buttons():
-    download_buttons = dbc.Row(
-        [
-            dbc.Col(
-                dbc.Button("Download Report", id="download-left", outline=True, color="success"),
-                width="auto"
-            ),
-            dbc.Col(
-                dbc.Button("Download Data", id="download-right", outline=True, color="success"),
-                width="auto"
+# Function to dynamically create UI specifically for HeatMap plot types
+def create_ui_for_heatmap(plot_type, plot_id):
+    if plot_type == "HeatMap":
+        return html.Div([
+            html.Label("Select Color Scale"),
+            dcc.Dropdown(
+                id={'type': 'heatmap-color-scale-dropdown', 'index': plot_id},  # Use pattern-matching ID
+                options=[{'label': scale, 'value': scale} for scale in px.colors.named_colorscales()],
+                value="Viridis",
+                clearable=False
             )
-        ],
-        justify="end",
-        className="ml-auto"
-    )
-    return download_buttons
+        ])
+    return None 
 
-# Callback to render content based on URL
-@app.callback(Output("page-content", "children"), [Input("url", "pathname")])
-def render_page_content(pathname):
-    category = get_category_from_pathname(pathname)
-    if category == "Home":
-        return html.P("Welcome to the Home page!")
-    elif category in main_categories:
-        tabs = main_categories[category]
+# Function to dynamically create UI specifically for Sunburst plot types
+def create_ui_for_sunburst(plot_type, plot_id):
+    if plot_type == "SunburstChart":
         return html.Div([
-            dbc.Tabs(
+            html.Label("Select Color Scale"),
+            dcc.Dropdown(
+                id={'type': 'sunburst-color-scale-dropdown', 'index': plot_id},  # 'sunburst-color-scale-dropdown' matches callback
+                options=[{'label': scale, 'value': scale} for scale in px.colors.named_colorscales()],
+                value="Viridis",
+                clearable=False
+            )
+        ])
+    return None
+
+# Function to dynamically create UI specifically for Surface plot types
+def create_ui_for_surface_plot(plot_type, plot_id):
+    if plot_type == "SurfacePlot":
+        return html.Div([
+            html.Label("Select Color Scale"),
+            dcc.Dropdown(
+                id={'type': 'surface-color-scale-dropdown', 'index': plot_id},  # 'surface-color-scale-dropdown' matches callback
+                options=[{'label': scale, 'value': scale} for scale in px.colors.named_colorscales()],
+                value="Viridis",
+                clearable=False
+            )
+        ])
+    return None
+
+# Function to dynamically create UI components for BoxAndWhisker plots
+def create_ui_for_box_and_whisker(plot_type, plot_id, data, plot_settings):
+    if plot_type == "BoxAndWhisker":
+        ui_elements = []
+        dropdown_config = plot_settings.get("UI", {}).get("dropdown", {})
+        instructions = dropdown_config.get("instructions", "")
+        controls_column = dropdown_config.get("controls", "")
+        
+        # Extract unique values from the specified controls column
+        if controls_column and controls_column in data.columns:
+            unique_vars = data[controls_column].unique()
+            if len(unique_vars) > 1:
+                ui_elements.append(html.Label(instructions))
+                ui_elements.append(
+                    dcc.Dropdown(
+                        id={'type': 'box-and-whisker-dropdown', 'index': plot_id},
+                        options=[{'label': var, 'value': var} for var in unique_vars],
+                        value=list(unique_vars),  # Default to all variables
+                        multi=True,
+                        clearable=False
+                    )
+                )
+        return html.Div(ui_elements)
+    return None
+
+# Function to dynamically create UI components for Timeseries plots
+def create_ui_for_timeseries(plot_type, plot_id, plot_settings):
+    if plot_type == "Timeseries":
+        ui_elements = []
+        ui_config = plot_settings.get("UI", {})
+        
+        # Date Picker
+        datepicker_config = ui_config.get("datepicker", {})
+        if datepicker_config:
+            ui_elements.append(html.Label(datepicker_config.get("html.Label", "Select Date Range")))
+            ui_elements.append(
+                dcc.DatePickerRange(
+                    id={'type': 'timeseries-datepicker', 'index': plot_id},
+                    min_date_allowed=datepicker_config.get("min_date_allowed"),
+                    max_date_allowed=datepicker_config.get("max_date_allowed"),
+                    start_date=datepicker_config.get("start_date"),
+                    end_date=datepicker_config.get("end_date"),
+                    display_format='YYYY-MM-DD'
+                )
+            )
+        
+        # Radio Items for Frequency
+        radioitem_config = ui_config.get("radioitem", {})
+        if radioitem_config:
+            ui_elements.append(html.Br())
+            ui_elements.append(html.Label(radioitem_config.get("html.Label", "Select Frequency")))
+            ui_elements.append(
+                dcc.RadioItems(
+                    id={'type': 'timeseries-radioitem', 'index': plot_id},
+                    options=[{'label': label, 'value': value} for label, value in radioitem_config.get("options", [])],
+                    value=radioitem_config.get("default_value", "D"),
+                    labelStyle={'display': 'inline-block', 'margin-right': '10px'}
+                )
+            )
+        
+        return html.Div(ui_elements, style={'margin-top': '20px'})
+    return None
+
+# Define the bottom buttons for downloading reports and data
+bottom_buttons = dbc.Row(
+    [
+        dbc.Col(
+            dbc.Button("Download Report", id="download-left", color="success",),
+            width="auto"
+        ),
+        dbc.Col(
+            dbc.Button("Download Data", id="download-right", color="success"),
+            width="auto"
+        ),
+    ],
+    justify="end",
+    className="ml-auto"
+)
+
+# Helper function to convert PascalCase text to readable words
+def pascal_to_words(text):
+    return re.sub(r'(?<!^)(?=[A-Z])', ' ', text)
+
+# Helper function to create a hierarchical category structure from dataframe keys
+def create_category_structure(df_list):
+    categories = {}
+    for df in df_list:
+        if '_' in df:
+            main_cat, sub_cat = df.split('_', 1)  # Split into main category and subcategory
+        else:
+            main_cat, sub_cat = df, None  # If no subcategory, set to None
+
+        main_cat = pascal_to_words(main_cat)  # Convert to readable format
+        sub_cat = pascal_to_words(sub_cat) if sub_cat else None  # Convert subcategory if exists
+
+        # Add to dictionary
+        if main_cat not in categories:
+            categories[main_cat] = []  # Initialise subcategory list
+        if sub_cat:
+            categories[main_cat].append(sub_cat)  # Add subcategory if exists
+
+    return categories
+
+# Create main categories and subcategories from the dataframe keys
+main_categories = create_category_structure(dataframes.keys())
+
+# Special case: Add "Home" as a top-level category without subcategories
+main_categories["Home"] = []  # "Home" has no subcategories or associated data
+
+# Function to generate the sidebar navigation based on categories
+def generate_sidebar(categories):
+    nav_links = []
+
+    # Add "Home" link at the top of the sidebar
+    if "Home" in categories:
+        nav_links.append(dbc.NavLink("Home", href="/", active="exact"))
+
+    # Loop through categories and generate links
+    for category, subcategories in categories.items():
+        if category != "Home":  # Skip "Home" as it's already added
+            if subcategories:
+                # If there are subcategories, create a collapsible section or parent link
+                nav_links.append(dbc.NavLink(category, href=f"/{category.lower().replace(' ', '-')}", active="exact"))
+            else:
+                # If no subcategories, create a regular link
+                nav_links.append(
+                    dbc.NavLink(category, href=f"/{category.lower().replace(' ', '-')}", active="exact")
+                )
+
+    return dbc.Nav(nav_links, vertical=True, pills=True)
+
+# Generate the sidebar component
+sidebar = html.Div(
+    [
+        html.Button(
+            html.Div(html.Img(src="/assets/logo.svg", className="sidebar-logo"),
+                     className="sidebar-logo-container"),
+            id='logo-button',
+            n_clicks=0,
+            className='logo-button',
+            style={'background': 'none', 'border': 'none', 'padding': '0', 'margin': '0', 'cursor': 'pointer'}
+        ),
+        html.Hr(),
+        generate_sidebar(main_categories),
+    ],
+    className="sidebar"
+)
+
+# Content area where page-specific content will be displayed
+content = html.Div(id="page-content", className="content")
+
+# Define the overall layout of the app, including sidebar and content area
+app.layout = html.Div([
+    dcc.Location(id="url"),
+    sidebar,
+    dbc.Spinner(
+        children=[content],
+        color="#3c9639",
+        fullscreen=False,
+        type="border",
+        size="md"
+    ),
+    dcc.Store(id='screen-size', storage_type='session'),
+    dbc.Modal(
+        [
+            dbc.ModalHeader(dbc.ModalTitle("Navigate to Homepage?")),
+            dbc.ModalBody("Are you sure you want to go to the homepage?"),
+            dbc.ModalFooter(
                 [
-                    dbc.Tab(label=subcat, tab_id=subcat.lower().replace(" ", "-"))
-                    for subcat in tabs
-                ],
-                id="tabs",
-                active_tab=tabs[0].lower().replace(" ", "-"),
-                className='tab-class'
+                    dbc.Button("Yes", id="modal-yes-button", color="success", n_clicks=0),
+                    dbc.Button("No", id="modal-no-button", outline=True, color="success", n_clicks=0),
+                ]
             ),
-            html.Div(id="tab-content"),
-            html.Hr(),
-            get_download_buttons()
-        ])
-    else:
-        # 404 page
-        return html.Div(
-            [
-                html.H1("404: Not found", className="text-danger"),
-                html.Hr(),
-                html.P(f"The pathname /{pathname} was not recognized..."),
-            ],
-            className="p-3 bg-light rounded-3",
-        )
+        ],
+        id="warning-modal",
+        is_open=False,
+    ),
+    dcc.Download(id="download-data-csv"),
+    dcc.Download(id="download-report-pdf"),
+])
 
-# Callback to render tab content based on active tab
-@app.callback(
-    Output("tab-content", "children"),
-    [Input("tabs", "active_tab"),
-     Input("url", "pathname")]
-)
-def render_tab_content(active_tab, pathname):
-    if active_tab is None:
-        return dash.no_update
-
-    category = get_category_from_pathname(pathname)
-    if category not in main_categories:
-        return html.P("Category not found.")
-
-    variables = get_variables_for_category(category)
-
-    if active_tab == "general-analysis":
-        # Controls
-        controls = html.Div([
-            html.Label('Select Variables'),
-            dcc.Dropdown(
-                id='general-analysis-variable-dropdown',
-                options=[{'label': var, 'value': var} for var in variables['general_vars']],
-                value=variables['general_vars'],
-                multi=True
-            ),
-            html.Br(),
-            html.Label('Select Date Range'),
-            dcc.DatePickerRange(
-                id='general-analysis-date-picker',
-                min_date_allowed=data['Timestamp'].min().date(),
-                max_date_allowed=data['Timestamp'].max().date(),
-                start_date=data['Timestamp'].min().date(),
-                end_date=data['Timestamp'].max().date()
-            ),
-            html.Br(),
-            html.Label('Select Frequency'),
-            dcc.RadioItems(
-                id='general-analysis-frequency-radio',
-                options=[
-                    {'label': 'Hourly', 'value': 'h'},
-                    {'label': 'Daily', 'value': 'D'},
-                    {'label': 'Monthly', 'value': 'M'},
-                ],
-                value='D',
-                labelStyle={'display': 'inline-block', 'margin-right': '10px'}
-            ),
-        ])
-        # Graph
-        graph = dcc.Graph(id='general-analysis-graph')
-        return html.Div([
-            dcc.Loading(graph, type='circle', color='#3c9639'),
-            html.Br(),
-            controls,
-            html.Br(),
-        ])
-    elif active_tab == "breakout-detection":
-        # Controls
-        breakout_vars = variables['breakout_vars']
-        if not breakout_vars:
-            return html.P("No breakout variables available for this category.")
-        controls = html.Div([
-            html.Label('Select Equipment'),
-            dcc.Dropdown(
-                id='breakout-variable-dropdown',
-                options=[{'label': var, 'value': var} for var in breakout_vars],
-                value=breakout_vars[0],
-                multi=False
-            ),
-            html.Label('Select Color Scale'),
-            dcc.Dropdown(
-                id='breakout-color-scale-dropdown',
-                options=[{'label': scale, 'value': scale} for scale in px.colors.named_colorscales()],
-                value='Viridis',
-                clearable=False
-            ),
-        ])
-        # Graph
-        graph = dcc.Graph(id='breakout-detection-graph')
-        return html.Div([
-            dcc.Loading(graph, type='circle', color='#3c9639'),
-            html.Br(),
-            controls,
-            html.Br(),
-        ])
-    elif active_tab == "data-quality":
-        # Controls
-        controls = html.Div([
-            html.Label('Select Variables'),
-            dcc.Dropdown(
-                id='data-quality-variable-dropdown',
-                options=[{'label': var, 'value': var} for var in variables['general_vars']],
-                value=variables['general_vars'],
-                multi=True
-            ),
-        ])
-        # Graph
-        graph = dcc.Graph(id='data-quality-graph')
-        return html.Div([
-            dcc.Loading(graph, type='circle', color='#3c9639'),
-            html.Br(),
-            controls,
-            html.Br(),
-        ])
-    elif active_tab == "weather-sensitivity" and category == "Temperature":
-        # Controls
-        controls = html.Div([
-            html.Label('Select Color Scale'),
-            dcc.Dropdown(
-                id='weather-sensitivity-color-dropdown',
-                options=[{'label': scale, 'value': scale} for scale in px.colors.named_colorscales()],
-                value='Viridis',
-                clearable=False
-            ),
-        ])
-        # Graph
-        graph = dcc.Graph(id='weather-sensitivity-graph')
-        return html.Div([
-            dcc.Loading(graph, type='circle', color='#3c9639'),
-            html.Br(),
-            controls,
-            html.Br(),
-        ])
-    elif active_tab == "usage":
-        # Controls
-        controls = html.Div([
-            html.Label('Select Variables'),
-            dcc.Dropdown(
-                id='usage-variable-dropdown',
-                options=[{'label': var, 'value': var} for var in variables['usage_vars']],
-                value=variables['usage_vars'],
-                multi=True
-            ),
-            html.Br(),
-            html.Label('Select Date Range'),
-            dcc.DatePickerRange(
-                id='usage-date-picker',
-                min_date_allowed=data['Timestamp'].min().date(),
-                max_date_allowed=data['Timestamp'].max().date(),
-                start_date=data['Timestamp'].min().date(),
-                end_date=data['Timestamp'].max().date()
-            ),
-            html.Br(),
-            html.Label('Select Frequency'),
-            dcc.RadioItems(
-                id='usage-frequency-radio',
-                options=[
-                    {'label': 'Hourly', 'value': 'h'},
-                    {'label': 'Daily', 'value': 'D'},
-                    {'label': 'Monthly', 'value': 'M'},
-                ],
-                value='D',
-                labelStyle={'display': 'inline-block', 'margin-right': '10px'}
-            ),
-        ])
-        # Graph
-        graph = dcc.Graph(id='usage-graph')
-        return html.Div([
-            dcc.Loading(graph, type='circle', color='#3c9639'),
-            html.Br(),
-            controls,
-            html.Br(),
-        ])
-    else:
-        return html.P("Tab content not found.")
-
-# Helper function to create an empty figure with custom styling
-def create_empty_figure(message_text, category, analysis_type):
-    fig = go.Figure()
-    fig.add_annotation(
-        text=message_text,
-        xref="paper", yref="paper",
-        x=0.5, y=0.5, showarrow=False,
-        font=dict(size=16)
-    )
-    fig.update_layout(
-        title={'text': f'{category} - {analysis_type}', 'x': 0.5, 'xanchor': 'center'},
-        font_color='black',
-        plot_bgcolor='white'
-    )
-    fig.update_xaxes(
-        visible=False
-    )
-    fig.update_yaxes(
-        visible=False
-    )
-    return fig
-
-# General Analysis Callback
-@app.callback(
-    Output('general-analysis-graph', 'figure'),
-    [Input('general-analysis-date-picker', 'start_date'),
-     Input('general-analysis-date-picker', 'end_date'),
-     Input('general-analysis-variable-dropdown', 'value'),
-     Input('general-analysis-frequency-radio', 'value'),
-     Input("url", "pathname")]
-)
-def update_general_analysis(start_date, end_date, selected_vars, freq, pathname):
-    category = get_category_from_pathname(pathname)
-    if not selected_vars or not category:
-        return create_empty_figure("No variables selected.", category or "Unknown", "General Analysis")
-
-    df_filtered = filter_data(data, start_date, end_date, selected_vars, frequency=freq)
-
-    if df_filtered.empty or df_filtered[selected_vars].isnull().all().all():
-        return create_empty_figure(
-            "No data available at the selected frequency for the chosen date range.",
-            category, "General Analysis"
-        )
-
-    fig = create_line_plot(
-        df_filtered,
-        x_column='Timestamp',
-        y_columns=selected_vars,
-        title=f'{category} - General Analysis'
-    )
-    return fig
-
-# Breakout Detection Callback
-@app.callback(
-    Output('breakout-detection-graph', 'figure'),
-    [Input('breakout-variable-dropdown', 'value'),
-     Input('breakout-color-scale-dropdown', 'value'),
-     Input("url", "pathname")]
-)
-def update_breakout_detection(selected_breakout_var, color_scale, pathname):
-    category = get_category_from_pathname(pathname)
-    variables = get_variables_for_category(category)
-
-    if selected_breakout_var not in variables['breakout_vars']:
-        return create_empty_figure("Selected equipment not available.", category, "Breakout Detection")
-
-    df_filtered = data[['Timestamp', selected_breakout_var]].dropna()
-
-    if df_filtered.empty:
-        return create_empty_figure("No breakout events detected.", category, "Breakout Detection")
-
-    fig = create_heatmap(
-        data=df_filtered,
-        x_column='Timestamp',
-        y_column='Timestamp',
-        z_column=selected_breakout_var,
-        color_scale=color_scale,
-        title=f'{category} - Breakout Detection'
-    )
-    return fig
-
-# Data Quality Callback
-@app.callback(
-    Output('data-quality-graph', 'figure'),
-    [Input('data-quality-variable-dropdown', 'value'),
-     Input("url", "pathname"),
-     Input('screen-size', 'data')]
-)
-def update_data_quality(selected_vars, pathname, screen_width):
-    category = get_category_from_pathname(pathname)
-    if not selected_vars:
-        return create_empty_figure("No variables selected.", category, "Data Quality")
-    
-    variables = get_variables_for_category(category)
-    quality_vars = variables['quality_vars']
-    
-    df_filtered = data[['Timestamp'] + selected_vars].dropna()
-    if df_filtered.empty or df_filtered[selected_vars].isnull().all().all():
-        return create_empty_figure("No data available for the selected variables.", category, "Data Quality")
-    
-    fig = create_box_plot(df_filtered[selected_vars], y_columns=selected_vars, title=f'{category} - Data Quality')
-    
-    # Conditionally rotate x-axis labels based on screen size
-    if screen_width and int(screen_width) < 768:  # Adjust threshold for small screens
-        fig.update_layout(xaxis_tickangle=-45)
-    
-    return fig
-
-# Weather Sensitivity Callback
-@app.callback(
-    Output('weather-sensitivity-graph', 'figure'),
-    [Input('weather-sensitivity-color-dropdown', 'value'),
-     Input("url", "pathname")]
-)
-def update_weather_sensitivity(color_scale, pathname):
-    category = get_category_from_pathname(pathname)
-    if category != "Temperature":
-        return create_empty_figure("Weather Sensitivity is only available under Temperature.", category, "Weather Sensitivity")
-
-    if 'Area_Inside_Room_Sensitivity' not in data.columns or 'Area_Outside_Building_Sensitivity' not in data.columns:
-        return create_empty_figure("Weather sensitivity data not available.", category, "Weather Sensitivity")
-
-    df_filtered = data[['Timestamp', 'Area_Inside_Room_Sensitivity', 'Area_Outside_Building_Sensitivity']].dropna()
-
-    if df_filtered.empty:
-        return create_empty_figure("No data available for weather sensitivity.", category, "Weather Sensitivity")
-
-    # Convert 'Timestamp' to numeric index for plotting
-    X_numeric = np.arange(len(df_filtered['Timestamp']))
-    Y = df_filtered['Area_Inside_Room_Sensitivity']
-    Z = df_filtered['Area_Outside_Building_Sensitivity']
-
-    # Create a meshgrid for X and Y
-    X_mesh, Y_mesh = np.meshgrid(X_numeric, Y)
-
-    # Broadcast Z to match the shape of X_mesh and Y_mesh
-    Z_mesh = np.tile(Z, (len(Y), 1))
-
-    fig = create_surface_plot(
-        X=X_mesh, Y=Y_mesh, Z=Z_mesh,
-        color_scale=color_scale,
-        title=f'{category} - Weather Sensitivity'
-    )
-    return fig
-
-# Usage Callback
-@app.callback(
-    Output('usage-graph', 'figure'),
-    [Input('usage-date-picker', 'start_date'),
-     Input('usage-date-picker', 'end_date'),
-     Input('usage-variable-dropdown', 'value'),
-     Input('usage-frequency-radio', 'value'),
-     Input("url", "pathname")]
-)
-def update_usage_graph(start_date, end_date, selected_vars, freq, pathname):
-    category = get_category_from_pathname(pathname)
-    if not selected_vars or not category:
-        return create_empty_figure("No variables selected.", category or "Unknown", "Usage Analysis")
-
-    df_filtered = filter_data(data, start_date, end_date, selected_vars, frequency=freq)
-
-    if df_filtered.empty or df_filtered[selected_vars].isnull().all().all():
-        return create_empty_figure(
-            "No data available at the selected frequency for the chosen date range.",
-            category, "Usage Analysis"
-        )
-
-    fig = create_line_plot(
-        df_filtered,
-        x_column='Timestamp',
-        y_columns=selected_vars,
-        title=f'{category} - Usage Analysis'
-    )
-    return fig
-
-# Callback to control modal and navigation
+## Callback to control the modal window and handle navigation when the logo is clicked
 @app.callback(
     [Output("warning-modal", "is_open"),
      Output("url", "pathname")],
@@ -669,70 +740,502 @@ def update_usage_graph(start_date, end_date, selected_vars, freq, pathname):
      State("url", "pathname")],
 )
 def toggle_modal_and_navigate(n_clicks_logo, n_clicks_yes, n_clicks_no, is_open, current_pathname):
-    ctx = dash.callback_context
+    ctx = dash.callback_context # Context to determine which input triggered the callback
 
     if not ctx.triggered:
         return is_open, dash.no_update
     else:
         button_id = ctx.triggered[0]['prop_id'].split('.')[0]
 
+    # Open modal when logo button is clicked
     if button_id == "logo-button" and n_clicks_logo:
-        return True, dash.no_update
+        return True, dash.no_update  # Open modal without changing the URL
+    
+    # Navigate to homepage if "Yes" button in the modal is clicked
     elif button_id == "modal-yes-button" and n_clicks_yes:
-        return False, "/"
+        return False, "/"  # Close modal and navigate to "/"
+    
+    # Close modal if "No" button is clicked
     elif button_id == "modal-no-button" and n_clicks_no:
-        return False, current_pathname
+        return False, current_pathname  # Close modal, stay on current page
+    
     return is_open, dash.no_update
 
-# Callback for downloading data
-@app.callback(
-    Output("download-data-csv", "data"),
-    Input("download-right", "n_clicks"),
-    prevent_initial_call=True,
-)
-def download_data(n_clicks):
-    if n_clicks:
-        return dcc.send_data_frame(data.to_csv, "data.csv", index=False)
+# Creates the appropriate plot based on plot type and settings.
+def create_plot(data, plot_type, plot_settings):
+    title = plot_settings["title"]
+
+    if plot_type == "HeatMap":
+        # Create a heatmap figure
+        return create_heatmap(
+            data,
+            x_column=plot_settings["x-axis"],
+            y_column=plot_settings["y-axis"],
+            z_column=plot_settings["z-axis"],
+            color_scale="Viridis",  # Default color scale
+            title=title,
+            x_label=plot_settings["x-axis_label"],
+            y_label=plot_settings["y-axis_label"],
+            z_label=plot_settings["z-axis_label"]
+        )
+
+    elif plot_type == "SunburstChart":
+        # Create a sunburst chart figure
+        return create_sunburst_chart(
+            data,
+            building_column=plot_settings["BuildingID"],
+            parent_column=plot_settings["ParentID"],
+            entity_column=plot_settings["EntityID"],
+            value_column=plot_settings["z-axis"],
+            title=title,
+            color_scale="Viridis"  # Default color scale
+        )
+
+    elif plot_type == "SurfacePlot":
+         # Create a surface plot figure
+        X = data[plot_settings["X-value"]]
+        Y = data[plot_settings["Y-values"][0]]  # Using the first Y-column
+        Z = data[plot_settings["Z-value"]]
+        return create_surface_plot(
+            X=X, Y=Y, Z=Z,
+            color_scale="Viridis",
+            title=title,
+            x_label=plot_settings["x-axis_label"],
+            y_label=plot_settings["y-axis_label"],
+            z_label=plot_settings["z-axis_label"]
+        )
+    
+    elif plot_type == "BoxAndWhisker":
+        # Create a box and whisker plot figure
+        return create_box_plot(
+            data=data,
+            title=title,
+            x_label=plot_settings["x-axis_label"],
+            y_label=plot_settings["y-axis_label"]
+        )
+    
+    elif plot_type == "Timeseries":
+        # Create a timeseries (line) plot figure
+        return create_line_plot(
+            data=data,
+            x_column=plot_settings["x-axis"],
+            y_columns=plot_settings["y-axis"],
+            title=title
+        )
+
+    return None  # Return None if the plot type doesn't match expected ones
+
+# Creates a Dash Tab containing pie charts and tables based on the provided settings.
+def create_pie_chart_and_table_tab(plot_settings, data, plot_id, subcategory):
+    # Extract pie charts and tables configurations
+    pie_charts = plot_settings.get("pie_charts", [])
+    tables = plot_settings.get("tables", [])
+
+    pie_content = []
+    # Create pie charts
+    for pie_chart in pie_charts:
+        chart_title = pie_chart.get("title", "Pie Chart")
+        chart_labels = pie_chart.get("labels", "")
+        textinfo = pie_chart.get("textinfo", "percent+label")
+        filter_condition = pie_chart.get("filter", None)  # Get filter if present
+
+        # Apply filter if specified
+        if filter_condition:
+            try:
+                filtered_data = data.query(filter_condition)
+            except Exception as e:
+                print(f"Error applying filter '{filter_condition}' on dataframe '{plot_id}': {e}")
+                filtered_data = data  # Fallback to unfiltered data if there's an error
+        else:
+            filtered_data = data
+
+        # Create pie chart figure
+        pie_figure = create_pie_chart(
+            data=filtered_data,
+            labels_column=chart_labels,
+            values_column=None,  # 'values' is not used in create_pie_chart
+            title=chart_title,
+            textinfo=textinfo
+        )
+
+        pie_content.append(
+            dbc.Col(
+                dcc.Graph(figure=pie_figure),
+                width=6,  # Adjust width as needed
+                className="mb-4"  # Add margin-bottom for spacing
+            )
+        )
+
+    table_content = []
+    # Create tables with applied filters
+    for table in tables:
+        table_title = table.get("title", "Table")
+        columns = table.get("columns", [])
+        data_source_key = table.get("data_source", "")
+        filter_condition = table.get("filter", None)
+        rows = table.get("rows", columns)
+
+        # Retrieve the main dataframe based on data_source_key
+        main_dataframe = dataframes.get(data_source_key)
+        if main_dataframe is not None:
+            if filter_condition:
+                # Apply the filter using pandas query
+                try:
+                    filtered_data = main_dataframe.query(filter_condition)
+                except Exception as e:
+                    print(f"Error applying filter '{filter_condition}' on dataframe '{data_source_key}': {e}")
+                    filtered_data = main_dataframe  # Fallback to unfiltered data if there's an error
+            else:
+                filtered_data = main_dataframe
+
+            # Select and rename columns as needed
+            selected_columns = rows
+            # Ensure all selected columns exist in the dataframe
+            existing_columns = [col for col in selected_columns if col in filtered_data.columns]
+            if not existing_columns:
+                print(f"No matching columns found for table '{table_title}' in dataframe '{data_source_key}'.")
+                continue  # Skip creating this table
+
+            display_data = filtered_data[existing_columns].rename(
+                columns=dict(zip(selected_columns, columns))  # Rename to user-friendly names
+            )
+
+            # Create and append the table
+            table_content.append(
+                dbc.Col(
+                    create_table(display_data, columns, table_title),
+                    width=12,  # Full-width for each table
+                    className="mb-4"  # Add margin-bottom for spacing
+                )
+            )
+        else:
+            print(f"Data source '{data_source_key}' not found in dataframes.")
+
+    # Combine pie charts and tables into layout
+    content = []
+    if pie_content:
+        content.append(
+            dbc.Row(pie_content, justify="center")
+        )
+    if table_content:
+        content.append(html.Hr())  # Append the horizontal rule first
+        content.append(
+            dbc.Row(table_content)
+        )
+
+    # Combine all elements into a single tab
+    return dbc.Tab(
+        dbc.Container(content, fluid=True, className="py-4"),
+        label=subcategory,
+        tab_id=plot_id
+    )
+
+# Function to create tab content with the graph and UI controls for a given plot type
+def create_tab_content(plot_type, plot_settings, data, plot_id, subcategory):
+    if plot_type == "PieChartAndTable":
+        return create_pie_chart_and_table_tab(plot_settings, data, plot_id, subcategory)
+
     else:
-        return dash.no_update
+        # Handle other plot types
+        figure = create_plot(data, plot_type, plot_settings)
+        if not figure:
+            return None  # Skip if the plot figure couldn't be created
 
-# Callback for downloading report
+        # Determine which UI components to add based on plot type
+        if plot_type == "HeatMap":
+            ui = create_ui_for_heatmap(plot_type, plot_id)
+            graph_type = 'heatmap-graph'
+        elif plot_type == "SunburstChart":
+            ui = create_ui_for_sunburst(plot_type, plot_id)
+            graph_type = 'sunburst-graph'
+        elif plot_type == "SurfacePlot":
+            ui = create_ui_for_surface_plot(plot_type, plot_id)
+            graph_type = 'surface-graph'
+        elif plot_type == "BoxAndWhisker":
+            ui = create_ui_for_box_and_whisker(plot_type, plot_id, data, plot_settings)
+            graph_type = 'box-and-whisker-graph'
+        elif plot_type == "Timeseries":
+            ui = create_ui_for_timeseries(plot_type, plot_id, plot_settings)
+            graph_type = 'timeseries-graph'
+        else:
+            ui = None
+            graph_type = f'{plot_type.lower()}-graph'  # Generic graph type
+
+        # Create the tab with the graph and UI components
+        return dbc.Tab(
+            dbc.Container([
+                dcc.Graph(id={'type': graph_type, 'index': plot_id}, figure=figure),
+                ui  # Add UI controls below the graph
+            ]),
+            label=subcategory,  # Label for the tab
+            tab_id=plot_id
+        )
+
+# Callback to update the main content area based on the current URL path
 @app.callback(
-    Output("download-report-pdf", "data"),
-    Input("download-left", "n_clicks"),
-    prevent_initial_call=True,
+    Output("page-content", "children"),
+    Input("url", "pathname")
 )
-def download_report(n_clicks):
-    if n_clicks:
-        buffer = BytesIO()
-        p = canvas.Canvas(buffer, pagesize=letter)
-        width, height = letter
+def display_page(pathname):
+    # Handle the homepage when the URL is "/" or an empty path
+    if pathname == "/" or pathname == "":
+        return html.Div([
+            html.H1("Welcome to the Homepage!"),
+            html.P("This is a static homepage.")
+        ])
+    # Clean and split the path for category and subcategory
+    cleaned_path = pathname.strip("/").lower().split('/')
 
-        p.setFont("Helvetica", 14)
-        p.drawString(100, height - 100, "Main Categories and Subcategories")
+    # Standardise the main category by removing hyphens
+    main_category = cleaned_path[0].replace('-', '') if len(cleaned_path) > 0 else None
 
-        y = height - 130
-        for main_cat, subcats in main_categories.items():
-            p.setFont("Helvetica-Bold", 12)
-            p.drawString(100, y, f"Main Category: {main_cat}")
-            y -= 20
-            p.setFont("Helvetica", 12)
-            for subcat in subcats:
-                p.drawString(120, y, f"- {subcat}")
-                y -= 15
-                if y < 50:
-                    p.showPage()
-                    y = height - 50
-            y -= 10
-            if y < 50:
-                p.showPage()
-                y = height - 50
+    # If main category exists in the URL mapping
+    if main_category in url_to_key_mapping:
+        # Find all relevant dataframes that start with the main category key
+        relevant_dataframes = [df for df in dataframes.keys() if df.lower().startswith(main_category)]
+        # Determine if any dataframe has a subcategory
+        has_subcategories = any('_' in df for df in relevant_dataframes)
+        if has_subcategories:
+            # Create tabs for categories with subcategories
+            tabs = []
+            tab_ids = []
 
-        p.save()
-        buffer.seek(0)
-        return dcc.send_bytes(buffer.getvalue(), "report.pdf")
-    else:
-        return dash.no_update
+            for df in relevant_dataframes:
+                category_key = df
+                data = dataframes[category_key]
+                config = plot_configs[category_key]
+
+                # Extract the subcategory (after the underscore) for labeling
+                subcategory = pascal_to_words(category_key.split('_')[1]) if '_' in category_key else "Main"
+
+                # Create tabs for each plot type (e.g., HeatMap, SunburstChart, etc.)
+                for plot_type, plot_settings in config.items():
+                    plot_id = f"{category_key}-{plot_type}"
+                    
+                    # Pass the subcategory as the tab label
+                    tab_content = create_tab_content(plot_type, plot_settings, data, plot_id, subcategory)
+
+                    if tab_content:
+                        tabs.append(tab_content)
+                        tab_ids.append(plot_id)
+
+            # Return the tabs within a container if at least one tab was created
+            if len(tabs) >= 1:
+                return dbc.Container([
+                    dbc.Tabs(tabs, id="tabs", active_tab=tab_ids[0]),
+                    html.Hr(),
+                    bottom_buttons  # Add the buttons below the tabs
+                ], fluid=True)
+        else:
+            # Render plots directly for categories without subcategories
+            plots = []
+            for df in relevant_dataframes:
+                category_key = df
+                data = dataframes[category_key]
+                config = plot_configs[category_key]
+
+                # Create plot for each plot type
+                for plot_type, plot_settings in config.items():
+                    plot_id = f"{category_key}-{plot_type}"
+                    
+                    # Create the plot figure
+                    figure = create_plot(data, plot_type, plot_settings)
+
+                    # Create UI elements
+                    if plot_type == "HeatMap":
+                        ui = create_ui_for_heatmap(plot_type, plot_id)
+                        graph_type = 'heatmap-graph'
+                    elif plot_type == "SunburstChart":
+                        ui = create_ui_for_sunburst(plot_type, plot_id)
+                        graph_type = 'sunburst-graph'
+                    elif plot_type == "SurfacePlot":
+                        ui = create_ui_for_surface_plot(plot_type, plot_id)
+                        graph_type = 'surface-graph'
+                    elif plot_type == "BoxAndWhisker":
+                        ui = create_ui_for_box_and_whisker(plot_type, plot_id, data, plot_settings)
+                        graph_type = 'box-and-whisker-graph'
+                    elif plot_type == "Timeseries":
+                        ui = create_ui_for_timeseries(plot_type, plot_id, plot_settings)
+                        graph_type = 'timeseries-graph'
+                    else:
+                        ui = None
+                        graph_type = f'{plot_type.lower()}-graph'
+
+                    # Create the plot content with graph and UI controls
+                    plot_content = dbc.Container([
+                        dcc.Graph(id={'type': graph_type, 'index': plot_id}, figure=figure),
+                        ui  # Add UI controls below the graph
+                    ], fluid=True)
+                    
+                    plots.append(plot_content)
+            
+            # Return all plots within a container along with the download buttons
+            return dbc.Container([
+                *plots,  # Unpack all plot components
+                html.Hr(),
+                bottom_buttons
+            ], fluid=True)
+
+    # If no matching category is found, display a 404 error page
+    return html.Div([html.H1("404 Page not found")])
+
+# Callback to update HeatMap figures based on selected color scale
+@app.callback(
+    Output({'type': 'heatmap-graph', 'index': MATCH}, 'figure'),
+    Input({'type': 'heatmap-color-scale-dropdown', 'index': MATCH}, 'value'),
+    State({'type': 'heatmap-color-scale-dropdown', 'index': MATCH}, 'id'),
+    prevent_initial_call=True
+)
+def update_heatmap(selected_color_scale, input_id):
+    plot_id = input_id['index']   # Extract the unique plot identifier
+    category_key, plot_type = plot_id.rsplit('-', 1)  # Split to get dataframe key and plot type
+    data = dataframes[category_key]  # Retrieve the relevant dataframe
+    plot_settings = plot_configs[category_key][plot_type]  # Get plot settings
+    
+    # Create an updated heatmap with the new color scale
+    updated_figure = create_heatmap(
+        data=data,
+        x_column=plot_settings["x-axis"],
+        y_column=plot_settings["y-axis"],
+        z_column=plot_settings["z-axis"],
+        color_scale=selected_color_scale,
+        title=plot_settings["title"],
+        x_label=plot_settings["x-axis_label"],
+        y_label=plot_settings["y-axis_label"],
+        z_label=plot_settings["z-axis_label"]
+    )
+    
+    return updated_figure
+
+# Callback to update SunburstChart figures based on selected color scale
+@app.callback(
+    Output({'type': 'sunburst-graph', 'index': MATCH}, 'figure'),
+    Input({'type': 'sunburst-color-scale-dropdown', 'index': MATCH}, 'value'),
+    State({'type': 'sunburst-color-scale-dropdown', 'index': MATCH}, 'id'),
+    prevent_initial_call=True
+)
+def update_sunburst(selected_color_scale, input_id):
+    plot_id = input_id['index']  # Extract the unique plot identifier
+    category_key, plot_type = plot_id.rsplit('-', 1)  # Split to get dataframe key and plot type
+    data = dataframes[category_key]  # Retrieve the relevant dataframe
+    plot_settings = plot_configs[category_key][plot_type]  # Get plot settings
+    
+    updated_figure = create_sunburst_chart(
+        data=data,
+        building_column=plot_settings["BuildingID"],
+        parent_column=plot_settings["ParentID"],
+        entity_column=plot_settings["EntityID"],
+        value_column=plot_settings["z-axis"],
+        title=plot_settings["title"],
+        color_scale=selected_color_scale
+    )
+    
+    return updated_figure
+
+# Callback to update SurfacePlot figures based on selected color scale
+@app.callback(
+    Output({'type': 'surface-graph', 'index': MATCH}, 'figure'),
+    Input({'type': 'surface-color-scale-dropdown', 'index': MATCH}, 'value'),
+    State({'type': 'surface-color-scale-dropdown', 'index': MATCH}, 'id'),
+    prevent_initial_call=True
+)
+def update_surface_plot(selected_color_scale, input_id):
+    plot_id = input_id['index']  # Extract the unique plot identifier
+    category_key, plot_type = plot_id.rsplit('-', 1)  # Split to get dataframe key and plot type
+    data = dataframes[category_key]  # Retrieve the relevant dataframe
+    plot_settings = plot_configs[category_key][plot_type]  # Get plot settings
+    
+    # Extract X, Y, Z values based on plot settings
+    X = data[plot_settings["X-value"]]
+    Y = data[plot_settings["Y-values"][0]]  # Assuming single Y-axis value
+    Z = data[plot_settings["Z-value"]]
+    
+    # Create an updated surface plot with the new color scale
+    updated_figure = create_surface_plot(
+        X=X,
+        Y=Y,
+        Z=Z,
+        color_scale=selected_color_scale,
+        title=plot_settings["title"],
+        x_label=plot_settings["x-axis_label"],
+        y_label=plot_settings["y-axis_label"],
+        z_label=plot_settings["z-axis_label"]
+    )
+    
+    return updated_figure
+
+# Callback to update BoxAndWhisker plots based on selected measurements
+@app.callback(
+    Output({'type': 'box-and-whisker-graph', 'index': MATCH}, 'figure'),
+    Input({'type': 'box-and-whisker-dropdown', 'index': MATCH}, 'value'),
+    State({'type': 'box-and-whisker-dropdown', 'index': MATCH}, 'id'),
+    prevent_initial_call=True
+)
+def update_box_and_whisker(selected_variables, input_id):
+    plot_id = input_id['index']  # Extract the unique plot identifier
+    category_key, plot_type = plot_id.rsplit('-', 1)  # Split to get dataframe key and plot type
+    data = dataframes[category_key]  # Retrieve the relevant dataframe
+    plot_settings = plot_configs[category_key][plot_type]  # Get plot settings
+    
+    # If no variables are selected, default to all available measurements
+    if not selected_variables:
+        controls_column = plot_settings.get("UI", {}).get("dropdown", {}).get("controls", "")
+        if controls_column and controls_column in data.columns:
+            selected_variables = data[controls_column].unique()
+        else:
+            selected_variables = []
+    
+    # Filter data based on selected variables
+    filtered_data = data[data['Measurement'].isin(selected_variables)]
+    
+    # Create an updated box and whisker plot with the filtered data
+    updated_figure = create_box_plot(
+        data=filtered_data,
+        title=plot_settings["title"],
+        x_label=plot_settings["x-axis_label"],
+        y_label=plot_settings["y-axis_label"]
+    )
+    
+    return updated_figure
+
+# Callback to update Timeseries plots based on selected date range and frequency
+@app.callback(
+    Output({'type': 'timeseries-graph', 'index': MATCH}, 'figure'),
+    [
+        Input({'type': 'timeseries-datepicker', 'index': MATCH}, 'start_date'),
+        Input({'type': 'timeseries-datepicker', 'index': MATCH}, 'end_date'),
+        Input({'type': 'timeseries-radioitem', 'index': MATCH}, 'value')
+    ],
+    State({'type': 'timeseries-graph', 'index': MATCH}, 'id'),
+    prevent_initial_call=True
+)
+def update_timeseries_plot(start_date, end_date, frequency, input_id):
+    plot_id = input_id['index']  # Extract the unique plot identifier
+    category_key, plot_type = plot_id.rsplit('-', 1)  # Split to get dataframe key and plot type
+    data = dataframes[category_key]  # Retrieve the relevant dataframe
+    plot_settings = plot_configs[category_key][plot_type]  # Get plot settings
+
+    # Variables to plot on the y-axis
+    y_columns = plot_settings["y-axis"]
+
+    # Filter data based on selected date range and resample based on frequency
+    filtered_data = filter_data(
+        df=data,
+        start_date=pd.to_datetime(start_date),
+        end_date=pd.to_datetime(end_date),
+        variables=y_columns,
+        frequency=frequency  # Resampling frequency (e.g., 'D' for daily)
+    )
+
+    # Create an updated timeseries plot with the filtered and resampled data
+    updated_figure = create_line_plot(
+        data=filtered_data,
+        x_column=plot_settings["x-axis"],
+        y_columns=y_columns,
+        title=plot_settings["title"]
+    )
+
+    return updated_figure
 
 # Run the app
 if __name__ == "__main__":
