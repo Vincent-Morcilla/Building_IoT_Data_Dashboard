@@ -12,12 +12,15 @@ import plotly.graph_objects as go
 #                               GLOBAL VARIABLES                               #
 ################################################################################
 
+APP_NAME = "WE SHOULD REALLY NAME THIS APP!!"
 # Initialise the Dash app with Bootstrap for styling and allow callbacks for dynamic content
 app = dash.Dash(
-    __name__,
+    # __name__,
+    APP_NAME,
     external_stylesheets=[dbc.themes.BOOTSTRAP],
     suppress_callback_exceptions=True,  # Allows callbacks to reference components not yet in the layout
 )
+app.title = APP_NAME
 url_to_key_mapping = {}  # Mapping for dataframes and plot configurations based on URLs
 bottom_buttons = None  # Buttons for downloading reports and data
 
