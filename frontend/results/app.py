@@ -210,7 +210,7 @@ plot_configs = {
                 {
                     "title": "Unrecognised Entities",
                     "columns": ["Brick Class", "Entity ID"],
-                    "data_source": "ModelQuality_RecognisedEntities",  # Main dataframe
+                    "data_source": "ModelQuality_RecognisedEntities",
                     "filter": "class_in_provided_brick == False",
                     "rows": ["brick_class", "entity_id"]
                 },
@@ -489,7 +489,6 @@ def create_pie_chart(data, labels_column, values_column, title, textinfo="percen
         font_color='black',
         plot_bgcolor='white',
     )
-    return fig
     return fig
 
 # Create table function

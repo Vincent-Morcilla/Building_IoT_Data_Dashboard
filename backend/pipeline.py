@@ -8,7 +8,7 @@ class PipelineProgress:
     def __init__(self):
         self.stage = "Not Started"
         self.percentage = 0
-        self.results = None  # Store results here
+        self.analytics = None  # Store analytics here
         self.error = None  # Store error messages
 
     def update_progress(self, stage, percentage):
@@ -18,11 +18,11 @@ class PipelineProgress:
     def get_progress(self):
         return {"stage": self.stage, "percentage": self.percentage, "error": self.error}
 
-    def set_results(self, results):
-        self.results = results
+    def set_analytics(self, analytics):
+        self.analytics = analytics
 
-    def get_results(self):
-        return self.results
+    def get_analytics(self):
+        return self.analytics
 
     def set_error(self, error_message):
         self.error = error_message
@@ -109,7 +109,7 @@ def data_pipeline(data, session_id):
 
         # Store the dataset name and uploaded filenames in the progress object
         uploaded_file_names = [file['filename'] for file in uploaded_files]
-        pipeline_progress.set_results({
+        pipeline_progress.set_analytics({
             'uploaded_files': uploaded_file_names,
             'dataset_name': dataset_name
         })
@@ -132,8 +132,8 @@ def data_pipeline(data, session_id):
 
         # Completion (100% completed)
         pipeline_progress.update_progress("Complete", 100)
-        # Store the modified file names in results along with the original uploaded filenames
-        pipeline_progress.set_results({
+        # Store the modified file names in analytics along with the original uploaded filenames
+        pipeline_progress.set_analytics({
             'file_names': modified_file_names,
             'uploaded_files': uploaded_file_names,
             'dataset_name': dataset_name
