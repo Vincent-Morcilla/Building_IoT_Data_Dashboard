@@ -1462,18 +1462,37 @@ def create_table(data, columns, title):
         # columns=columns,
         data=data.to_dict("records"),
         fixed_rows={"headers": True},
-        style_table={"height": 400},  # defaults to 500
         export_format="csv",
         sort_action="native",
         sort_mode="multi",
         # filter_action="native",
-        style_header={"fontWeight": "bold"},
         style_cell={
+            "fontSize": 14,
             "textAlign": "left",
             "padding": "5px",
-            "overflow": "hidden",
-            "textOverflow": "ellipsis",
+            # "overflow": "hidden",
+            # "textOverflow": "ellipsis",
             "maxWidth": 0,
+            # "width": "1px",
+            # "white-space": "nowrap",
+        },
+        style_header={
+            "fontWeight": "bold",
+            "backgroundColor": "#3c9639",
+            "color": "white",
+        },
+        style_data_conditional=[
+            {
+                "if": {"row_index": "odd"},
+                # "backgroundColor": "rgb(220, 220, 220)",
+                # "backgroundColor": "#a9dea7",
+                "backgroundColor": "#ddf2dc",
+            }
+        ],
+        style_table={
+            "height": 400,
+            "overflowX": "auto",
+            # "table-layout": "auto"
         },
         tooltip_data=[
             {
