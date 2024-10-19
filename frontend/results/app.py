@@ -457,25 +457,13 @@ def generate_sidebar(categories):
     # Loop through categories and generate links
     for category, subcategories in categories.items():
         if category != "Home":  # Skip "Home" as it's already added
-            if subcategories:
-                # @tim: is this a TODO? Code looks identical to `else` block?
-                # If there are subcategories, create a collapsible section or parent link
-                nav_links.append(
-                    dbc.NavLink(
-                        category,
-                        href=f"/{category.lower().replace(' ', '-')}",
-                        active="exact",
-                    )
+            nav_links.append(
+                dbc.NavLink(
+                    category,
+                    href=f"/{category.lower().replace(' ', '-')}",
+                    active="exact",
                 )
-            else:
-                # If no subcategories, create a regular link
-                nav_links.append(
-                    dbc.NavLink(
-                        category,
-                        href=f"/{category.lower().replace(' ', '-')}",
-                        active="exact",
-                    )
-                )
+            )
 
     return dbc.Nav(nav_links, vertical=True, pills=True)
 
@@ -535,11 +523,6 @@ def display_page(pathname):
     if main_category not in url_to_key_mapping:
         return html.Div([html.H1("404 Page not found")])
 
-    # # Find all relevant dataframes that start with the main category key
-    # relevant_dataframes = [
-    #     df for df in dataframes.keys() if df.lower().startswith(main_category)
-    # ]
-
     subcategories = url_to_key_mapping[main_category]
 
     if subcategories:
@@ -580,67 +563,11 @@ def display_page(pathname):
                 ],
                 fluid=True,
             )
-    # @tim: TODO: Can we actually get here? Doesn't the above account for non-subcategories
-    # by assigning it a main tab?
-    # else:
-    #     # Render plots directly for categories without subcategories
-    #     plots = []
-    #     for df in relevant_dataframes:
-    #         category_key = df
-    #         data = dataframes[category_key]
-    #         config = plot_configs[category_key]
-
-    #         # Create plot for each plot type
-    #         for plot_type, plot_settings in config.items():
-    #             plot_id = f"{category_key}-{plot_type}"
-
-    #             # Create the plot figure
-    #             figure = create_plot(data, plot_type, plot_settings)
-
-    #             # Create UI elements
-    #             if plot_type == "HeatMap":
-    #                 ui = create_ui_for_heatmap(plot_type, plot_id)
-    #                 graph_type = "heatmap-graph"
-    #             elif plot_type == "SunburstChart":
-    #                 ui = create_ui_for_sunburst(plot_type, plot_id)
-    #                 graph_type = "sunburst-graph"
-    #             elif plot_type == "SurfacePlot":
-    #                 ui = create_ui_for_surface_plot(plot_type, plot_id)
-    #                 graph_type = "surface-graph"
-    #             elif plot_type == "BoxAndWhisker":
-    #                 ui = create_ui_for_box_and_whisker(
-    #                     plot_type, plot_id, plot_settings
-    #                 )
-    #                 graph_type = "box-and-whisker-graph"
-    #             elif plot_type == "Timeseries":
-    #                 ui = create_ui_for_timeseries(plot_type, plot_id, plot_settings)
-    #                 graph_type = "timeseries-graph"
-    #             else:
-    #                 ui = None
-    #                 graph_type = f"{plot_type.lower()}-graph"
-
-    #             # Create the plot content with graph and UI controls
-    #             plot_content = dbc.Container(
-    #                 [
-    #                     dcc.Graph(
-    #                         id={"type": graph_type, "index": plot_id}, figure=figure
-    #                     ),
-    #                     ui,  # Add UI controls below the graph
-    #                 ],
-    #                 fluid=True,
-    #             )
-
-    #             plots.append(plot_content)
-
-    #     # Return all plots within a container along with the download buttons
-    #     return dbc.Container(
-    #         [*plots, html.Hr(), bottom_buttons],  # Unpack all plot components
-    #         fluid=True,
-    #     )
 
 
 # Function to create tab content with the graph and UI controls for a given plot type
 def create_tab_content(plot_type, plot_settings, plot_id, subcategory):
+    # @tim: FIXME: see if this can be generalised
     if plot_type == "PieChartAndTable":
         return create_pie_chart_and_table_tab(plot_settings, plot_id, subcategory)
 
