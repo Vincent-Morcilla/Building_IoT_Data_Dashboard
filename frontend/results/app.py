@@ -1441,50 +1441,55 @@ def update_surface_plot(selected_color_scale, input_id):
 
 # Create table function
 def create_table(data, columns, title):
-    table = dbc.Table.from_dataframe(
-        data[columns],
-        bordered=True,
-        hover=True,
-        responsive=True,
-        striped=True,
-    )
-
-    # @tim: FIXME: would rather not limit table height this way, and if it has to
-    # be done, it should be done in the CSS and ideally with a way to make the
-    # table heading sticky
-    return html.Div(
-        [html.H5(title), table],
-        style={"max-height": "400px", "overflow": "auto"},
-    )
-
-    # native dash: supports exporting, sorting, and filtering, etc.
-    # table = dash_table.DataTable(
-    #     id="table",
-    #     # columns=columns,
-    #     data=data.to_dict("records"),
-    #     export_format="csv",
-    #     sort_action="native",
-    #     sort_mode="multi",
-    #     # filter_action="native",
-    #     style_header={"fontWeight": "bold"},
-    #     style_cell={
-    #         "textAlign": "left",
-    #         "padding": "5px",
-    #         "overflow": "hidden",
-    #         "textOverflow": "ellipsis",
-    #         "maxWidth": 0,
-    #     },
-    #     tooltip_data=[
-    #         {
-    #             column: {"value": str(value), "type": "markdown"}
-    #             for column, value in row.items()
-    #         }
-    #         for row in data.to_dict("records")
-    #     ],
-    #     tooltip_duration=None,
+    # table = dbc.Table.from_dataframe(
+    #     data[columns],
+    #     bordered=True,
+    #     hover=True,
+    #     responsive=True,
+    #     striped=True,
     # )
 
-    return html.Div([html.H5(title), table])
+    # # @tim: FIXME: would rather not limit table height this way, and if it has to
+    # # be done, it should be done in the CSS and ideally with a way to make the
+    # # table heading sticky
+    # return html.Div(
+    #     [html.H5(title), table],
+    #     style={"max-height": "400px", "overflow": "auto"},
+    # )
+
+    # native dash: supports exporting, sorting, and filtering, etc.
+    table = dash_table.DataTable(
+        id="table",
+        # columns=columns,
+        data=data.to_dict("records"),
+        fixed_rows={"headers": True},
+        style_table={"height": 400},  # defaults to 500
+        export_format="csv",
+        sort_action="native",
+        sort_mode="multi",
+        # filter_action="native",
+        style_header={"fontWeight": "bold"},
+        style_cell={
+            "textAlign": "left",
+            "padding": "5px",
+            "overflow": "hidden",
+            "textOverflow": "ellipsis",
+            "maxWidth": 0,
+        },
+        tooltip_data=[
+            {
+                column: {"value": str(value), "type": "markdown"}
+                for column, value in row.items()
+            }
+            for row in data.to_dict("records")
+        ],
+        tooltip_duration=None,
+    )
+
+    return html.Div(
+        [html.H5(title), table],
+        # style={"height": 400, "overflowY": "scroll"},
+    )
 
 
 ################################################################################
