@@ -2,6 +2,7 @@ from collections import defaultdict
 import dash
 import dash_bootstrap_components as dbc
 from dash import Input, Output, dcc, html, callback_context, State, MATCH
+from dash import dash_table
 import re
 import numpy as np
 import pandas as pd
@@ -1426,8 +1427,34 @@ def update_surface_plot(selected_color_scale, input_id):
 
 # Create table function
 def create_table(data, columns, title):
-    table = dbc.Table.from_dataframe(
-        data[columns], bordered=True, hover=True, responsive=True, striped=True
+    # table = dbc.Table.from_dataframe(
+    #     data[columns], bordered=True, hover=True, responsive=True, striped=True
+    # )
+
+    table = dash_table.DataTable(
+        id="table",
+        # columns=columns,
+        data=data.to_dict("records"),
+        export_format="csv",
+        sort_action="native",
+        sort_mode="multi",
+        # filter_action="native",
+        style_header={"fontWeight": "bold"},
+        style_cell={
+            "textAlign": "left",
+            "padding": "5px",
+            "overflow": "hidden",
+            "textOverflow": "ellipsis",
+            "maxWidth": 0,
+        },
+        tooltip_data=[
+            {
+                column: {"value": str(value), "type": "markdown"}
+                for column, value in row.items()
+            }
+            for row in data.to_dict("records")
+        ],
+        tooltip_duration=None,
     )
     return html.Div([html.H5(title), table])
 
