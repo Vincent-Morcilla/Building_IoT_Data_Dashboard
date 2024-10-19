@@ -56,6 +56,74 @@ class ModelQuality:
         self._run_analysis()
         self._df.to_csv("model_quality_v2.csv")
 
+    def get_analyses(self):
+        """TODO"""
+        analyses = {}
+        analyses |= self.get_recognised_entity_analysis()
+        analyses |= self.get_associated_units_analysis()
+        analyses |= self.get_associated_timeseries_data_analysis()
+        analyses |= self.get_class_consistency_analysis()
+
+        return analyses
+
+    def get_recognised_entity_analysis(self):
+        """TODO"""
+        df = self._df[["brick_class", "entity_id", "class_in_brick_schema"]].copy()
+        df.sort_values(
+            by=["class_in_brick_schema", "brick_class", "entity_id"], inplace=True
+        )
+
+        recognised_df = df[df["class_in_brick_schema"] == True].copy()
+        recognised_df.drop(columns=["class_in_brick_schema"], inplace=True)
+
+        unrecognised_df = df[df["class_in_brick_schema"] == False].copy()
+        unrecognised_df.drop(columns=["class_in_brick_schema"], inplace=True)
+
+        df["class_in_brick_schema"] = df["class_in_brick_schema"].apply(
+            lambda x: "Recognised" if x else "Unrecognised"
+        )
+
+        recognised_df_pie = df["class_in_brick_schema"]
+        unrecognised_df_pie = unrecognised_df["brick_class"]
+
+        config = {
+            "ModelQuality_RecognisedEntities": {
+                "PieChartAndTable": {
+                    "title": "Brick Entities in Building Model Recognised by Brick Schema",
+                    "pie_charts": [
+                        {
+                            "title": "Proportion of Recognised vs Unrecognised Entities",
+                            "labels": "class_in_provided_brick",
+                            "textinfo": "percent+label",
+                            "dataframe": recognised_df_pie,
+                        },
+                        {
+                            "title": "Unrecognised Entities by Class",
+                            "labels": "brick_class",
+                            "textinfo": "percent+label",
+                            "dataframe": unrecognised_df_pie,
+                        },
+                    ],
+                    "tables": [
+                        {
+                            "title": "Unrecognised Entities",
+                            "columns": ["Brick Class", "Entity ID"],
+                            "rows": ["brick_class", "entity_id"],
+                            "dataframe": recognised_df,
+                        },
+                        {
+                            "title": "Recognised Entities",
+                            "columns": ["Brick Class", "Entity ID"],
+                            "rows": ["brick_class", "entity_id"],
+                            "dataframe": unrecognised_df,
+                        },
+                    ],
+                },
+            }
+        }
+
+        return config
+
     def plot_recognised_entity_analysis(self):
         """TODO"""
         df = self._df[["brick_class", "entity_id", "class_in_brick_schema"]].copy()
@@ -85,8 +153,8 @@ class ModelQuality:
             cols=2,
             vertical_spacing=0.05,
             subplot_titles=[
-                "Proportion of Entities",
-                "Unrecognised by Class",
+                "Proportion of Recognised Entities",
+                "Unrecognised Entities by Class",
                 "Unrecognised Entities",
                 "Recognised Entities",
             ],
@@ -165,6 +233,72 @@ class ModelQuality:
         )
 
         return fig
+
+    def get_associated_units_analysis(self):
+        """TODO"""
+        df = self._df[["brick_class", "stream_id", "unit", "unit_is_named"]].copy()
+        df.dropna(subset=["stream_id"], inplace=True)
+        df.sort_values(by=["brick_class", "stream_id"], inplace=True)
+        df["has_unit"] = df["unit"].apply(
+            lambda x: "No units" if pd.isna(x) else "Units"
+        )
+
+        proportion_with_units_pie = df["has_unit"]
+
+        streams_without_units = df[pd.isna(df["unit"])].copy()
+        streams_without_units.sort_values(by=["brick_class", "stream_id"], inplace=True)
+        streams_without_units.drop(
+            columns=["unit", "unit_is_named", "has_unit"], inplace=True
+        )
+
+        stream_with_named_units = df.dropna(subset=["unit"]).copy()
+        stream_with_named_units["has_named_unit"] = df["unit_is_named"].apply(
+            lambda x: "Machine readable" if x else "Not machine readable"
+        )
+        stream_with_named_units_pie = stream_with_named_units["has_named_unit"]
+
+        streams_with_anonymous_units = df[df["unit_is_named"] == False].copy()
+        streams_with_anonymous_units.drop(
+            columns=["unit_is_named", "has_unit"], inplace=True
+        )
+
+        config = {
+            "ModelQuality_AssociatedUnits": {
+                "PieChartAndTable": {
+                    "title": "Brick Entities in Building Model Recognised by Brick Schema",
+                    "pie_charts": [
+                        {
+                            "title": "Proportion of Streams with Units",
+                            "labels": "has_unit",
+                            "textinfo": "percent+label",
+                            "dataframe": proportion_with_units_pie,
+                        },
+                        {
+                            "title": "Units that are Machine Readable",
+                            "labels": "has_named_unit",
+                            "textinfo": "percent+label",
+                            "dataframe": stream_with_named_units_pie,
+                        },
+                    ],
+                    "tables": [
+                        {
+                            "title": "Streams without Units",
+                            "columns": ["Brick Class", "Stream ID"],
+                            "rows": ["brick_class", "stream_id"],
+                            "dataframe": streams_without_units,
+                        },
+                        {
+                            "title": "Streams with Non-Machine Readable Units",
+                            "columns": ["Brick Class", "Stream ID", "Unit"],
+                            "rows": ["brick_class", "stream_id", "unit"],
+                            "dataframe": streams_with_anonymous_units,
+                        },
+                    ],
+                }
+            }
+        }
+
+        return config
 
     def plot_associated_units_analysis(self):
         """TODO"""
@@ -282,6 +416,66 @@ class ModelQuality:
 
         return fig
 
+    def get_associated_timeseries_data_analysis(self):
+        """TODO"""
+        df = self._df[["brick_class", "stream_id", "stream_exists_in_mapping"]].copy()
+        df.dropna(subset=["stream_id"], inplace=True)
+        df.sort_values(by=["brick_class", "stream_id"], inplace=True)
+        df["has_data"] = df["stream_exists_in_mapping"].apply(
+            lambda x: "Data" if x else "No data"
+        )
+
+        proportion_with_streams_pie = df["has_data"].copy()
+
+        missing_streams_by_class_pie = df[
+            df["stream_exists_in_mapping"] == False
+        ].copy()["brick_class"]
+
+        have_data_df = df[df["stream_exists_in_mapping"] == True].copy()[
+            ["brick_class", "stream_id"]
+        ]
+        missing_data_df = df[df["stream_exists_in_mapping"] == False].copy()[
+            ["brick_class", "stream_id"]
+        ]
+
+        config = {
+            "ModelQuality_TimeseriesData": {
+                "PieChartAndTable": {
+                    "title": "Data Sources in Building Model with Timeseries Data",
+                    "pie_charts": [
+                        {
+                            "title": "Proportion of Data Sources with Timeseries Data",
+                            "labels": "has_data",
+                            "textinfo": "percent+label",
+                            "dataframe": proportion_with_streams_pie,
+                        },
+                        {
+                            "title": "Missing Data by Class",
+                            "labels": "stream_exists_in_mapping",
+                            "textinfo": "percent+label",
+                            "dataframe": missing_streams_by_class_pie,
+                        },
+                    ],
+                    "tables": [
+                        {
+                            "title": "Data Sources with Missing Timeseries Data",
+                            "columns": ["Brick Class", "Stream ID"],
+                            "rows": ["brick_class", "stream_id"],
+                            "dataframe": missing_data_df,
+                        },
+                        {
+                            "title": "Data Sources with Available Timeseries Data",
+                            "columns": ["Brick Class", "Stream ID"],
+                            "rows": ["brick_class", "stream_id"],
+                            "dataframe": have_data_df,
+                        },
+                    ],
+                }
+            }
+        }
+
+        return config
+
     def plot_associated_timeseries_data_analysis(self):
         """TODO"""
         df = self._df[["brick_class", "stream_id", "stream_exists_in_mapping"]].copy()
@@ -395,19 +589,85 @@ class ModelQuality:
 
         return fig
 
+    def get_class_consistency_analysis(self):
+        """TODO"""
+        df = self._df[
+            [
+                "brick_class",
+                "brick_class_in_mapper",
+                "entity_id",
+                "brick_class_is_consistent",
+            ]
+        ].copy()
+        df.dropna(subset=["brick_class_in_mapper"], inplace=True)
+        df.sort_values(
+            by=["brick_class", "brick_class_in_mapper", "entity_id"], inplace=True
+        )
+        df["consistency"] = df["brick_class_is_consistent"].apply(
+            lambda x: "Consistent" if x else "Inconsistent"
+        )
+
+        proportion_consistent_pie = df["consistency"].copy()
+
+        inconsistent_df = df[df["brick_class_is_consistent"] == False].copy()[
+            ["brick_class", "brick_class_in_mapper", "entity_id"]
+        ]
+
+        inconsistent_by_class_pie = inconsistent_df["brick_class"].copy()
+
+        config = {
+            "ModelQuality_ClassConsistency": {
+                "PieChartAndTable": {
+                    "title": "Data Sources in Building Model with Timeseries Data",
+                    "pie_charts": [
+                        {
+                            "title": "Proportion of Data Sources",
+                            "labels": "consistency",
+                            "textinfo": "percent+label",
+                            "dataframe": proportion_consistent_pie,
+                        },
+                        {
+                            "title": "Inconsistent Data Sources by Class",
+                            "labels": "brick_class",
+                            "textinfo": "percent+label",
+                            "dataframe": inconsistent_by_class_pie,
+                        },
+                    ],
+                    "tables": [
+                        {
+                            "title": "Data Sources with Inconsistent Brick Class",
+                            "columns": [
+                                "Brick Class in Model",
+                                "Brick Class in Mapper",
+                                "Entity ID",
+                            ],
+                            "rows": [
+                                "brick_class",
+                                "brick_class_in_mapper",
+                                "entity_id",
+                            ],
+                            "dataframe": inconsistent_df,
+                        },
+                    ],
+                }
+            }
+        }
+
+        return config
+
     def plot_class_consistency_analysis(self):
         """TODO"""
         df = self._df[
             [
                 "brick_class",
-                "brick_class_in_mapping",
+                "brick_class_in_mapper",
                 "entity_id",
                 "brick_class_is_consistent",
             ]
         ].copy()
-        df.dropna(subset=["brick_class_in_mapping"], inplace=True)
+        df.dropna(subset=["brick_class_in_mapper"], inplace=True)
         df.sort_values(
-            by=["brick_class", "brick_class_in_mapping", "entity_id"], inplace=True
+            by=["brick_class", "brick_class_in_mapper", "entity_id"], inplace=True
         )
         df["consistency"] = df["brick_class_is_consistent"].apply(
             lambda x: "Consistent" if x else "Inconsistent"
@@ -561,7 +821,7 @@ class ModelQuality:
     def _class_consistency_analysis(self):
         """Amend the DataFrame to include the results of the class consistency analysis."""
 
-        # def brick_class_in_mapping(s, mapping_df):
+        # def brick_class_in_mapper(s, mapping_df):
         #     if pd.isna(s):
         #         return None
         #     mapping_df['StreamID']
@@ -579,9 +839,9 @@ class ModelQuality:
             right_on="StreamID",
         )
 
-        # Rename the 'strBrickLabel' column to 'brick_class_in_mapping'
+        # Rename the 'strBrickLabel' column to 'brick_class_in_mapper'
         self._df.rename(
-            columns={"strBrickLabel": "brick_class_in_mapping"}, inplace=True
+            columns={"strBrickLabel": "brick_class_in_mapper"}, inplace=True
         )
 
         # Create a temporary column with the fragment of the 'brick_class' for comparison
@@ -589,14 +849,14 @@ class ModelQuality:
             lambda x: str(x.fragment) if x is not None else None
         )
 
-        # Compare the fragment of the 'brick_class' with the 'brick_class_in_mapping'
+        # Compare the fragment of the 'brick_class' with the 'brick_class_in_mapper'
         self._df["brick_class_is_consistent"] = np.where(
             pd.isna(
-                self._df["brick_class_in_mapping"]
-            ),  # Check if brick_class_in_mapping is empty
+                self._df["brick_class_in_mapper"]
+            ),  # Check if brick_class_in_mapper is empty
             None,  # Leave empty where there's no mapping value
             self._df["brick_class_fragment"]
-            == self._df["brick_class_in_mapping"],  # Compare fragment with the mapping
+            == self._df["brick_class_in_mapper"],  # Compare fragment with the mapping
         )
 
         # Drop the temporary columns
@@ -695,5 +955,15 @@ if __name__ == "__main__":
     mq = ModelQuality()
     # print(mq._df.head())
     # mq.plot_recognised_entity_analysis()
-    mq.plot_associated_units_analysis()
+    # mq.plot_associated_units_analysis()
     # mq.plot_class_consistency_analysis()
+    config = mq.get_analyses()
+    for key, value in config.items():
+        print(key)
+        for k, v in value.items():
+            print(k)
+            for i, j in v.items():
+                print(i)
+                print(j)
+        print("====================")
+    print()
