@@ -1,13 +1,24 @@
 from collections import defaultdict
+import os
+import re
+import sys
+
 import dash
 import dash_bootstrap_components as dbc
-from dash import Input, Output, dcc, html, callback_context, State, MATCH
-from dash import dash_table
-import re
+from dash import dash_table, Input, Output, dcc, html, State, MATCH
 import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+
+# FIXME: Remove this hackathon
+# Add my code snippets directory to the system path
+sys.path.append(
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "../../code_snippets/tim"))
+)
+import modelquality as mq
+
+m = mq.ModelQuality()
 
 ################################################################################
 #                               GLOBAL VARIABLES                               #
@@ -130,120 +141,120 @@ plot_configs = {
             "dataframe": dataframes["Area_DataQuality"],
         }
     },
-    "ModelQuality_ClassInconsistency": {
-        "PieChartAndTable": {
-            "title": "Data Sources with Inconsistent Brick Class between Model and Mapper",
-            "pie_charts": [
-                {
-                    "title": "Proportion of Consistent vs Inconsistent Classes",
-                    "labels": "brick_class_is_consistent",
-                    "textinfo": "percent+label",
-                    "filter": None,
-                    "dataframe": dataframes["ModelQuality_ClassInconsistency"],
-                },
-                {
-                    "title": "Inconsistent Brick Classes by Class",
-                    "labels": "brick_class",
-                    "values": "count",
-                    "textinfo": "percent+label",
-                    "filter": "brick_class_is_consistent == False",
-                    "dataframe": dataframes["ModelQuality_ClassInconsistency"],
-                },
-            ],
-            "tables": [
-                {
-                    "title": "Data Sources with Inconsistent Brick Class",
-                    "columns": [
-                        "Brick Class in Model",
-                        "Brick Class in Mapper",
-                        "Entity ID",
-                    ],
-                    "data_source": "ModelQuality_ClassInconsistency",
-                    "filter": "brick_class_is_consistent == False",
-                    "rows": ["brick_class", "brick_class_in_mapping", "entity"],
-                    "dataframe": dataframes["ModelQuality_ClassInconsistency"],
-                }
-            ],
-        }
-    },
-    "ModelQuality_MissingTimeseries": {
-        "PieChartAndTable": {
-            "title": "Data Sources in Building Model without Timeseries Data",
-            "pie_charts": [
-                {
-                    "title": "Proportion of Data Sources with Timeseries Data",
-                    "labels": "has_data",
-                    "textinfo": "percent+label",
-                    "filter": None,
-                    "dataframe": dataframes["ModelQuality_MissingTimeseries"],
-                },
-                {
-                    "title": "Missing Timeseries Data by Class",
-                    "labels": "brick_class",
-                    "textinfo": "percent+label",
-                    "filter": "has_data == False",
-                    "dataframe": dataframes["ModelQuality_MissingTimeseries"],
-                },
-            ],
-            "tables": [
-                {
-                    "title": "Data Sources with Missing Timeseries Data",
-                    "columns": ["Brick Class", "Stream ID"],
-                    "data_source": "ModelQuality_MissingTimeseries",
-                    "filter": "has_data == False",
-                    "rows": ["brick_class", "stream_id"],
-                    "dataframe": dataframes["ModelQuality_ClassInconsistency"],
-                },
-                {
-                    "title": "Data Sources with Available Timeseries Data",
-                    "columns": ["Brick Class", "Stream ID"],
-                    "data_source": "ModelQuality_MissingTimeseries",
-                    "filter": "has_data == True",
-                    "rows": ["brick_class", "stream_id"],
-                    "dataframe": dataframes["ModelQuality_MissingTimeseries"],
-                },
-            ],
-        }
-    },
-    "ModelQuality_RecognisedEntities": {
-        "PieChartAndTable": {
-            "title": "Brick Entities in Building Model Recognised by Brick Schema",
-            "pie_charts": [
-                {
-                    "title": "Proportion of Recognised vs Unrecognised Entities",
-                    "labels": "class_in_provided_brick",
-                    "textinfo": "percent+label",
-                    "filter": None,
-                    "dataframe": dataframes["ModelQuality_RecognisedEntities"],
-                },
-                {
-                    "title": "Unrecognised Entities by Class",
-                    "labels": "brick_class",
-                    "textinfo": "percent+label",
-                    "filter": "class_in_provided_brick == False",
-                    "dataframe": dataframes["ModelQuality_RecognisedEntities"],
-                },
-            ],
-            "tables": [
-                {
-                    "title": "Unrecognised Entities",
-                    "columns": ["Brick Class", "Entity ID"],
-                    "data_source": "ModelQuality_RecognisedEntities",  # Main dataframe
-                    "filter": "class_in_provided_brick == False",
-                    "rows": ["brick_class", "entity_id"],
-                    "dataframe": dataframes["ModelQuality_RecognisedEntities"],
-                },
-                {
-                    "title": "Recognised Entities",
-                    "columns": ["Brick Class", "Entity ID"],
-                    "data_source": "ModelQuality_RecognisedEntities",
-                    "filter": "class_in_provided_brick == True",
-                    "rows": ["brick_class", "entity_id"],
-                    "dataframe": dataframes["ModelQuality_RecognisedEntities"],
-                },
-            ],
-        }
-    },
+    # "ModelQuality_ClassInconsistency": {
+    #     "PieChartAndTable": {
+    #         "title": "Data Sources with Inconsistent Brick Class between Model and Mapper",
+    #         "pie_charts": [
+    #             {
+    #                 "title": "Proportion of Consistent vs Inconsistent Classes",
+    #                 "labels": "brick_class_is_consistent",
+    #                 "textinfo": "percent+label",
+    #                 "filter": None,
+    #                 "dataframe": dataframes["ModelQuality_ClassInconsistency"],
+    #             },
+    #             {
+    #                 "title": "Inconsistent Brick Classes by Class",
+    #                 "labels": "brick_class",
+    #                 "values": "count",
+    #                 "textinfo": "percent+label",
+    #                 "filter": "brick_class_is_consistent == False",
+    #                 "dataframe": dataframes["ModelQuality_ClassInconsistency"],
+    #             },
+    #         ],
+    #         "tables": [
+    #             {
+    #                 "title": "Data Sources with Inconsistent Brick Class",
+    #                 "columns": [
+    #                     "Brick Class in Model",
+    #                     "Brick Class in Mapper",
+    #                     "Entity ID",
+    #                 ],
+    #                 "data_source": "ModelQuality_ClassInconsistency",
+    #                 "filter": "brick_class_is_consistent == False",
+    #                 "rows": ["brick_class", "brick_class_in_mapping", "entity"],
+    #                 "dataframe": dataframes["ModelQuality_ClassInconsistency"],
+    #             }
+    #         ],
+    #     }
+    # },
+    # "ModelQuality_MissingTimeseries": {
+    #     "PieChartAndTable": {
+    #         "title": "Data Sources in Building Model without Timeseries Data",
+    #         "pie_charts": [
+    #             {
+    #                 "title": "Proportion of Data Sources with Timeseries Data",
+    #                 "labels": "has_data",
+    #                 "textinfo": "percent+label",
+    #                 "filter": None,
+    #                 "dataframe": dataframes["ModelQuality_MissingTimeseries"],
+    #             },
+    #             {
+    #                 "title": "Missing Timeseries Data by Class",
+    #                 "labels": "brick_class",
+    #                 "textinfo": "percent+label",
+    #                 "filter": "has_data == False",
+    #                 "dataframe": dataframes["ModelQuality_MissingTimeseries"],
+    #             },
+    #         ],
+    #         "tables": [
+    #             {
+    #                 "title": "Data Sources with Missing Timeseries Data",
+    #                 "columns": ["Brick Class", "Stream ID"],
+    #                 "data_source": "ModelQuality_MissingTimeseries",
+    #                 "filter": "has_data == False",
+    #                 "rows": ["brick_class", "stream_id"],
+    #                 "dataframe": dataframes["ModelQuality_ClassInconsistency"],
+    #             },
+    #             {
+    #                 "title": "Data Sources with Available Timeseries Data",
+    #                 "columns": ["Brick Class", "Stream ID"],
+    #                 "data_source": "ModelQuality_MissingTimeseries",
+    #                 "filter": "has_data == True",
+    #                 "rows": ["brick_class", "stream_id"],
+    #                 "dataframe": dataframes["ModelQuality_MissingTimeseries"],
+    #             },
+    #         ],
+    #     }
+    # },
+    # "ModelQuality_RecognisedEntities": {
+    #     "PieChartAndTable": {
+    #         "title": "Brick Entities in Building Model Recognised by Brick Schema",
+    #         "pie_charts": [
+    #             {
+    #                 "title": "Proportion of Recognised vs Unrecognised Entities",
+    #                 "labels": "class_in_provided_brick",
+    #                 "textinfo": "percent+label",
+    #                 "filter": None,
+    #                 "dataframe": dataframes["ModelQuality_RecognisedEntities"],
+    #             },
+    #             {
+    #                 "title": "Unrecognised Entities by Class",
+    #                 "labels": "brick_class",
+    #                 "textinfo": "percent+label",
+    #                 "filter": "class_in_provided_brick == False",
+    #                 "dataframe": dataframes["ModelQuality_RecognisedEntities"],
+    #             },
+    #         ],
+    #         "tables": [
+    #             {
+    #                 "title": "Unrecognised Entities",
+    #                 "columns": ["Brick Class", "Entity ID"],
+    #                 "data_source": "ModelQuality_RecognisedEntities",  # Main dataframe
+    #                 "filter": "class_in_provided_brick == False",
+    #                 "rows": ["brick_class", "entity_id"],
+    #                 "dataframe": dataframes["ModelQuality_RecognisedEntities"],
+    #             },
+    #             {
+    #                 "title": "Recognised Entities",
+    #                 "columns": ["Brick Class", "Entity ID"],
+    #                 "data_source": "ModelQuality_RecognisedEntities",
+    #                 "filter": "class_in_provided_brick == True",
+    #                 "rows": ["brick_class", "entity_id"],
+    #                 "dataframe": dataframes["ModelQuality_RecognisedEntities"],
+    #             },
+    #         ],
+    #     }
+    # },
     "Temperature_WeatherSensitivity": {
         "SurfacePlot": {
             "title": "Temperature vs Weather Sensitivity",
@@ -335,6 +346,9 @@ plot_configs = {
         }
     },
 }
+
+plot_configs |= m.get_analyses()
+print(plot_configs["ModelQuality_RecognisedEntities"])
 
 
 ################################################################################
@@ -1062,7 +1076,12 @@ def update_timeseries_plot(start_date, end_date, frequency, input_id):
 
 # Create pie chart function
 def create_pie_chart(
-    data, labels_column, values_column, title, textinfo="percent+label"
+    data,
+    labels_column,
+    values_column,
+    title,
+    textinfo="percent+label",
+    showlegend=False,
 ):
     # Calculate the count of occurrences for each label
     value_counts = data[labels_column].value_counts().reset_index()
@@ -1073,6 +1092,7 @@ def create_pie_chart(
             labels=value_counts[labels_column],
             values=value_counts["count"],
             textinfo=textinfo,
+            showlegend=showlegend,  # @tim: FIXME: make this an actual parameter
         )
     )
 
@@ -1138,53 +1158,47 @@ def create_pie_chart_and_table_tab(plot_settings, plot_id, subcategory):
         data = table["dataframe"]
         table_title = table.get("title", "Table")
         columns = table.get("columns", [])
-        data_source_key = table.get("data_source", "")
         filter_condition = table.get("filter", None)
         rows = table.get("rows", columns)
 
-        # Retrieve the main dataframe based on data_source_key
-        main_dataframe = dataframes.get(data_source_key)
-        if main_dataframe is not None:
-            if filter_condition:
-                # Apply the filter using pandas query
-                try:
-                    filtered_data = main_dataframe.query(filter_condition)
-                except Exception as e:
-                    print(
-                        f"Error applying filter '{filter_condition}' on dataframe '{data_source_key}': {e}"
-                    )
-                    filtered_data = main_dataframe  # Fallback to unfiltered data if there's an error
-            else:
-                filtered_data = main_dataframe
-
-            # Select and rename columns as needed
-            selected_columns = rows
-            # Ensure all selected columns exist in the dataframe
-            existing_columns = [
-                col for col in selected_columns if col in filtered_data.columns
-            ]
-            if not existing_columns:
+        if filter_condition:
+            # Apply the filter using pandas query
+            try:
+                filtered_data = data.query(filter_condition)
+            except Exception as e:
                 print(
-                    f"No matching columns found for table '{table_title}' in dataframe '{data_source_key}'."
+                    f"Error applying filter '{filter_condition}' on dataframe '{plot_id}': {e}"
                 )
-                continue  # Skip creating this table
-
-            display_data = filtered_data[existing_columns].rename(
-                columns=dict(
-                    zip(selected_columns, columns)
-                )  # Rename to user-friendly names
-            )
-
-            # Create and append the table
-            table_content.append(
-                dbc.Col(
-                    create_table(display_data, columns, table_title),
-                    width=12,  # Full-width for each table
-                    className="mb-4",  # Add margin-bottom for spacing
-                )
-            )
+                filtered_data = data  # Fallback to unfiltered data if there's an error
         else:
-            print(f"Data source '{data_source_key}' not found in dataframes.")
+            filtered_data = data
+
+        # Select and rename columns as needed
+        selected_columns = rows
+        # Ensure all selected columns exist in the dataframe
+        existing_columns = [
+            col for col in selected_columns if col in filtered_data.columns
+        ]
+        if not existing_columns:
+            print(
+                f"No matching columns found for table '{table_title}' in dataframe '{plot_id}'."
+            )
+            continue  # Skip creating this table
+
+        display_data = filtered_data[existing_columns].rename(
+            columns=dict(
+                zip(selected_columns, columns)
+            )  # Rename to user-friendly names
+        )
+
+        # Create and append the table
+        table_content.append(
+            dbc.Col(
+                create_table(display_data, columns, table_title),
+                width=12,  # Full-width for each table
+                className="mb-4",  # Add margin-bottom for spacing
+            )
+        )
 
     # Combine pie charts and tables into layout
     content = []
@@ -1427,35 +1441,49 @@ def update_surface_plot(selected_color_scale, input_id):
 
 # Create table function
 def create_table(data, columns, title):
-    # table = dbc.Table.from_dataframe(
-    #     data[columns], bordered=True, hover=True, responsive=True, striped=True
+    table = dbc.Table.from_dataframe(
+        data[columns],
+        bordered=True,
+        hover=True,
+        responsive=True,
+        striped=True,
+    )
+
+    # @tim: FIXME: would rather not limit table height this way, and if it has to
+    # be done, it should be done in the CSS and ideally with a way to make the
+    # table heading sticky
+    return html.Div(
+        [html.H5(title), table],
+        style={"max-height": "400px", "overflow": "auto"},
+    )
+
+    # native dash: supports exporting, sorting, and filtering, etc.
+    # table = dash_table.DataTable(
+    #     id="table",
+    #     # columns=columns,
+    #     data=data.to_dict("records"),
+    #     export_format="csv",
+    #     sort_action="native",
+    #     sort_mode="multi",
+    #     # filter_action="native",
+    #     style_header={"fontWeight": "bold"},
+    #     style_cell={
+    #         "textAlign": "left",
+    #         "padding": "5px",
+    #         "overflow": "hidden",
+    #         "textOverflow": "ellipsis",
+    #         "maxWidth": 0,
+    #     },
+    #     tooltip_data=[
+    #         {
+    #             column: {"value": str(value), "type": "markdown"}
+    #             for column, value in row.items()
+    #         }
+    #         for row in data.to_dict("records")
+    #     ],
+    #     tooltip_duration=None,
     # )
 
-    table = dash_table.DataTable(
-        id="table",
-        # columns=columns,
-        data=data.to_dict("records"),
-        export_format="csv",
-        sort_action="native",
-        sort_mode="multi",
-        # filter_action="native",
-        style_header={"fontWeight": "bold"},
-        style_cell={
-            "textAlign": "left",
-            "padding": "5px",
-            "overflow": "hidden",
-            "textOverflow": "ellipsis",
-            "maxWidth": 0,
-        },
-        tooltip_data=[
-            {
-                column: {"value": str(value), "type": "markdown"}
-                for column, value in row.items()
-            }
-            for row in data.to_dict("records")
-        ],
-        tooltip_duration=None,
-    )
     return html.Div([html.H5(title), table])
 
 

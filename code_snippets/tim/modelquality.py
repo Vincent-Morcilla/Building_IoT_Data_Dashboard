@@ -83,8 +83,8 @@ class ModelQuality:
             lambda x: "Recognised" if x else "Unrecognised"
         )
 
-        recognised_df_pie = df["class_in_brick_schema"]
-        unrecognised_df_pie = unrecognised_df["brick_class"]
+        # recognised_df_pie = df["class_in_brick_schema"]
+        # unrecognised_df_pie = unrecognised_df["brick_class"]
 
         config = {
             "ModelQuality_RecognisedEntities": {
@@ -93,15 +93,17 @@ class ModelQuality:
                     "pie_charts": [
                         {
                             "title": "Proportion of Recognised vs Unrecognised Entities",
-                            "labels": "class_in_provided_brick",
+                            "labels": "class_in_brick_schema",
                             "textinfo": "percent+label",
-                            "dataframe": recognised_df_pie,
+                            "dataframe": df,
+                            # "dataframe": recognised_df_pie,
                         },
                         {
                             "title": "Unrecognised Entities by Class",
                             "labels": "brick_class",
                             "textinfo": "percent+label",
-                            "dataframe": unrecognised_df_pie,
+                            "dataframe": unrecognised_df,
+                            # "dataframe": unrecognised_df_pie,
                         },
                     ],
                     "tables": [
@@ -271,13 +273,15 @@ class ModelQuality:
                             "title": "Proportion of Streams with Units",
                             "labels": "has_unit",
                             "textinfo": "percent+label",
-                            "dataframe": proportion_with_units_pie,
+                            "dataframe": df,
+                            # "dataframe": proportion_with_units_pie,
                         },
                         {
                             "title": "Units that are Machine Readable",
                             "labels": "has_named_unit",
                             "textinfo": "percent+label",
-                            "dataframe": stream_with_named_units_pie,
+                            "dataframe": stream_with_named_units,
+                            # "dataframe": stream_with_named_units_pie,
                         },
                     ],
                     "tables": [
@@ -429,7 +433,10 @@ class ModelQuality:
 
         missing_streams_by_class_pie = df[
             df["stream_exists_in_mapping"] == False
-        ].copy()["brick_class"]
+        ].copy()
+        # missing_streams_by_class_pie = df[
+        #     df["stream_exists_in_mapping"] == False
+        # ].copy()["brick_class"]
 
         have_data_df = df[df["stream_exists_in_mapping"] == True].copy()[
             ["brick_class", "stream_id"]
@@ -447,13 +454,15 @@ class ModelQuality:
                             "title": "Proportion of Data Sources with Timeseries Data",
                             "labels": "has_data",
                             "textinfo": "percent+label",
-                            "dataframe": proportion_with_streams_pie,
+                            "dataframe": df,
+                            # "dataframe": proportion_with_streams_pie,
                         },
                         {
                             "title": "Missing Data by Class",
-                            "labels": "stream_exists_in_mapping",
+                            "labels": "brick_class",
                             "textinfo": "percent+label",
                             "dataframe": missing_streams_by_class_pie,
+                            # "dataframe": missing_streams_by_class_pie,
                         },
                     ],
                     "tables": [
@@ -607,13 +616,13 @@ class ModelQuality:
             lambda x: "Consistent" if x else "Inconsistent"
         )
 
-        proportion_consistent_pie = df["consistency"].copy()
+        # proportion_consistent_pie = df["consistency"].copy()
 
         inconsistent_df = df[df["brick_class_is_consistent"] == False].copy()[
             ["brick_class", "brick_class_in_mapper", "entity_id"]
         ]
 
-        inconsistent_by_class_pie = inconsistent_df["brick_class"].copy()
+        # inconsistent_by_class_pie = inconsistent_df["brick_class"].copy()
 
         config = {
             "ModelQuality_ClassConsistency": {
@@ -624,13 +633,15 @@ class ModelQuality:
                             "title": "Proportion of Data Sources",
                             "labels": "consistency",
                             "textinfo": "percent+label",
-                            "dataframe": proportion_consistent_pie,
+                            "dataframe": df,
+                            # "dataframe": proportion_consistent_pie,
                         },
                         {
                             "title": "Inconsistent Data Sources by Class",
                             "labels": "brick_class",
                             "textinfo": "percent+label",
-                            "dataframe": inconsistent_by_class_pie,
+                            "dataframe": inconsistent_df,
+                            # "dataframe": inconsistent_by_class_pie,
                         },
                     ],
                     "tables": [
