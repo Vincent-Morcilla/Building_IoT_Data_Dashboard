@@ -348,7 +348,6 @@ plot_configs = {
 }
 
 plot_configs |= m.get_analyses()
-print(plot_configs["ModelQuality_RecognisedEntities"])
 
 
 ################################################################################
