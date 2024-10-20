@@ -1,13 +1,6 @@
 from dash import html, dcc
 import dash_bootstrap_components as dbc
-import os
-import sys
-
-# Add the root directory to the system path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../")))
-
-# PipelineProgress class and pipeline functions defined
-from backend.pipeline import get_pipeline_progress, data_pipeline
+from components.modals import create_error_modal
 
 # Function to create the title-logo
 def create_title_logo():
@@ -51,21 +44,6 @@ def create_dataset_form():
         id="form-container",
     )
 
-# Function to create the error modal
-def create_error_modal():
-    return dbc.Modal(
-        [
-            dbc.ModalHeader("Error"),
-            dbc.ModalBody(id="error-message"),
-            dbc.ModalFooter(
-                dbc.Button("Close", id="close-error-modal", className="ml-auto", n_clicks=0)
-            ),
-        ],
-        id="error-modal",
-        centered=True,
-        is_open=False
-    )
-
 # Function to create the progress section
 def create_progress_section():
     return html.Div(
@@ -92,29 +70,28 @@ def main_page():
         fluid=True,
     )
 
-# Analytics page layout
-def analytics_page(session_id):
-    if session_id:
-        progress = get_pipeline_progress(session_id)
-        if progress:
-            analytics = progress.get_analytics()
-            if analytics:
-                modified_file_names = analytics.get('file_names', [])
-                dataset_name = analytics.get('dataset_name', '')
-                uploaded_files = analytics.get('uploaded_files', [])
-                return html.Div([
-                    create_title_logo(),
-                    html.Hr(),
-                    html.H2("Analytics"),
-                    html.H3(f"Dataset Name: {dataset_name}"),
-                    html.H4("Uploaded Files:"),
-                    html.Ul([html.Li(name) for name in uploaded_files]),
-                    html.H4("Modified Filenames:"),
-                    html.Ul([html.Li(name) for name in modified_file_names]),
-                ])
-    return html.Div([
-        create_title_logo(),
-        html.Hr(),
-        html.H2("Analytics"),
-        html.P("No analytics available.")
-    ])
+# Create Sidebar
+def create_sidebar():
+    sidebar = html.Div(
+        [
+            html.Button(
+                html.Div(
+                    html.Img(src="/assets/logo.svg", className="sidebar-logo"),
+                    className="sidebar-logo-container",
+                ),
+                id="logo-button",
+                n_clicks=0,
+                className="logo-button",
+            ),
+            html.Hr(),
+            dbc.Nav(
+                [
+                    dbc.NavLink("Analytics", href="/analytics", active="exact")
+                ],
+                vertical=True,
+                pills=True,
+            ),
+        ],
+        className="sidebar",
+    )
+    return sidebar

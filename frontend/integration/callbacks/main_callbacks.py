@@ -113,7 +113,7 @@ def register_callbacks(app):
             session_id = f"session_{n_clicks}"
 
             # Start the pipeline in a new thread
-            thread = threading.Thread(target=data_pipeline, args=(data, session_id), daemon=True)
+            thread = threading.Thread(target=data_pipeline, args=(data,), daemon=True)
             thread.start()
 
             # Return the session ID
@@ -144,7 +144,7 @@ def register_callbacks(app):
         if trigger == 'interval-component':
             if session_id:
                 # Get the progress from the pipeline using the session_id
-                progress = get_pipeline_progress(session_id)
+                progress = get_pipeline_progress()
                 if progress:
                     progress_data = progress.get_progress()
                     stage = progress_data.get('stage', 'Unknown')
@@ -168,3 +168,38 @@ def register_callbacks(app):
                 return dash.no_update, dash.no_update, dash.no_update, '/', dash.no_update, dash.no_update, False
 
         raise PreventUpdate
+
+    # Callback for handling modal and homepage navigation
+    @app.callback(
+    [Output("warning-modal", "is_open"), Output("url", "pathname", allow_duplicate=True)],
+    [
+        Input("logo-button", "n_clicks"),
+        Input("modal-yes-button", "n_clicks"),
+        Input("modal-no-button", "n_clicks"),
+    ],
+    [State("warning-modal", "is_open"), State("url", "pathname")],
+    prevent_initial_call=True 
+    )
+    def toggle_modal_and_navigate(n_clicks_logo, n_clicks_yes, n_clicks_no, is_open, current_pathname):
+        ctx = dash.callback_context  # Context to determine which input triggered the callback
+
+        # If no button was clicked, prevent update
+        if not ctx.triggered:
+            return is_open, dash.no_update
+        else:
+            button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+
+        # Handle clicks for each button, ensuring the actions only occur when the button has been clicked at least once
+        if button_id == "logo-button" and n_clicks_logo:
+            if n_clicks_logo > 0:  # Check for at least one click
+                return True, dash.no_update  # Open modal without changing the URL
+
+        elif button_id == "modal-yes-button" and n_clicks_yes:
+            if n_clicks_yes > 0:  # Check for at least one click
+                return False, "/"  # Close modal and navigate to homepage "/"
+
+        elif button_id == "modal-no-button" and n_clicks_no:
+            if n_clicks_no > 0:  # Check for at least one click
+                return False, current_pathname  # Close modal, stay on current page
+
+        return is_open, dash.no_update

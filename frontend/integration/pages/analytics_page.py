@@ -1,40 +1,57 @@
 from dash import html
-from components.layout_components import create_title_logo
+import dash_bootstrap_components as dbc
+from components.layout_components import create_sidebar
+from components.modals import create_warning_modal
 import os
 import sys
-from urllib.parse import parse_qs
 
 # Add the root directory to the system path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../")))
 
 # PipelineProgress class and pipeline functions defined
-from backend.pipeline import get_pipeline_progress, data_pipeline
+from backend.pipeline import get_pipeline_progress
 
-def layout(search):
-    query_params = parse_qs(search.lstrip('?'))
-    session_id = query_params.get('session_id', [None])[0]
-
-    if session_id:
-        progress = get_pipeline_progress(session_id)
-        if progress:
-            analytics = progress.get_analytics()
-            if analytics:
-                modified_file_names = analytics.get('file_names', [])
-                dataset_name = analytics.get('dataset_name', '')
-                uploaded_files = analytics.get('uploaded_files', [])
-                return html.Div([
-                    create_title_logo(),
-                    html.Hr(),
-                    html.H2("Analytics"),
-                    html.H3(f"Dataset Name: {dataset_name}"),
-                    html.H4("Uploaded Files:"),
-                    html.Ul([html.Li(name) for name in uploaded_files]),
-                    html.H4("Modified Filenames:"),
-                    html.Ul([html.Li(name) for name in modified_file_names]),
-                ])
-    return html.Div([
-        create_title_logo(),
-        html.Hr(),
-        html.H2("Analytics"),
-        html.P("No analytics available.")
-    ])
+# Layout of analytics page
+def analytics_layout():
+    # Retrieve progress information (adjusted to no longer rely on session_id)
+    progress = get_pipeline_progress()
+    
+    if progress:
+        analytics = progress.get_analytics()
+        if analytics:
+            modified_file_names = analytics.get('file_names', [])
+            dataset_name = analytics.get('dataset_name', '')
+            uploaded_files = analytics.get('uploaded_files', [])
+            
+            # Content for the "Main" tab when progress is available
+            main_tab_content = html.Div([
+                html.H3(f"Dataset Name: {dataset_name}"),
+                html.H4("Uploaded Files:"),
+                html.Ul([html.Li(name) for name in uploaded_files]),
+                html.H4("Modified Filenames:"),
+                html.Ul([html.Li(name) for name in modified_file_names])
+            ])
+        else:
+            # Fallback if progress exists but analytics are missing
+            main_tab_content = html.Div([
+                html.H4("No detailed analytics available.")
+            ])
+    else:
+        # Content for the "Main" tab when no progress is available
+        main_tab_content = html.Div([
+            html.H4("No analytics available.")
+        ])
+    
+    # Create the layout with a sidebar and the main content area using dbc.Row and dbc.Col
+    return dbc.Container([
+        dbc.Row([
+            dbc.Col(create_sidebar(), width=2),  # Sidebar with fixed width
+            dbc.Col([
+                html.Br(),
+                dbc.Tabs([
+                    dbc.Tab(main_tab_content, label="Main", tab_id="main")
+                ], id="analytics-tabs", active_tab="main"),
+                create_warning_modal()
+            ], width=10)  # Main content takes the rest of the space
+        ])
+    ], fluid=True)

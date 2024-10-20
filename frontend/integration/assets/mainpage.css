@@ -1,0 +1,135 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap");
+
+.mainpage-layout * {
+  font-family: "Roboto", sans-serif;
+  position: relative;
+}
+
+/* Title and logo */
+.mainpage-layout #title {
+  width: 35%;
+  height: auto;
+  transition: transform 0.2s ease-in-out;
+  margin-left: 30%;
+}
+
+.mainpage-layout #title:hover {
+  transform: scale(1.05);
+}
+
+.mainpage-layout #title:active {
+  transform: scale(0.95);
+}
+
+/* Form controls and buttons */
+.mainpage-layout .form-control:hover,
+.mainpage-layout .form-control:active,
+.mainpage-layout .form-control:focus {
+  border-color: #3c9639;
+  box-shadow: 0 0 8px #3c9639;
+  outline: none;
+}
+
+.mainpage-layout .btn {
+  background-color: #3c9639 !important;
+  border-color: #3c9639 !important;
+}
+
+.mainpage-layout .btn:hover,
+.mainpage-layout .btn:active {
+  background-color: #035600 !important;
+  border-color: #035600;
+}
+
+/* Custom CSS for the progress bar */
+.mainpage-layout #progress-bar {
+  margin-top: 20px;
+}
+
+/* Override the background color of the progress bar */
+.mainpage-layout .progress-bar-custom,
+.mainpage-layout .progress-bar {
+  background-color: #3c9639 !important; /* Force custom color */
+}
+
+/* To apply the striped effect to the progress bar */
+.mainpage-layout .progress-bar-custom.progress-bar-striped {
+  background-image: linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.15) 25%,
+    rgba(0, 0, 0, 0.15) 25%,
+    rgba(0, 0, 0, 0.15) 50%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0.15) 75%,
+    rgba(0, 0, 0, 0.15) 75%,
+    rgba(0, 0, 0, 0.15) 100%
+  );
+}
+
+/* Ensure variables are overwritten */
+.mainpage-layout .progress,
+.mainpage-layout .progress-stacked {
+  --bs-progress-height: 30px;
+  --bs-progress-font-size: 1rem;
+  --bs-progress-bg: #e0e0e0;
+  --bs-progress-border-radius: 10px;
+  --bs-progress-bar-color: #fff;
+  --bs-progress-bar-bg: #3c9639 !important;
+  --bs-progress-bar-transition: width 0.4s ease;
+  --bs-box-shadow-inset: none;
+}
+
+/* Extra specificity to ensure background is overridden */
+.mainpage-layout .progress-bar {
+  background-color: #3c9639 !important;
+}
+
+/* Error Modal */
+.mainpage-layout .modal-content {
+  background-color: lightgray;
+  color: #721c24;
+}
+
+.mainpage-layout .modal-header,
+.mainpage-layout .modal-footer {
+  border: none;
+}
+
+.mainpage-layout .modal-header .close {
+  color: #3c9639;
+}
+
+.mainpage-layout .modal-footer .btn {
+  background-color: #3c9639;
+  color: white;
+}
+
+.mainpage-layout .modal-footer .btn:hover {
+  background-color: #035600;
+  color: white;
+}
+
+.mainpage-layout #status {
+  margin-top: 20px;
+  margin-left: 40%;
+}
+
+.mainpage-layout .btn {
+  width: 20% !important;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .mainpage-layout #title {
+    width: 80%;
+    margin-left: 13%;
+  }
+
+  .mainpage-layout #status {
+    margin-left: 25%;
+  }
+
+  .mainpage-layout .btn {
+    width: 50% !important;
+  }
+}

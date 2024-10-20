@@ -43,7 +43,7 @@ body {
   background: none;
   border: none;
   padding: 0;
-  margin: 0;
+  margin-bottom: 0;
   cursor: pointer;
   height: auto;
   transition: transform 0.3s ease-in-out;
@@ -63,7 +63,16 @@ body {
   font-size: 1.5rem;
 }
 
-.sidebar .nav-link.active {
+.sidebar .nav-link:active {
+  transform: scale(0.95);
+}
+
+.sidebar .nav-link {
+  background-color: rgb(241, 241, 241) !important;
+  color: black !important;
+}
+
+.sidebar .nav-link:active {
   background-color: #3c9639 !important;
   color: white !important;
 }
@@ -71,10 +80,6 @@ body {
 .sidebar .nav-link:hover {
   background-color: #3c9639 !important;
   color: white !important;
-}
-
-.sidebar .nav-link:active {
-  transform: scale(0.95);
 }
 
 .logo-link {

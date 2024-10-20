@@ -33,13 +33,11 @@ class PipelineProgress:
     def reset_progress(self):
         self.__init__()
 
-# Dictionary to hold PipelineProgress instances for each session
-pipeline_progress_dict = {}
+# Single instance of PipelineProgress
+pipeline_progress = PipelineProgress()
 
-def get_pipeline_progress(session_id):
-    if session_id not in pipeline_progress_dict:
-        pipeline_progress_dict[session_id] = PipelineProgress()
-    return pipeline_progress_dict[session_id]
+def get_pipeline_progress():
+    return pipeline_progress
 
 # Data ingestion step
 def data_ingestion(uploaded_files, zip_file_path):
@@ -99,8 +97,8 @@ def eda():
     print("EDA Completed")
 
 # Define the complete pipeline
-def data_pipeline(data, session_id):
-    pipeline_progress = get_pipeline_progress(session_id)
+def data_pipeline(data):
+    pipeline_progress.reset_progress()  # Reset progress for new pipeline run
     try:
         # Extract data from the dictionary
         dataset_name = data.get('dataset_name')
