@@ -43,7 +43,7 @@ body {
   background: none;
   border: none;
   padding: 0;
-  margin-bottom: 0;
+  margin: 0;
   cursor: pointer;
   height: auto;
   transition: transform 0.3s ease-in-out;
@@ -63,16 +63,7 @@ body {
   font-size: 1.5rem;
 }
 
-.sidebar .nav-link:active {
-  transform: scale(0.95);
-}
-
-.sidebar .nav-link {
-  background-color: rgb(241, 241, 241) !important;
-  color: black !important;
-}
-
-.sidebar .nav-link:active {
+.sidebar .nav-link.active {
   background-color: #3c9639 !important;
   color: white !important;
 }
@@ -80,6 +71,10 @@ body {
 .sidebar .nav-link:hover {
   background-color: #3c9639 !important;
   color: white !important;
+}
+
+.sidebar .nav-link:active {
+  transform: scale(0.95);
 }
 
 .logo-link {
@@ -311,3 +306,29 @@ input[type="checkbox"] {
     margin-left: 65px;
   }
 }
+
+/* Move the sort arrows to the right of the column headers */
+.column-actions {
+  order: 9;
+}
+
+/* Change the sort arrows (src: https://stackoverflow.com/questions/44851964/how-to-change-the-color-of-the-sorting-arrows-in-datatables) */
+/* table.dataTable thead .sorting_asc {
+  background-image: url("/YourImageFolder/sort_asc.png")
+}
+
+table.dataTable thead .sorting_desc {
+  background-image: url("/YourImageFolder/sort_desc.png")
+}
+
+table.dataTable thead .sorting {
+  background-image: url("/YourImageFolder/sort_both.png")
+}
+
+table.dataTable thead .sorting_asc_disabled {
+  background-image: url("/YourImageFolder/sort_asc_disabled.png")
+}
+
+table.dataTable thead .sorting_desc_disabled {
+  background-image: url("/YourImageFolder/sort_desc_disabled.png")
+} */
