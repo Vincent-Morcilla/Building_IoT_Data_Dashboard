@@ -18,6 +18,7 @@ class ModelQuality:
 
     def __init__(
         self,
+        # brick_model="../../datasets/bts_site_b_train/bldg2.ttl",
         brick_model="../../datasets/bts_site_b_train/Site_B.ttl",
         brick_schema="../../datasets/bts_site_b_train/Brick_v1.2.1.ttl",
         mapper="../../datasets/bts_site_b_train/mapper_TrainOnly.csv",
@@ -58,6 +59,11 @@ class ModelQuality:
 
     def get_analyses(self):
         """TODO"""
+
+        # FIXME: This is a temporary solution to get the analyses
+        # This whole class should be refactored in some sensible way
+        # Added to which, all of the analyses should only return things that are
+        # sensible (e.g. non-empty things).
         analyses = {}
         analyses |= self.get_recognised_entity_analysis()
         analyses |= self.get_associated_units_analysis()
@@ -106,23 +112,50 @@ class ModelQuality:
                             # "dataframe": unrecognised_df_pie,
                         },
                     ],
-                    "tables": [
-                        {
-                            "title": "Unrecognised Entities",
-                            "columns": ["Brick Class", "Entity ID"],
-                            "rows": ["brick_class", "entity_id"],
-                            "dataframe": recognised_df,
-                        },
-                        {
-                            "title": "Recognised Entities",
-                            "columns": ["Brick Class", "Entity ID"],
-                            "rows": ["brick_class", "entity_id"],
-                            "dataframe": unrecognised_df,
-                        },
-                    ],
+                    # "tables": [
+                    #     {
+                    #         "title": "Unrecognised Entities",
+                    #         "columns": ["Brick Class", "Entity ID"],
+                    #         "rows": ["brick_class", "entity_id"],
+                    #         "dataframe": unrecognised_df,
+                    #     },
+                    #     {
+                    #         "title": "Recognised Entities",
+                    #         "columns": ["Brick Class", "Entity ID"],
+                    #         "rows": ["brick_class", "entity_id"],
+                    #         "dataframe": recognised_df,
+                    #     },
+                    # ],
                 },
             }
         }
+
+        if len(recognised_df) > 0 or len(unrecognised_df) > 0:
+            config["ModelQuality_RecognisedEntities"]["PieChartAndTable"]["tables"] = []
+
+        if len(recognised_df) > 0:
+            config["ModelQuality_RecognisedEntities"]["PieChartAndTable"][
+                "tables"
+            ].append(
+                {
+                    "title": "Recognised Entities",
+                    "columns": ["Brick Class", "Entity ID"],
+                    "rows": ["brick_class", "entity_id"],
+                    "dataframe": recognised_df,
+                }
+            )
+
+        if len(unrecognised_df) > 0:
+            config["ModelQuality_RecognisedEntities"]["PieChartAndTable"][
+                "tables"
+            ].append(
+                {
+                    "title": "Unrecognised Entities",
+                    "columns": ["Brick Class", "Entity ID"],
+                    "rows": ["brick_class", "entity_id"],
+                    "dataframe": unrecognised_df,
+                }
+            )
 
         return config
 
@@ -284,23 +317,46 @@ class ModelQuality:
                             # "dataframe": stream_with_named_units_pie,
                         },
                     ],
-                    "tables": [
-                        {
-                            "title": "Streams without Units",
-                            "columns": ["Brick Class", "Stream ID"],
-                            "rows": ["brick_class", "stream_id"],
-                            "dataframe": streams_without_units,
-                        },
-                        {
-                            "title": "Streams with Non-Machine Readable Units",
-                            "columns": ["Brick Class", "Stream ID", "Unit"],
-                            "rows": ["brick_class", "stream_id", "unit"],
-                            "dataframe": streams_with_anonymous_units,
-                        },
-                    ],
+                    # "tables": [
+                    #     {
+                    #         "title": "Streams without Units",
+                    #         "columns": ["Brick Class", "Stream ID"],
+                    #         "rows": ["brick_class", "stream_id"],
+                    #         "dataframe": streams_without_units,
+                    #     },
+                    #     {
+                    #         "title": "Streams with Non-Machine Readable Units",
+                    #         "columns": ["Brick Class", "Stream ID", "Unit"],
+                    #         "rows": ["brick_class", "stream_id", "unit"],
+                    #         "dataframe": streams_with_anonymous_units,
+                    #     },
+                    # ],
                 }
             }
         }
+
+        if len(streams_without_units) > 0 or len(streams_with_anonymous_units) > 0:
+            config["ModelQuality_AssociatedUnits"]["PieChartAndTable"]["tables"] = []
+
+        if len(streams_without_units) > 0:
+            config["ModelQuality_AssociatedUnits"]["PieChartAndTable"]["tables"].append(
+                {
+                    "title": "Streams without Units",
+                    "columns": ["Brick Class", "Stream ID"],
+                    "rows": ["brick_class", "stream_id"],
+                    "dataframe": streams_without_units,
+                }
+            )
+
+        if len(streams_with_anonymous_units) > 0:
+            config["ModelQuality_AssociatedUnits"]["PieChartAndTable"]["tables"].append(
+                {
+                    "title": "Streams with Non-Machine Readable Units",
+                    "columns": ["Brick Class", "Stream ID", "Unit"],
+                    "rows": ["brick_class", "stream_id", "unit"],
+                    "dataframe": streams_with_anonymous_units,
+                }
+            )
 
         return config
 
@@ -465,23 +521,46 @@ class ModelQuality:
                             # "dataframe": missing_streams_by_class_pie,
                         },
                     ],
-                    "tables": [
-                        {
-                            "title": "Data Sources with Missing Timeseries Data",
-                            "columns": ["Brick Class", "Stream ID"],
-                            "rows": ["brick_class", "stream_id"],
-                            "dataframe": missing_data_df,
-                        },
-                        {
-                            "title": "Data Sources with Available Timeseries Data",
-                            "columns": ["Brick Class", "Stream ID"],
-                            "rows": ["brick_class", "stream_id"],
-                            "dataframe": have_data_df,
-                        },
-                    ],
+                    # "tables": [
+                    #     {
+                    #         "title": "Data Sources with Missing Timeseries Data",
+                    #         "columns": ["Brick Class", "Stream ID"],
+                    #         "rows": ["brick_class", "stream_id"],
+                    #         "dataframe": missing_data_df,
+                    #     },
+                    #     {
+                    #         "title": "Data Sources with Available Timeseries Data",
+                    #         "columns": ["Brick Class", "Stream ID"],
+                    #         "rows": ["brick_class", "stream_id"],
+                    #         "dataframe": have_data_df,
+                    #     },
+                    # ],
                 }
             }
         }
+
+        if len(missing_data_df) > 0 or len(have_data_df) > 0:
+            config["ModelQuality_TimeseriesData"]["PieChartAndTable"]["tables"] = []
+
+        if len(missing_data_df) > 0:
+            config["ModelQuality_TimeseriesData"]["PieChartAndTable"]["tables"].append(
+                {
+                    "title": "Data Sources with Missing Timeseries Data",
+                    "columns": ["Brick Class", "Stream ID"],
+                    "rows": ["brick_class", "stream_id"],
+                    "dataframe": missing_data_df,
+                }
+            )
+
+        if len(have_data_df) > 0:
+            config["ModelQuality_TimeseriesData"]["PieChartAndTable"]["tables"].append(
+                {
+                    "title": "Data Sources with Available Timeseries Data",
+                    "columns": ["Brick Class", "Stream ID"],
+                    "rows": ["brick_class", "stream_id"],
+                    "dataframe": have_data_df,
+                }
+            )
 
         return config
 
@@ -644,25 +723,43 @@ class ModelQuality:
                             # "dataframe": inconsistent_by_class_pie,
                         },
                     ],
-                    "tables": [
-                        {
-                            "title": "Data Sources with Inconsistent Brick Class",
-                            "columns": [
-                                "Brick Class in Model",
-                                "Brick Class in Mapper",
-                                "Entity ID",
-                            ],
-                            "rows": [
-                                "brick_class",
-                                "brick_class_in_mapper",
-                                "entity_id",
-                            ],
-                            "dataframe": inconsistent_df,
-                        },
-                    ],
+                    # "tables": [
+                    #     {
+                    #         "title": "Data Sources with Inconsistent Brick Class",
+                    #         "columns": [
+                    #             "Brick Class in Model",
+                    #             "Brick Class in Mapper",
+                    #             "Entity ID",
+                    #         ],
+                    #         "rows": [
+                    #             "brick_class",
+                    #             "brick_class_in_mapper",
+                    #             "entity_id",
+                    #         ],
+                    #         "dataframe": inconsistent_df,
+                    #     },
+                    # ],
                 }
             }
         }
+
+        if len(inconsistent_df) > 0:
+            config["ModelQuality_ClassConsistency"]["PieChartAndTable"]["tables"] = [
+                {
+                    "title": "Data Sources with Inconsistent Brick Class",
+                    "columns": [
+                        "Brick Class in Model",
+                        "Brick Class in Mapper",
+                        "Entity ID",
+                    ],
+                    "rows": [
+                        "brick_class",
+                        "brick_class_in_mapper",
+                        "entity_id",
+                    ],
+                    "dataframe": inconsistent_df,
+                },
+            ]
 
         return config
 

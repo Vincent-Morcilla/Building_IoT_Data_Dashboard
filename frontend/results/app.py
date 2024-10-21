@@ -42,7 +42,7 @@ bottom_buttons = None  # Buttons for downloading reports and data
 
 # Sample dataframes representing different datasets used in the app
 dataframes = {
-    "Area_BuildingStructure": pd.DataFrame(
+    "BuildingStructure_BuildingStructure": pd.DataFrame(
         {
             "BuildingID": ["Building A", "Building A", "Building B", "Building B"],
             "ParentID": ["Building A", "Room 1", "Building B", "Room 2"],
@@ -51,7 +51,7 @@ dataframes = {
             "Level": [1, 2, 1, 2],
         }
     ),
-    "Area_DataQuality": pd.DataFrame(
+    "BuildingStructure_DataQuality": pd.DataFrame(
         {
             "Measurement": ["Quality A"] * 50 + ["Quality B"] * 50 + ["Quality C"] * 50,
             "Value": np.random.normal(loc=50, scale=10, size=150),
@@ -80,7 +80,7 @@ dataframes = {
             "class_in_provided_brick": [True, False, True, False, True],
         }
     ),
-    "Temperature_WeatherSensitivity": pd.DataFrame(
+    "RoomClimate_WeatherSensitivity": pd.DataFrame(
         {
             "Day": pd.date_range(start="2021-01-01", periods=365, freq="D"),
             "Hour": [i % 24 for i in range(365)],
@@ -88,13 +88,13 @@ dataframes = {
             "WeatherSensitivity": [i % 50 + 5 for i in range(365)],
         }
     ),
-    "Water_DataQuality": pd.DataFrame(
+    "Consumption_DataQuality": pd.DataFrame(
         {
             "Measurement": ["Quality A"] * 50 + ["Quality B"] * 50 + ["Quality C"] * 50,
             "Value": np.random.normal(loc=50, scale=10, size=150),
         }
     ),
-    "Water_GeneralAnalysis": pd.DataFrame(
+    "Consumption_GeneralAnalysis": pd.DataFrame(
         {
             "Timestamp": pd.date_range(start="2023-01-01", periods=365, freq="D"),
             "Usage": np.random.normal(loc=500, scale=50, size=365).cumsum(),
@@ -102,7 +102,7 @@ dataframes = {
             "Pressure": np.random.normal(loc=30, scale=3, size=365),
         }
     ),
-    "Water_UsageAnalysis": pd.DataFrame(
+    "Consumption_UsageAnalysis": pd.DataFrame(
         {
             "Month": pd.date_range(start="2021-01-01", periods=12, freq="ME"),
             "Region": ["Region A"] * 6 + ["Region B"] * 6,
@@ -111,9 +111,81 @@ dataframes = {
     ),
 }
 
+plot_configs = m.get_analyses()
+
 # Configuration dictionary defining UI components and plot settings for each dataframe
-plot_configs = {
-    "Area_BuildingStructure": {
+plot_configs |= {
+    "DataQuality_DataQuality": {
+        "BoxAndWhisker": {
+            "title": "Water Data Quality Box and Whisker Plot",
+            "x-axis": "Measurement",
+            "y-axis": "Value",
+            "x-axis_label": "Measurement Type",
+            "y-axis_label": "Quality Value",
+            "UI": {
+                "dropdown": {
+                    "instructions": "Select measurements to display:",
+                    "controls": "Measurement",  # Specify the column to extract unique values from
+                }
+            },
+            "dataframe": dataframes["Consumption_DataQuality"],
+        }
+    },
+    "DataQuality_GeneralAnalysis": {
+        "Timeseries": {
+            "title": "Water Usage Over Time",
+            "x-axis": "Timestamp",
+            "y-axis": [
+                "Usage",
+                "Temperature",
+                "Pressure",
+            ],  # Multiple variables to plot
+            "x-axis_label": "Date",
+            "y-axis_label": "Values",
+            "UI": {
+                "datepicker": {
+                    "html.Label": "Select Date Range",
+                    "min_date_allowed": dataframes["Consumption_GeneralAnalysis"][
+                        "Timestamp"
+                    ]
+                    .min()
+                    .strftime("%Y-%m-%d"),
+                    "max_date_allowed": dataframes["Consumption_GeneralAnalysis"][
+                        "Timestamp"
+                    ]
+                    .max()
+                    .strftime("%Y-%m-%d"),
+                    "start_date": dataframes["Consumption_GeneralAnalysis"]["Timestamp"]
+                    .min()
+                    .strftime("%Y-%m-%d"),
+                    "end_date": dataframes["Consumption_GeneralAnalysis"]["Timestamp"]
+                    .max()
+                    .strftime("%Y-%m-%d"),
+                    "controls": "Timestamp",
+                },
+                "radioitem": {
+                    "html.Label": "Select Frequency",
+                    "options": [("Hourly", "h"), ("Daily", "D"), ("Monthly", "ME")],
+                    "controls": "Timestamp",
+                    "default_value": "D",
+                },
+            },
+            "dataframe": dataframes["Consumption_GeneralAnalysis"],
+        }
+    },
+    "DataQuality_UsageAnalysis": {
+        "HeatMap": {
+            "title": "Water Usage Heat Map",
+            "x-axis": "Month",
+            "y-axis": "Region",
+            "z-axis": "Usage",
+            "x-axis_label": "Month",
+            "y-axis_label": "Region",
+            "z-axis_label": "Water Usage (Liters)",
+            "dataframe": dataframes["Consumption_UsageAnalysis"],
+        }
+    },
+    "BuildingStructure_BuildingStructure": {
         "SunburstChart": {
             "title": "Building Structure Sunburst",
             "EntityID": "EntityID",
@@ -122,10 +194,10 @@ plot_configs = {
             "BuildingID": "BuildingID",
             "z-axis": "Level",
             "z-axis_label": "Hierarchy Level",
-            "dataframe": dataframes["Area_BuildingStructure"],
+            "dataframe": dataframes["BuildingStructure_BuildingStructure"],
         }
     },
-    "Area_DataQuality": {
+    "BuildingStructure_DataQuality": {
         "BoxAndWhisker": {
             "title": "Water Data Quality Box and Whisker Plot",
             "x-axis": "Measurement",
@@ -138,7 +210,7 @@ plot_configs = {
                     "controls": "Measurement",  # Column to extract unique values from for dropdown
                 }
             },
-            "dataframe": dataframes["Area_DataQuality"],
+            "dataframe": dataframes["BuildingStructure_DataQuality"],
         }
     },
     # "ModelQuality_ClassInconsistency": {
@@ -255,7 +327,7 @@ plot_configs = {
     #         ],
     #     }
     # },
-    "Temperature_WeatherSensitivity": {
+    "RoomClimate_WeatherSensitivity": {
         "SurfacePlot": {
             "title": "Temperature vs Weather Sensitivity",
             "X-value": "Day",
@@ -264,10 +336,10 @@ plot_configs = {
             "x-axis_label": "Day",
             "y-axis_label": "Hour of the Day",
             "z-axis_label": "Weather Sensitivity",
-            "dataframe": dataframes["Temperature_WeatherSensitivity"],
+            "dataframe": dataframes["RoomClimate_WeatherSensitivity"],
         }
     },
-    "Water_DataQuality": {
+    "Consumption_DataQuality": {
         "BoxAndWhisker": {
             "title": "Water Data Quality Box and Whisker Plot",
             "x-axis": "Measurement",
@@ -280,10 +352,10 @@ plot_configs = {
                     "controls": "Measurement",  # Specify the column to extract unique values from
                 }
             },
-            "dataframe": dataframes["Water_DataQuality"],
+            "dataframe": dataframes["Consumption_DataQuality"],
         }
     },
-    "Water_GeneralAnalysis": {
+    "Consumption_GeneralAnalysis": {
         "Timeseries": {
             "title": "Water Usage Over Time",
             "x-axis": "Timestamp",
@@ -297,16 +369,20 @@ plot_configs = {
             "UI": {
                 "datepicker": {
                     "html.Label": "Select Date Range",
-                    "min_date_allowed": dataframes["Water_GeneralAnalysis"]["Timestamp"]
+                    "min_date_allowed": dataframes["Consumption_GeneralAnalysis"][
+                        "Timestamp"
+                    ]
                     .min()
                     .strftime("%Y-%m-%d"),
-                    "max_date_allowed": dataframes["Water_GeneralAnalysis"]["Timestamp"]
+                    "max_date_allowed": dataframes["Consumption_GeneralAnalysis"][
+                        "Timestamp"
+                    ]
                     .max()
                     .strftime("%Y-%m-%d"),
-                    "start_date": dataframes["Water_GeneralAnalysis"]["Timestamp"]
+                    "start_date": dataframes["Consumption_GeneralAnalysis"]["Timestamp"]
                     .min()
                     .strftime("%Y-%m-%d"),
-                    "end_date": dataframes["Water_GeneralAnalysis"]["Timestamp"]
+                    "end_date": dataframes["Consumption_GeneralAnalysis"]["Timestamp"]
                     .max()
                     .strftime("%Y-%m-%d"),
                     "controls": "Timestamp",
@@ -318,10 +394,10 @@ plot_configs = {
                     "default_value": "D",
                 },
             },
-            "dataframe": dataframes["Water_GeneralAnalysis"],
+            "dataframe": dataframes["Consumption_GeneralAnalysis"],
         }
     },
-    "Water_UsageAnalysis": {
+    "Consumption_UsageAnalysis": {
         "HeatMap": {
             "title": "Water Usage Heat Map",
             "x-axis": "Month",
@@ -330,24 +406,22 @@ plot_configs = {
             "x-axis_label": "Month",
             "y-axis_label": "Region",
             "z-axis_label": "Water Usage (Liters)",
-            "dataframe": dataframes["Water_UsageAnalysis"],
+            "dataframe": dataframes["Consumption_UsageAnalysis"],
         }
     },
-    "NoSubcategory": {
-        "HeatMap": {
-            "title": "Water Usage Heat Map",
-            "x-axis": "Month",
-            "y-axis": "Region",
-            "z-axis": "Usage",
-            "x-axis_label": "Month",
-            "y-axis_label": "Region",
-            "z-axis_label": "Water Usage (Liters)",
-            "dataframe": dataframes["Water_UsageAnalysis"],
-        }
-    },
+    # "NoSubcategory": { #@tim: FIXME: make sure having this doesn't break anything
+    #     "HeatMap": {
+    #         "title": "Water Usage Heat Map",
+    #         "x-axis": "Month",
+    #         "y-axis": "Region",
+    #         "z-axis": "Usage",
+    #         "x-axis_label": "Month",
+    #         "y-axis_label": "Region",
+    #         "z-axis_label": "Water Usage (Liters)",
+    #         "dataframe": dataframes["Consumption_UsageAnalysis"],
+    #     }
+    # },
 }
-
-plot_configs |= m.get_analyses()
 
 
 ################################################################################
@@ -697,7 +771,7 @@ def create_plot(plot_type, plot_settings):
 ################################################################################
 
 
-# Creates a mapping from URL-friendly paths to dataframe keys. For example, it turns 'Water_UsageAnalysis' into 'water'.
+# Creates a mapping from URL-friendly paths to dataframe keys. For example, it turns 'Consumption_UsageAnalysis' into 'water'.
 def create_url_mapping(plot_configs):
     url_mapping = defaultdict(list)
 
@@ -1091,6 +1165,7 @@ def create_pie_chart(
             labels=value_counts[labels_column],
             values=value_counts["count"],
             textinfo=textinfo,
+            textposition="inside",  # @tim: FIXME: make this an actual parameter
             showlegend=showlegend,  # @tim: FIXME: make this an actual parameter
         )
     )
@@ -1099,6 +1174,7 @@ def create_pie_chart(
         title={"text": title, "x": 0.5, "xanchor": "center"},
         font_color="black",
         plot_bgcolor="white",
+        height=500,  # @tim: FIXME: make this an actual parameter or auto-size?
     )
 
     return fig
@@ -1446,6 +1522,10 @@ def create_table(data, columns, title):
     #     hover=True,
     #     responsive=True,
     #     striped=True,
+    # )
+
+    # return html.Div(
+    #     [html.H5(title), table],
     # )
 
     # # @tim: FIXME: would rather not limit table height this way, and if it has to
