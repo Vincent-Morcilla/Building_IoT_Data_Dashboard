@@ -1497,6 +1497,15 @@ def update_graph(selected_rows):
 
     # Modify layout to place the legend below the plot
     fig.update_layout(
+        font=dict(
+            color="black"  # Set all plot text (title, axis labels, legend) to black
+        ),
+        title=dict(
+            text=title,
+            xanchor="center",  # Center the title
+            x=0.5,  # Position the title in the horizontal center
+            font=dict(color="black")  # Set title font colour to black
+        ),
         legend=dict(
             orientation="h",  # Horizontal orientation for the legend
             yanchor="bottom",  # Align the legend to the bottom
