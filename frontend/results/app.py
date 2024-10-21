@@ -1596,5 +1596,21 @@ def create_table(data, columns, title):
 
 # Run the app
 if __name__ == "__main__":
+    # if len(sys.argv) != 4:
+    #     complain
+
+    # model = sys.argv[1]
+    # data = sys.argv[2]
+    # layout = sys.argv[3]
+
     construct_layout()
+    # print('processing model...', end='')
+    # process_model()
+    # print('complete')
+    # print('processing data...', end='')
+    # process_datal()
+    # print('complete')
+
+    # process
+
     app.run_server(port=8050, debug=True)

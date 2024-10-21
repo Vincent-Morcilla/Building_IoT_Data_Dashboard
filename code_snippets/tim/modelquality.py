@@ -133,18 +133,6 @@ class ModelQuality:
         if len(recognised_df) > 0 or len(unrecognised_df) > 0:
             config["ModelQuality_RecognisedEntities"]["PieChartAndTable"]["tables"] = []
 
-        if len(recognised_df) > 0:
-            config["ModelQuality_RecognisedEntities"]["PieChartAndTable"][
-                "tables"
-            ].append(
-                {
-                    "title": "Recognised Entities",
-                    "columns": ["Brick Class", "Entity ID"],
-                    "rows": ["brick_class", "entity_id"],
-                    "dataframe": recognised_df,
-                }
-            )
-
         if len(unrecognised_df) > 0:
             config["ModelQuality_RecognisedEntities"]["PieChartAndTable"][
                 "tables"
@@ -154,6 +142,18 @@ class ModelQuality:
                     "columns": ["Brick Class", "Entity ID"],
                     "rows": ["brick_class", "entity_id"],
                     "dataframe": unrecognised_df,
+                }
+            )
+
+        if len(recognised_df) > 0:
+            config["ModelQuality_RecognisedEntities"]["PieChartAndTable"][
+                "tables"
+            ].append(
+                {
+                    "title": "Recognised Entities",
+                    "columns": ["Brick Class", "Entity ID"],
+                    "rows": ["brick_class", "entity_id"],
+                    "dataframe": recognised_df,
                 }
             )
 
