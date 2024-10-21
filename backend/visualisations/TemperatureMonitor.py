@@ -11,7 +11,7 @@ class TemperatureMonitor:
         self.g = g
         
     def get_temperature(self, meter_type, sensor_type):
-        #Define the SPARQL query to retrieve electrical energy sensors grouped by equipment
+        #Define the SPARQL query to retrieve temperature sensors grouped by equipment
         query = f"""
         SELECT ?meter ?sensor ?stream_id
         WHERE {{
