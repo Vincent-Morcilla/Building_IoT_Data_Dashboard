@@ -169,6 +169,12 @@ input[type="checkbox"] {
   color: #fff;
 }
 
+.Select-value-label {
+  background-color: #7abb77;
+  border-color: #3c9639;
+  color: #fff;
+}
+
 .Select--multi .Select-value-icon {
   border-right: 1px solid #3c9639;
 }

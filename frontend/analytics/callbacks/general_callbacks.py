@@ -1,28 +1,34 @@
-def general_callbacks(app):
-    from dash import dcc, Input, Output, html
+def general_callbacks(app, categories_structure):
+    from dash import Input, Output, html
     from components.layout import home_page_content
-
-    # A hidden `dcc.Location` component to manage URL changes
-    app.layout.children.append(dcc.Location(id='url_callback', refresh=True))
+    from components.tabs import create_tab_layout
 
     # Callback to go back to the homepage when the logo is clicked
     @app.callback(
-        Output('url_callback', 'href'),  # This will change the URL
+        Output('url', 'href'),
         Input('logo-button', 'n_clicks')
     )
     def redirect_to_home(n_clicks):
-        if n_clicks > 0:
+        if n_clicks and n_clicks > 0:
             return "/"
         return None
-    
 
+    # Callback to generate the page content based on the URL
     @app.callback(
-    Output('page-content', 'children'),
-    [Input('url', 'pathname')]  # Listening to the URL changes
+        Output('page-content', 'children'),
+        [Input('url', 'pathname')]
     )
     def display_page(pathname):
-        if pathname == '/':  # Check if the user is on the home page
-            return home_page_content()  # Display home page content
-        else:
-            # Return a 404 message or default content if the path doesn't match
-            return html.Div([html.H1("Sorry, there was no visualisation generated.")])
+        # If user is on the home page, display home page content
+        if pathname == '/':
+            return home_page_content()
+
+        # Extract the selected category from the pathname (remove the leading '/')
+        selected_category = pathname.lstrip('/')
+
+        # Handle the case where the selected category does not exist in the categories structure
+        if selected_category and selected_category != "home":
+            return create_tab_layout(selected_category, categories_structure)
+
+        # Default content if no valid category is selected or invalid path
+        return html.Div([html.H1("Sorry, there was no visualisation generated.")])

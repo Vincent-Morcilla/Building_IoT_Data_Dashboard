@@ -3,7 +3,7 @@ import dash_bootstrap_components as dbc
 from components.sidebar import generate_sidebar
 from helpers.helpers import create_category_structure, create_url_mapping
 
-# Creates the main layout for the Dash application, which includes a sidebar, URL routing, and a content area.
+# Creates the main layout for the Dash application, which includes a sidebar and tabs, URL routing, and a content area.
 def create_layout(plot_configs):
     # Create a mapping from URL-friendly paths to dataframe keys
     url_to_key_mapping = create_url_mapping(plot_configs)
@@ -21,8 +21,13 @@ def create_layout(plot_configs):
     return html.Div(
         [
             dcc.Location(id="url"),  # To capture the current URL
-            sidebar,
-            dbc.Spinner(children=[content], color="#3c9639", fullscreen=False, type="border", size="md"),
+            sidebar,  # Sidebar with categories
+            dbc.Spinner(
+                children=[
+                    content,  # Main content area
+                ], 
+                color="#3c9639", fullscreen=False, type="border", size="md"
+            ),
         ]
     )
 

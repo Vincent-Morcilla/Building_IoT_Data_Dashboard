@@ -10,12 +10,12 @@ def test_create_category_structure():
     # Test with category but no subcategory
     analysis_list = [("MainCategory", None)]
     categories = create_category_structure(analysis_list)
-    assert categories["Main Category"] == ["General"]
+    assert categories["Main Category"] == ["Main"]
 
     # Test with a single category (no tuple)
     analysis_list = ["SingleCategory"]
     categories = create_category_structure(analysis_list)
-    assert categories["Single Category"] == ["General"]
+    assert categories["Single Category"] == ["Main"]
 
     # Test empty input
     analysis_list = []
