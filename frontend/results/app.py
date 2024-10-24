@@ -327,6 +327,101 @@ plot_configs |= {
     #         ],
     #     }
     # },
+    "RoomClimate_Rooms": {
+        "TableAndTimeseries": {
+            "title": "Room Climate",
+            "table": {
+                "title": "List of Rooms with Air Temperature Sensors and Setpoints",
+                "columns": [
+                    "Room Class",
+                    "Room ID",
+                ],
+                "rows": ["room_class", "room_id"],
+                "filter": None,
+                "dataframe": pd.DataFrame(
+                    {
+                        "room_class": [
+                            "Conference Room",
+                            "Conference Room",
+                            "Library",
+                            "Office",
+                        ],
+                        "room_id": ["Room 1", "Room 2", "Room 3", "Room 4"],
+                    }
+                ),
+            },
+            "timeseries": [
+                {
+                    "title": "Conference Room",
+                    "dataframe": pd.DataFrame(
+                        {
+                            "Date": pd.date_range(
+                                start="2021-01-01", periods=365, freq="D"
+                            ),
+                            "Air_Temperature_Sensor": np.random.normal(15, 3, 365),
+                            "Room_Air_Temperature_Setpoint": np.random.normal(
+                                15, 1, 365
+                            ),
+                            "Outside_Air_Temperature_Sensor": np.random.normal(
+                                15, 5, 365
+                            ),
+                        }
+                    ),
+                },
+                {
+                    "title": "Conference Room",
+                    "dataframe": pd.DataFrame(
+                        {
+                            "Date": pd.date_range(
+                                start="2021-01-01", periods=365, freq="D"
+                            ),
+                            "Air_Temperature_Sensor": np.random.normal(15, 3, 365),
+                            "Room_Air_Temperature_Setpoint": np.random.normal(
+                                15, 1, 365
+                            ),
+                            "Outside_Air_Temperature_Sensor": np.random.normal(
+                                15, 5, 365
+                            ),
+                        }
+                    ),
+                },
+                {
+                    "title": "Library",
+                    "dataframe": pd.DataFrame(
+                        {
+                            "Date": pd.date_range(
+                                start="2021-01-01", periods=365, freq="D"
+                            ),
+                            "Air_Temperature_Sensor": np.random.normal(15, 3, 365),
+                            "Room_Air_Temperature_Setpoint": np.random.normal(
+                                15, 1, 365
+                            ),
+                            "Outside_Air_Temperature_Sensor": np.random.normal(
+                                15, 5, 365
+                            ),
+                        }
+                    ),
+                },
+                {
+                    "title": "Office",
+                    "dataframe": pd.DataFrame(
+                        {
+                            "Date": pd.date_range(
+                                start="2021-01-01", periods=365, freq="D"
+                            ),
+                            "Air_Temperature_Sensor": np.random.normal(15, 3, 365),
+                            "Room_Air_Temperature_Setpoint": np.random.normal(
+                                15, 1, 365
+                            ),
+                            "Outside_Air_Temperature_Sensor": np.random.normal(
+                                15, 5, 365
+                            ),
+                        }
+                    ),
+                },
+            ],
+        }
+    },
     "RoomClimate_WeatherSensitivity": {
         "SurfacePlot": {
             "title": "Temperature vs Weather Sensitivity",
@@ -658,6 +753,8 @@ def create_tab_content(plot_type, plot_settings, plot_id, subcategory):
     # @tim: FIXME: see if this can be generalised
     if plot_type == "PieChartAndTable":
         return create_pie_chart_and_table_tab(plot_settings, plot_id, subcategory)
+    elif plot_type == "TableAndTimeseries":
+        return create_table_and_timeseries_tab(plot_settings, plot_id, subcategory)
 
     else:
         # Handle other plot types
@@ -1277,6 +1374,7 @@ def create_pie_chart_and_table_tab(plot_settings, plot_id, subcategory):
 
     # Combine pie charts and tables into layout
     content = []
+    content.append(html.H2(plot_settings["title"], className="text-center"))
     if pie_content:
         content.append(dbc.Row(pie_content, justify="center"))
     if table_content:
@@ -1289,6 +1387,134 @@ def create_pie_chart_and_table_tab(plot_settings, plot_id, subcategory):
         label=subcategory,
         tab_id=plot_id,
     )
+
+
+# Creates a Dash Tab containing a table and a timeseries plot based on the selected row.
+def create_table_and_timeseries_tab(plot_settings, plot_id, subcategory):
+    # Extract pie charts and tables configurations
+    table = plot_settings.get("table", [])
+    timeseries = plot_settings.get("timeseries", [])
+
+    content = []
+    content.append(html.H2(plot_settings["title"], className="text-center"))
+
+    data = table["dataframe"]
+    table_title = table.get("title", "Table")
+    columns = table.get("columns", [])
+    filter_condition = table.get("filter", None)
+    rows = table.get("rows", columns)
+
+    if filter_condition:
+        # Apply the filter using pandas query
+        try:
+            filtered_data = data.query(filter_condition)
+        except Exception as e:
+            print(
+                f"Error applying filter '{filter_condition}' on dataframe '{plot_id}': {e}"
+            )
+            filtered_data = data  # Fallback to unfiltered data if there's an error
+    else:
+        filtered_data = data
+
+    # Select and rename columns as needed
+    selected_columns = rows
+    # Ensure all selected columns exist in the dataframe
+    existing_columns = [col for col in selected_columns if col in filtered_data.columns]
+    if not existing_columns:
+        print(
+            f"No matching columns found for table '{table_title}' in dataframe '{plot_id}'."
+        )
+        return  # Skip creating this table
+
+    display_data = filtered_data[existing_columns].rename(
+        columns=dict(zip(selected_columns, columns))  # Rename to user-friendly names
+    )
+
+    # First add the graph on top
+    content.append(dcc.Graph(id="updateable-line-chart"))
+
+    # content.append(dbc.Row(table_content))
+    content.append(html.Hr())  # Append the horizontal rule first
+
+    # Then create and append the table
+    content.append(
+        dbc.Col(
+            create_table(
+                display_data,
+                columns,
+                table_title,
+                # id=f"{plot_id}-table",
+                id="datatable",
+                row_selectable="single",
+                selected_rows=[0],
+                sort_action="none",
+            ),
+            width=12,  # Full-width for each table
+            className="mb-4",  # Add margin-bottom for spacing
+        )
+    )
+
+    # Combine all elements into a single tab
+    return dbc.Tab(
+        dbc.Container(content, fluid=True, className="py-4"),
+        label=subcategory,
+        tab_id=plot_id,
+    )
+
+
+# @tim: FIXME: can these I/O identifiers be dynamic?
+@app.callback(
+    Output("updateable-line-chart", "figure"), [Input("datatable", "selected_rows")]
+)
+def update_graph(selected_rows):
+    if selected_rows:  # Check if a row is selected
+        row_idx = selected_rows[0]  # Get the index of the selected row
+    else:
+        row_idx = 0  # Default to the first row if nothing is selected
+
+    # @tim: FIXME: can we deduce this from the callback context?
+    config = plot_configs["RoomClimate_Rooms"]["TableAndTimeseries"]["timeseries"][
+        row_idx
+    ]
+    title = config.get("title", "Line Chart")
+    df = config["dataframe"]
+
+    # @tim: FIXME: can we generalise this?
+    x_data = df["Date"]
+    y_data = df["Air_Temperature_Sensor"]
+
+    # @tim: FIXME: can we utilise the create_line_plot function?
+    fig = px.line(
+        data_frame=df,
+        x="Date",
+        y=[
+            "Air_Temperature_Sensor",
+            "Room_Air_Temperature_Setpoint",
+            "Outside_Air_Temperature_Sensor",
+        ],
+        title=title,
+    )
+
+    # Modify layout to place the legend below the plot
+    fig.update_layout(
+        font=dict(
+            color="black"  # Set all plot text (title, axis labels, legend) to black
+        ),
+        title=dict(
+            text=title,
+            xanchor="center",  # Center the title
+            x=0.5,  # Position the title in the horizontal center
+            font=dict(color="black"),  # Set title font colour to black
+        ),
+        legend=dict(
+            orientation="h",  # Horizontal orientation for the legend
+            yanchor="bottom",  # Align the legend to the bottom
+            y=-0.3,  # Push the legend below the plot
+            xanchor="center",  # Centre the legend horizontally
+            x=0.5,  # Centre position for the legend
+        ),
+    )
+    return fig
 
 
 # -----------------------------  SUNBURST CHART  ----------------------------- #
@@ -1515,7 +1741,16 @@ def update_surface_plot(selected_color_scale, input_id):
 
 
 # Create table function
-def create_table(data, columns, title):
+def create_table(
+    data,
+    columns,
+    title,
+    id="table",
+    row_selectable=False,
+    selected_rows=None,
+    sort_action="native",
+    sort_mode="multi",
+):
     # table = dbc.Table.from_dataframe(
     #     data[columns],
     #     bordered=True,
@@ -1536,15 +1771,20 @@ def create_table(data, columns, title):
     #     style={"max-height": "400px", "overflow": "auto"},
     # )
 
+    if selected_rows is None:
+        selected_rows = []
+
     # native dash: supports exporting, sorting, and filtering, etc.
     table = dash_table.DataTable(
-        id="table",
+        id=id,
         # columns=columns,
         data=data.to_dict("records"),
         fixed_rows={"headers": True},
         export_format="csv",
-        sort_action="native",
-        sort_mode="multi",
+        row_selectable=row_selectable,
+        selected_rows=selected_rows,
+        sort_action=sort_action,
+        sort_mode=sort_mode,
         # filter_action="native",
         style_cell={
             "fontSize": 14,
