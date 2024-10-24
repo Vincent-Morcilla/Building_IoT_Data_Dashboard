@@ -1,4 +1,7 @@
-"""Library for managing the database of streams"""
+"""
+Library for managing the dataset of time series streams, the building model, 
+and the brick schema.
+"""
 
 from collections.abc import Iterable
 from pathlib import Path
@@ -11,7 +14,9 @@ import rdflib
 
 
 class DBManager:
-    """Class for managing the database of streams
+    """
+    Class for managing the dataset of time series streams, the building model,
+    and the brick schema.
 
     Args:
         data_zip_path (str): Path to the zip file containing the stream data
