@@ -177,6 +177,7 @@ class DBManager:
     def _load_db(self):
         mapping_df = pd.read_csv(self._mapping_path, index_col=0)
 
+        # @tim: TODO: decide whether to keep/remove these filters
         # Mappings for building B only, and ignore streams not saved to file
         # mapping_df = mapping_df[mapping_df["Building"] == "B"]
         # mapping_df = mapping_df[
