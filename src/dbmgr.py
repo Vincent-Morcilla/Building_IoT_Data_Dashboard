@@ -70,12 +70,10 @@ class DBManager:
         if self._schema_path is not None and not self._schema_path.is_file():
             raise FileNotFoundError(f"Schema file not found: {self._schema_path}")
 
-        # self._model = brickschema.Graph().load_file(self._model_path)
-        self._model = brickschema.Graph().load_file(model_path, format="ttl")
+        self._model = brickschema.Graph().load_file(self._model_path)
 
         if self._schema_path is not None:
-            # self._schema = brickschema.Graph().load_file(self._schema_path)
-            self._schema = brickschema.Graph().load_file(schema_path, format="ttl")
+            self._schema = brickschema.Graph().load_file(self._schema_path)
         else:
             self._schema = brickschema.Graph(load_brick_nightly=True)
 
