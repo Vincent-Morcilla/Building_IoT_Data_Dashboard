@@ -19,22 +19,40 @@ class DBManager:
     and the brick schema.
 
     Args:
-        data_zip_path (str): Path to the zip file containing the stream data
-        mapping_path (str): Path to the CSV file containing the mapping of stream IDs to filenames
-        model_path (str): Path to the RDF file containing the Brick model
-        schema_path (str): Path to the RDF file containing the Brick schema
+        data_zip_path (str): Path to the zip file containing the stream data.
+        mapping_path (str): Path to the CSV file containing the mapping of
+            stream IDs to filenames.
+        model_path (str): Path to the RDF file containing the Brick model.
+        schema_path (str): Path to the RDF file containing the Brick schema.
 
     Raises:
-        FileNotFoundError: If the data zip file is not found
-        FileNotFoundError: If the mapping file is not found
-        FileNotFoundError: If the model file is not found
-        FileNotFoundError: If the schema file is not found
+        FileNotFoundError: If the data zip file is not found.
+        FileNotFoundError: If the mapping file is not found.
+        FileNotFoundError: If the model file is not found.
+        FileNotFoundError: If the schema file is not found.
 
     Returns:
         DBManager: An instance of the DBManager class
     """
 
     def __init__(self, data_zip_path, mapping_path, model_path, schema_path=None):
+        """Initialize the DBManager.
+
+        Args:
+            data_zip_path (str): Path to the zip file containing the stream data.
+            mapping_path (str): Path to the CSV file containing the mapping of
+                stream IDs to filenames.
+            model_path (str): Path to the RDF file containing the Brick model.
+            schema_path (str, optional): Path to the RDF file containing the
+                Brick schema. Defaults to None, in which case latest schema will
+                be used.
+
+        Raises:
+            FileNotFoundError: If the data zip file is not found.
+            FileNotFoundError: If the mapping file is not found.
+            FileNotFoundError: If the model file is not found.
+            FileNotFoundError: If the schema file is not found.
+        """
         self._data_zip_path = Path(data_zip_path)
         self._mapping_path = Path(mapping_path)
         self._model_path = Path(model_path)
@@ -132,7 +150,8 @@ class DBManager:
         Args:
             query_str (str): The SPARQL query string.
             graph (str, optional): The graph to query. Defaults to "model".
-            return_df (bool, optional): Whether to return the results as a DataFrame. Defaults to False.
+            return_df (bool, optional): Whether to return the results as a
+                DataFrame. Defaults to False.
 
         Returns:
             rdflib.query.Result | pd.DataFrame: The query results.
