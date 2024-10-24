@@ -199,6 +199,15 @@ class DBManager:
         except KeyError as exc:
             raise KeyError(f"Stream ID {stream_id} not found in the database") from exc
 
+    def set_stream(self, stream_id: str, data: pd.DataFrame) -> None:
+        """Set the stream data for a given stream ID.
+
+        Args:
+            stream_id (str): The stream ID.
+            data (pd.DataFrame): The stream data.
+        """
+        self._db[stream_id] = data
+
     def get_streams(self, stream_ids: Iterable[str]) -> dict[str, pd.DataFrame]:
         """Get the stream data for a list of stream IDs.
 
@@ -209,6 +218,15 @@ class DBManager:
             dict[str, pd.DataFrame]: A dictionary of stream data.
         """
         return {stream_id: self.get_stream(stream_id) for stream_id in stream_ids}
+
+    def set_streams(self, stream_data: dict[str, pd.DataFrame]) -> None:
+        """Set the stream data for a list of stream IDs.
+
+        Args:
+            stream_data (dict[str, pd.DataFrame]): A dictionary of stream data.
+        """
+        for stream_id, data in stream_data.items():
+            self.set_stream(stream_id, data)
 
     def _load_db(self):
         mapping_df = pd.read_csv(self._mapper_path, index_col=0)
