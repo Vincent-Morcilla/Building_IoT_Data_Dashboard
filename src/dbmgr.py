@@ -207,7 +207,8 @@ class DBManager:
                 data = pickle.loads(pkl_data)
                 data_df = pd.DataFrame(data)
                 data_df.rename(
-                    columns={"t": "time", "v": "value", "y": "label"}, inplace=True
+                    columns={"t": "time", "v": "value", "y": "brick_class"},
+                    inplace=True,
                 )
 
                 self._db[stream_id] = data_df
