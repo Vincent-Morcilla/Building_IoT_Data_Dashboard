@@ -20,7 +20,7 @@ class DBManager:
 
     Args:
         data_zip_path (str): Path to the zip file containing the stream data.
-        mapping_path (str): Path to the CSV file containing the mapping of
+        mapper_path (str): Path to the CSV file containing the mapping of
             stream IDs to filenames.
         model_path (str): Path to the RDF file containing the Brick model.
         schema_path (str): Path to the RDF file containing the Brick schema.
@@ -35,12 +35,12 @@ class DBManager:
         DBManager: An instance of the DBManager class
     """
 
-    def __init__(self, data_zip_path, mapping_path, model_path, schema_path=None):
+    def __init__(self, data_zip_path, mapper_path, model_path, schema_path=None):
         """Initialize the DBManager.
 
         Args:
             data_zip_path (str): Path to the zip file containing the stream data.
-            mapping_path (str): Path to the CSV file containing the mapping of
+            mapper_path (str): Path to the CSV file containing the mapping of
                 stream IDs to filenames.
             model_path (str): Path to the RDF file containing the Brick model.
             schema_path (str, optional): Path to the RDF file containing the
@@ -54,15 +54,15 @@ class DBManager:
             FileNotFoundError: If the schema file is not found.
         """
         self._data_zip_path = Path(data_zip_path)
-        self._mapping_path = Path(mapping_path)
+        self._mapper_path = Path(mapper_path)
         self._model_path = Path(model_path)
         self._schema_path = None if schema_path is None else Path(schema_path)
 
         if not self._data_zip_path.is_file():
             raise FileNotFoundError(f"Data zip file not found: {self._data_zip_path}")
 
-        if not self._mapping_path.is_file():
-            raise FileNotFoundError(f"Mapping file not found: {self._mapping_path}")
+        if not self._mapper_path.is_file():
+            raise FileNotFoundError(f"Mapping file not found: {self._mapper_path}")
 
         if not self._model_path.is_file():
             raise FileNotFoundError(f"Model file not found: {self._model_path}")
@@ -70,10 +70,12 @@ class DBManager:
         if self._schema_path is not None and not self._schema_path.is_file():
             raise FileNotFoundError(f"Schema file not found: {self._schema_path}")
 
-        self._model = brickschema.Graph().load_file(self._model_path)
+        # self._model = brickschema.Graph().load_file(self._model_path)
+        self._model = brickschema.Graph().load_file(model_path, format="ttl")
 
         if self._schema_path is not None:
-            self._schema = brickschema.Graph().load_file(self._schema_path)
+            # self._schema = brickschema.Graph().load_file(self._schema_path)
+            self._schema = brickschema.Graph().load_file(schema_path, format="ttl")
         else:
             self._schema = brickschema.Graph(load_brick_nightly=True)
 
@@ -143,7 +145,12 @@ class DBManager:
         return self._db
 
     def query(
-        self, query_str: str, graph: str = "model", return_df: bool = False, **kwargs
+        self,
+        query_str: str,
+        graph: str = "model",
+        return_df: bool = False,
+        defrag: bool = False,
+        **kwargs,
     ) -> rdflib.query.Result | pd.DataFrame:
         """Query the knowledge graph.
 
@@ -169,6 +176,11 @@ class DBManager:
             df = pd.DataFrame(results.bindings)
             df.columns = df.columns.map(str)
             df.drop_duplicates(inplace=True)
+
+            # @tim: TODO: incorporate this with the non-DataFrame return
+            if defrag:
+                for col in df.columns:
+                    df[col] = df[col].apply(DBManager._defrag_uri)
             return df
         else:
             return results
@@ -199,14 +211,14 @@ class DBManager:
         return {stream_id: self.get_stream(stream_id) for stream_id in stream_ids}
 
     def _load_db(self):
-        mapping_df = pd.read_csv(self._mapping_path, index_col=0)
+        mapping_df = pd.read_csv(self._mapper_path, index_col=0)
 
         # @tim: TODO: decide whether to keep/remove these filters
         # Mappings for building B only, and ignore streams not saved to file
-        # mapping_df = mapping_df[mapping_df["Building"] == "B"]
-        # mapping_df = mapping_df[
-        #     mapping_df["Filename"].str.contains("FILE NOT SAVED") == False
-        # ]
+        mapping_df = mapping_df[mapping_df["Building"] == "B"]
+        mapping_df = mapping_df[
+            mapping_df["Filename"].str.contains("FILE NOT SAVED") == False
+        ]
 
         with zipfile.ZipFile(self._data_zip_path, "r") as db_zip:
             for path in db_zip.namelist():
@@ -231,3 +243,20 @@ class DBManager:
                 )
 
                 self._db[stream_id] = data_df
+
+    @staticmethod
+    def _defrag_uri(uri):
+        """Extract the fragment (last path component) from a URI.
+
+        Args:
+            uri (rdflib.term.URIRef): The URI to defragment.
+
+        Returns:
+            str: The defragmented URI.
+        """
+        if isinstance(uri, rdflib.term.URIRef):
+            if "#" in uri:
+                return uri.fragment
+            elif "/" in uri:
+                return uri.split("/")[-1]
+        return uri

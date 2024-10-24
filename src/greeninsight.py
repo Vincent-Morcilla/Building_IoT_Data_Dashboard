@@ -13,10 +13,10 @@ import plotly.graph_objects as go
 
 # FIXME: Remove this hackathon
 # Add my code snippets directory to the system path
-sys.path.append(
-    os.path.abspath(os.path.join(os.path.dirname(__file__), "../../code_snippets/tim"))
-)
-import modelquality as mq
+# sys.path.append(
+#     os.path.abspath(os.path.join(os.path.dirname(__file__), "../../code_snippets/tim"))
+# )
+import analytics.modelquality as mq
 
 m = mq.ModelQuality()
 
@@ -434,7 +434,7 @@ plot_configs |= {
             "dataframe": dataframes["RoomClimate_WeatherSensitivity"],
         }
     },
-    "Consumption_DataQuality": {
+    "Consumption_Raw": {
         "BoxAndWhisker": {
             "title": "Water Data Quality Box and Whisker Plot",
             "x-axis": "Measurement",
@@ -450,7 +450,7 @@ plot_configs |= {
             "dataframe": dataframes["Consumption_DataQuality"],
         }
     },
-    "Consumption_GeneralAnalysis": {
+    "Consumption_WeatherSensitivity": {
         "Timeseries": {
             "title": "Water Usage Over Time",
             "x-axis": "Timestamp",
@@ -492,18 +492,18 @@ plot_configs |= {
             "dataframe": dataframes["Consumption_GeneralAnalysis"],
         }
     },
-    "Consumption_UsageAnalysis": {
-        "HeatMap": {
-            "title": "Water Usage Heat Map",
-            "x-axis": "Month",
-            "y-axis": "Region",
-            "z-axis": "Usage",
-            "x-axis_label": "Month",
-            "y-axis_label": "Region",
-            "z-axis_label": "Water Usage (Liters)",
-            "dataframe": dataframes["Consumption_UsageAnalysis"],
-        }
-    },
+    # "Consumption_UsageAnalysis": {
+    #     "HeatMap": {
+    #         "title": "Water Usage Heat Map",
+    #         "x-axis": "Month",
+    #         "y-axis": "Region",
+    #         "z-axis": "Usage",
+    #         "x-axis_label": "Month",
+    #         "y-axis_label": "Region",
+    #         "z-axis_label": "Water Usage (Liters)",
+    #         "dataframe": dataframes["Consumption_UsageAnalysis"],
+    #     }
+    # },
     # "NoSubcategory": { #@tim: FIXME: make sure having this doesn't break anything
     #     "HeatMap": {
     #         "title": "Water Usage Heat Map",

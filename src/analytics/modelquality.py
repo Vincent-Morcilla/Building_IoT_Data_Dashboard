@@ -18,10 +18,10 @@ class ModelQuality:
 
     def __init__(
         self,
-        # brick_model="../../datasets/bts_site_b_train/bldg2.ttl",
-        brick_model="../../datasets/bts_site_b_train/Site_B.ttl",
-        brick_schema="../../datasets/bts_site_b_train/Brick_v1.2.1.ttl",
-        mapper="../../datasets/bts_site_b_train/mapper_TrainOnly.csv",
+        # brick_model="/Users/tarney/code/unsw/comp9900/thecapstoners/datasets/bts_site_b_train/bldg2.ttl",
+        brick_model="/Users/tarney/code/unsw/comp9900/thecapstoners/datasets/bts_site_b_train/Site_B.ttl",
+        brick_schema="/Users/tarney/code/unsw/comp9900/thecapstoners/datasets/bts_site_b_train/Brick_v1.2.1.ttl",
+        mapper="/Users/tarney/code/unsw/comp9900/thecapstoners/datasets/bts_site_b_train/mapper_TrainOnly.csv",
         time_series=None,
     ):
         """TODO
@@ -55,7 +55,12 @@ class ModelQuality:
         self._df = self._get_brick_entities()
 
         self._run_analysis()
-        self._df.to_csv("model_quality_v2.csv")
+        # self._df.to_csv("model_quality_v2.csv")
+
+    def __str__(self):
+        return (
+            f"ModelQuality({self._brick_model}, {self._brick_schema}, {self._mapper})"
+        )
 
     def get_analyses(self):
         """TODO"""
