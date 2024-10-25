@@ -1,3 +1,4 @@
+import argparse
 from collections import defaultdict
 import os
 import re
@@ -16,13 +17,17 @@ import plotly.graph_objects as go
 # sys.path.append(
 #     os.path.abspath(os.path.join(os.path.dirname(__file__), "../../code_snippets/tim"))
 # )
-import analytics.modelquality as mq
+# import analytics.modelquality as mq
+import dbmgr
+import analyticsmgr
 
-m = mq.ModelQuality()
+# m = mq.ModelQuality()
 
 ################################################################################
 #                               GLOBAL VARIABLES                               #
 ################################################################################
+
+am = None  # Analytics Manager instance
 
 APP_NAME = "GreenInsight"
 # Initialise the Dash app with Bootstrap for styling and allow callbacks for dynamic content
@@ -111,412 +116,412 @@ dataframes = {
     ),
 }
 
-plot_configs = m.get_analyses()
+# plot_configs = m.get_analyses()
 
-# Configuration dictionary defining UI components and plot settings for each dataframe
-plot_configs |= {
-    "DataQuality_DataQuality": {
-        "BoxAndWhisker": {
-            "title": "Water Data Quality Box and Whisker Plot",
-            "x-axis": "Measurement",
-            "y-axis": "Value",
-            "x-axis_label": "Measurement Type",
-            "y-axis_label": "Quality Value",
-            "UI": {
-                "dropdown": {
-                    "instructions": "Select measurements to display:",
-                    "controls": "Measurement",  # Specify the column to extract unique values from
-                }
-            },
-            "dataframe": dataframes["Consumption_DataQuality"],
-        }
-    },
-    "DataQuality_GeneralAnalysis": {
-        "Timeseries": {
-            "title": "Water Usage Over Time",
-            "x-axis": "Timestamp",
-            "y-axis": [
-                "Usage",
-                "Temperature",
-                "Pressure",
-            ],  # Multiple variables to plot
-            "x-axis_label": "Date",
-            "y-axis_label": "Values",
-            "UI": {
-                "datepicker": {
-                    "html.Label": "Select Date Range",
-                    "min_date_allowed": dataframes["Consumption_GeneralAnalysis"][
-                        "Timestamp"
-                    ]
-                    .min()
-                    .strftime("%Y-%m-%d"),
-                    "max_date_allowed": dataframes["Consumption_GeneralAnalysis"][
-                        "Timestamp"
-                    ]
-                    .max()
-                    .strftime("%Y-%m-%d"),
-                    "start_date": dataframes["Consumption_GeneralAnalysis"]["Timestamp"]
-                    .min()
-                    .strftime("%Y-%m-%d"),
-                    "end_date": dataframes["Consumption_GeneralAnalysis"]["Timestamp"]
-                    .max()
-                    .strftime("%Y-%m-%d"),
-                    "controls": "Timestamp",
-                },
-                "radioitem": {
-                    "html.Label": "Select Frequency",
-                    "options": [("Hourly", "h"), ("Daily", "D"), ("Monthly", "ME")],
-                    "controls": "Timestamp",
-                    "default_value": "D",
-                },
-            },
-            "dataframe": dataframes["Consumption_GeneralAnalysis"],
-        }
-    },
-    "DataQuality_UsageAnalysis": {
-        "HeatMap": {
-            "title": "Water Usage Heat Map",
-            "x-axis": "Month",
-            "y-axis": "Region",
-            "z-axis": "Usage",
-            "x-axis_label": "Month",
-            "y-axis_label": "Region",
-            "z-axis_label": "Water Usage (Liters)",
-            "dataframe": dataframes["Consumption_UsageAnalysis"],
-        }
-    },
-    "BuildingStructure_BuildingStructure": {
-        "SunburstChart": {
-            "title": "Building Structure Sunburst",
-            "EntityID": "EntityID",
-            "EntityType": "EntityType",
-            "ParentID": "ParentID",
-            "BuildingID": "BuildingID",
-            "z-axis": "Level",
-            "z-axis_label": "Hierarchy Level",
-            "dataframe": dataframes["BuildingStructure_BuildingStructure"],
-        }
-    },
-    "BuildingStructure_DataQuality": {
-        "BoxAndWhisker": {
-            "title": "Water Data Quality Box and Whisker Plot",
-            "x-axis": "Measurement",
-            "y-axis": "Value",
-            "x-axis_label": "Measurement Type",
-            "y-axis_label": "Quality Value",
-            "UI": {
-                "dropdown": {
-                    "instructions": "Select measurements to display:",
-                    "controls": "Measurement",  # Column to extract unique values from for dropdown
-                }
-            },
-            "dataframe": dataframes["BuildingStructure_DataQuality"],
-        }
-    },
-    # "ModelQuality_ClassInconsistency": {
-    #     "PieChartAndTable": {
-    #         "title": "Data Sources with Inconsistent Brick Class between Model and Mapper",
-    #         "pie_charts": [
-    #             {
-    #                 "title": "Proportion of Consistent vs Inconsistent Classes",
-    #                 "labels": "brick_class_is_consistent",
-    #                 "textinfo": "percent+label",
-    #                 "filter": None,
-    #                 "dataframe": dataframes["ModelQuality_ClassInconsistency"],
-    #             },
-    #             {
-    #                 "title": "Inconsistent Brick Classes by Class",
-    #                 "labels": "brick_class",
-    #                 "values": "count",
-    #                 "textinfo": "percent+label",
-    #                 "filter": "brick_class_is_consistent == False",
-    #                 "dataframe": dataframes["ModelQuality_ClassInconsistency"],
-    #             },
-    #         ],
-    #         "tables": [
-    #             {
-    #                 "title": "Data Sources with Inconsistent Brick Class",
-    #                 "columns": [
-    #                     "Brick Class in Model",
-    #                     "Brick Class in Mapper",
-    #                     "Entity ID",
-    #                 ],
-    #                 "data_source": "ModelQuality_ClassInconsistency",
-    #                 "filter": "brick_class_is_consistent == False",
-    #                 "rows": ["brick_class", "brick_class_in_mapping", "entity"],
-    #                 "dataframe": dataframes["ModelQuality_ClassInconsistency"],
-    #             }
-    #         ],
-    #     }
-    # },
-    # "ModelQuality_MissingTimeseries": {
-    #     "PieChartAndTable": {
-    #         "title": "Data Sources in Building Model without Timeseries Data",
-    #         "pie_charts": [
-    #             {
-    #                 "title": "Proportion of Data Sources with Timeseries Data",
-    #                 "labels": "has_data",
-    #                 "textinfo": "percent+label",
-    #                 "filter": None,
-    #                 "dataframe": dataframes["ModelQuality_MissingTimeseries"],
-    #             },
-    #             {
-    #                 "title": "Missing Timeseries Data by Class",
-    #                 "labels": "brick_class",
-    #                 "textinfo": "percent+label",
-    #                 "filter": "has_data == False",
-    #                 "dataframe": dataframes["ModelQuality_MissingTimeseries"],
-    #             },
-    #         ],
-    #         "tables": [
-    #             {
-    #                 "title": "Data Sources with Missing Timeseries Data",
-    #                 "columns": ["Brick Class", "Stream ID"],
-    #                 "data_source": "ModelQuality_MissingTimeseries",
-    #                 "filter": "has_data == False",
-    #                 "rows": ["brick_class", "stream_id"],
-    #                 "dataframe": dataframes["ModelQuality_ClassInconsistency"],
-    #             },
-    #             {
-    #                 "title": "Data Sources with Available Timeseries Data",
-    #                 "columns": ["Brick Class", "Stream ID"],
-    #                 "data_source": "ModelQuality_MissingTimeseries",
-    #                 "filter": "has_data == True",
-    #                 "rows": ["brick_class", "stream_id"],
-    #                 "dataframe": dataframes["ModelQuality_MissingTimeseries"],
-    #             },
-    #         ],
-    #     }
-    # },
-    # "ModelQuality_RecognisedEntities": {
-    #     "PieChartAndTable": {
-    #         "title": "Brick Entities in Building Model Recognised by Brick Schema",
-    #         "pie_charts": [
-    #             {
-    #                 "title": "Proportion of Recognised vs Unrecognised Entities",
-    #                 "labels": "class_in_provided_brick",
-    #                 "textinfo": "percent+label",
-    #                 "filter": None,
-    #                 "dataframe": dataframes["ModelQuality_RecognisedEntities"],
-    #             },
-    #             {
-    #                 "title": "Unrecognised Entities by Class",
-    #                 "labels": "brick_class",
-    #                 "textinfo": "percent+label",
-    #                 "filter": "class_in_provided_brick == False",
-    #                 "dataframe": dataframes["ModelQuality_RecognisedEntities"],
-    #             },
-    #         ],
-    #         "tables": [
-    #             {
-    #                 "title": "Unrecognised Entities",
-    #                 "columns": ["Brick Class", "Entity ID"],
-    #                 "data_source": "ModelQuality_RecognisedEntities",  # Main dataframe
-    #                 "filter": "class_in_provided_brick == False",
-    #                 "rows": ["brick_class", "entity_id"],
-    #                 "dataframe": dataframes["ModelQuality_RecognisedEntities"],
-    #             },
-    #             {
-    #                 "title": "Recognised Entities",
-    #                 "columns": ["Brick Class", "Entity ID"],
-    #                 "data_source": "ModelQuality_RecognisedEntities",
-    #                 "filter": "class_in_provided_brick == True",
-    #                 "rows": ["brick_class", "entity_id"],
-    #                 "dataframe": dataframes["ModelQuality_RecognisedEntities"],
-    #             },
-    #         ],
-    #     }
-    # },
-    "RoomClimate_Rooms": {
-        "TableAndTimeseries": {
-            "title": "Room Climate",
-            "table": {
-                "title": "List of Rooms with Air Temperature Sensors and Setpoints",
-                "columns": [
-                    "Room Class",
-                    "Room ID",
-                ],
-                "rows": ["room_class", "room_id"],
-                "filter": None,
-                "dataframe": pd.DataFrame(
-                    {
-                        "room_class": [
-                            "Conference Room",
-                            "Conference Room",
-                            "Library",
-                            "Office",
-                        ],
-                        "room_id": ["Room 1", "Room 2", "Room 3", "Room 4"],
-                    }
-                ),
-            },
-            "timeseries": [
-                {
-                    "title": "Conference Room",
-                    "dataframe": pd.DataFrame(
-                        {
-                            "Date": pd.date_range(
-                                start="2021-01-01", periods=365, freq="D"
-                            ),
-                            "Air_Temperature_Sensor": np.random.normal(15, 3, 365),
-                            "Room_Air_Temperature_Setpoint": np.random.normal(
-                                15, 1, 365
-                            ),
-                            "Outside_Air_Temperature_Sensor": np.random.normal(
-                                15, 5, 365
-                            ),
-                        }
-                    ),
-                },
-                {
-                    "title": "Conference Room",
-                    "dataframe": pd.DataFrame(
-                        {
-                            "Date": pd.date_range(
-                                start="2021-01-01", periods=365, freq="D"
-                            ),
-                            "Air_Temperature_Sensor": np.random.normal(15, 3, 365),
-                            "Room_Air_Temperature_Setpoint": np.random.normal(
-                                15, 1, 365
-                            ),
-                            "Outside_Air_Temperature_Sensor": np.random.normal(
-                                15, 5, 365
-                            ),
-                        }
-                    ),
-                },
-                {
-                    "title": "Library",
-                    "dataframe": pd.DataFrame(
-                        {
-                            "Date": pd.date_range(
-                                start="2021-01-01", periods=365, freq="D"
-                            ),
-                            "Air_Temperature_Sensor": np.random.normal(15, 3, 365),
-                            "Room_Air_Temperature_Setpoint": np.random.normal(
-                                15, 1, 365
-                            ),
-                            "Outside_Air_Temperature_Sensor": np.random.normal(
-                                15, 5, 365
-                            ),
-                        }
-                    ),
-                },
-                {
-                    "title": "Office",
-                    "dataframe": pd.DataFrame(
-                        {
-                            "Date": pd.date_range(
-                                start="2021-01-01", periods=365, freq="D"
-                            ),
-                            "Air_Temperature_Sensor": np.random.normal(15, 3, 365),
-                            "Room_Air_Temperature_Setpoint": np.random.normal(
-                                15, 1, 365
-                            ),
-                            "Outside_Air_Temperature_Sensor": np.random.normal(
-                                15, 5, 365
-                            ),
-                        }
-                    ),
-                },
-            ],
-        }
-    },
-    "RoomClimate_WeatherSensitivity": {
-        "SurfacePlot": {
-            "title": "Temperature vs Weather Sensitivity",
-            "X-value": "Day",
-            "Y-values": ["Hour"],
-            "Z-value": "WeatherSensitivity",
-            "x-axis_label": "Day",
-            "y-axis_label": "Hour of the Day",
-            "z-axis_label": "Weather Sensitivity",
-            "dataframe": dataframes["RoomClimate_WeatherSensitivity"],
-        }
-    },
-    "Consumption_Raw": {
-        "BoxAndWhisker": {
-            "title": "Water Data Quality Box and Whisker Plot",
-            "x-axis": "Measurement",
-            "y-axis": "Value",
-            "x-axis_label": "Measurement Type",
-            "y-axis_label": "Quality Value",
-            "UI": {
-                "dropdown": {
-                    "instructions": "Select measurements to display:",
-                    "controls": "Measurement",  # Specify the column to extract unique values from
-                }
-            },
-            "dataframe": dataframes["Consumption_DataQuality"],
-        }
-    },
-    "Consumption_WeatherSensitivity": {
-        "Timeseries": {
-            "title": "Water Usage Over Time",
-            "x-axis": "Timestamp",
-            "y-axis": [
-                "Usage",
-                "Temperature",
-                "Pressure",
-            ],  # Multiple variables to plot
-            "x-axis_label": "Date",
-            "y-axis_label": "Values",
-            "UI": {
-                "datepicker": {
-                    "html.Label": "Select Date Range",
-                    "min_date_allowed": dataframes["Consumption_GeneralAnalysis"][
-                        "Timestamp"
-                    ]
-                    .min()
-                    .strftime("%Y-%m-%d"),
-                    "max_date_allowed": dataframes["Consumption_GeneralAnalysis"][
-                        "Timestamp"
-                    ]
-                    .max()
-                    .strftime("%Y-%m-%d"),
-                    "start_date": dataframes["Consumption_GeneralAnalysis"]["Timestamp"]
-                    .min()
-                    .strftime("%Y-%m-%d"),
-                    "end_date": dataframes["Consumption_GeneralAnalysis"]["Timestamp"]
-                    .max()
-                    .strftime("%Y-%m-%d"),
-                    "controls": "Timestamp",
-                },
-                "radioitem": {
-                    "html.Label": "Select Frequency",
-                    "options": [("Hourly", "h"), ("Daily", "D"), ("Monthly", "ME")],
-                    "controls": "Timestamp",
-                    "default_value": "D",
-                },
-            },
-            "dataframe": dataframes["Consumption_GeneralAnalysis"],
-        }
-    },
-    # "Consumption_UsageAnalysis": {
-    #     "HeatMap": {
-    #         "title": "Water Usage Heat Map",
-    #         "x-axis": "Month",
-    #         "y-axis": "Region",
-    #         "z-axis": "Usage",
-    #         "x-axis_label": "Month",
-    #         "y-axis_label": "Region",
-    #         "z-axis_label": "Water Usage (Liters)",
-    #         "dataframe": dataframes["Consumption_UsageAnalysis"],
-    #     }
-    # },
-    # "NoSubcategory": { #@tim: FIXME: make sure having this doesn't break anything
-    #     "HeatMap": {
-    #         "title": "Water Usage Heat Map",
-    #         "x-axis": "Month",
-    #         "y-axis": "Region",
-    #         "z-axis": "Usage",
-    #         "x-axis_label": "Month",
-    #         "y-axis_label": "Region",
-    #         "z-axis_label": "Water Usage (Liters)",
-    #         "dataframe": dataframes["Consumption_UsageAnalysis"],
-    #     }
-    # },
-}
+# # Configuration dictionary defining UI components and plot settings for each dataframe
+# plot_configs |= {
+#     "DataQuality_DataQuality": {
+#         "BoxAndWhisker": {
+#             "title": "Water Data Quality Box and Whisker Plot",
+#             "x-axis": "Measurement",
+#             "y-axis": "Value",
+#             "x-axis_label": "Measurement Type",
+#             "y-axis_label": "Quality Value",
+#             "UI": {
+#                 "dropdown": {
+#                     "instructions": "Select measurements to display:",
+#                     "controls": "Measurement",  # Specify the column to extract unique values from
+#                 }
+#             },
+#             "dataframe": dataframes["Consumption_DataQuality"],
+#         }
+#     },
+#     "DataQuality_GeneralAnalysis": {
+#         "Timeseries": {
+#             "title": "Water Usage Over Time",
+#             "x-axis": "Timestamp",
+#             "y-axis": [
+#                 "Usage",
+#                 "Temperature",
+#                 "Pressure",
+#             ],  # Multiple variables to plot
+#             "x-axis_label": "Date",
+#             "y-axis_label": "Values",
+#             "UI": {
+#                 "datepicker": {
+#                     "html.Label": "Select Date Range",
+#                     "min_date_allowed": dataframes["Consumption_GeneralAnalysis"][
+#                         "Timestamp"
+#                     ]
+#                     .min()
+#                     .strftime("%Y-%m-%d"),
+#                     "max_date_allowed": dataframes["Consumption_GeneralAnalysis"][
+#                         "Timestamp"
+#                     ]
+#                     .max()
+#                     .strftime("%Y-%m-%d"),
+#                     "start_date": dataframes["Consumption_GeneralAnalysis"]["Timestamp"]
+#                     .min()
+#                     .strftime("%Y-%m-%d"),
+#                     "end_date": dataframes["Consumption_GeneralAnalysis"]["Timestamp"]
+#                     .max()
+#                     .strftime("%Y-%m-%d"),
+#                     "controls": "Timestamp",
+#                 },
+#                 "radioitem": {
+#                     "html.Label": "Select Frequency",
+#                     "options": [("Hourly", "h"), ("Daily", "D"), ("Monthly", "ME")],
+#                     "controls": "Timestamp",
+#                     "default_value": "D",
+#                 },
+#             },
+#             "dataframe": dataframes["Consumption_GeneralAnalysis"],
+#         }
+#     },
+#     "DataQuality_UsageAnalysis": {
+#         "HeatMap": {
+#             "title": "Water Usage Heat Map",
+#             "x-axis": "Month",
+#             "y-axis": "Region",
+#             "z-axis": "Usage",
+#             "x-axis_label": "Month",
+#             "y-axis_label": "Region",
+#             "z-axis_label": "Water Usage (Liters)",
+#             "dataframe": dataframes["Consumption_UsageAnalysis"],
+#         }
+#     },
+#     "BuildingStructure_BuildingStructure": {
+#         "SunburstChart": {
+#             "title": "Building Structure Sunburst",
+#             "EntityID": "EntityID",
+#             "EntityType": "EntityType",
+#             "ParentID": "ParentID",
+#             "BuildingID": "BuildingID",
+#             "z-axis": "Level",
+#             "z-axis_label": "Hierarchy Level",
+#             "dataframe": dataframes["BuildingStructure_BuildingStructure"],
+#         }
+#     },
+#     "BuildingStructure_DataQuality": {
+#         "BoxAndWhisker": {
+#             "title": "Water Data Quality Box and Whisker Plot",
+#             "x-axis": "Measurement",
+#             "y-axis": "Value",
+#             "x-axis_label": "Measurement Type",
+#             "y-axis_label": "Quality Value",
+#             "UI": {
+#                 "dropdown": {
+#                     "instructions": "Select measurements to display:",
+#                     "controls": "Measurement",  # Column to extract unique values from for dropdown
+#                 }
+#             },
+#             "dataframe": dataframes["BuildingStructure_DataQuality"],
+#         }
+#     },
+#     # "ModelQuality_ClassInconsistency": {
+#     #     "PieChartAndTable": {
+#     #         "title": "Data Sources with Inconsistent Brick Class between Model and Mapper",
+#     #         "pie_charts": [
+#     #             {
+#     #                 "title": "Proportion of Consistent vs Inconsistent Classes",
+#     #                 "labels": "brick_class_is_consistent",
+#     #                 "textinfo": "percent+label",
+#     #                 "filter": None,
+#     #                 "dataframe": dataframes["ModelQuality_ClassInconsistency"],
+#     #             },
+#     #             {
+#     #                 "title": "Inconsistent Brick Classes by Class",
+#     #                 "labels": "brick_class",
+#     #                 "values": "count",
+#     #                 "textinfo": "percent+label",
+#     #                 "filter": "brick_class_is_consistent == False",
+#     #                 "dataframe": dataframes["ModelQuality_ClassInconsistency"],
+#     #             },
+#     #         ],
+#     #         "tables": [
+#     #             {
+#     #                 "title": "Data Sources with Inconsistent Brick Class",
+#     #                 "columns": [
+#     #                     "Brick Class in Model",
+#     #                     "Brick Class in Mapper",
+#     #                     "Entity ID",
+#     #                 ],
+#     #                 "data_source": "ModelQuality_ClassInconsistency",
+#     #                 "filter": "brick_class_is_consistent == False",
+#     #                 "rows": ["brick_class", "brick_class_in_mapping", "entity"],
+#     #                 "dataframe": dataframes["ModelQuality_ClassInconsistency"],
+#     #             }
+#     #         ],
+#     #     }
+#     # },
+#     # "ModelQuality_MissingTimeseries": {
+#     #     "PieChartAndTable": {
+#     #         "title": "Data Sources in Building Model without Timeseries Data",
+#     #         "pie_charts": [
+#     #             {
+#     #                 "title": "Proportion of Data Sources with Timeseries Data",
+#     #                 "labels": "has_data",
+#     #                 "textinfo": "percent+label",
+#     #                 "filter": None,
+#     #                 "dataframe": dataframes["ModelQuality_MissingTimeseries"],
+#     #             },
+#     #             {
+#     #                 "title": "Missing Timeseries Data by Class",
+#     #                 "labels": "brick_class",
+#     #                 "textinfo": "percent+label",
+#     #                 "filter": "has_data == False",
+#     #                 "dataframe": dataframes["ModelQuality_MissingTimeseries"],
+#     #             },
+#     #         ],
+#     #         "tables": [
+#     #             {
+#     #                 "title": "Data Sources with Missing Timeseries Data",
+#     #                 "columns": ["Brick Class", "Stream ID"],
+#     #                 "data_source": "ModelQuality_MissingTimeseries",
+#     #                 "filter": "has_data == False",
+#     #                 "rows": ["brick_class", "stream_id"],
+#     #                 "dataframe": dataframes["ModelQuality_ClassInconsistency"],
+#     #             },
+#     #             {
+#     #                 "title": "Data Sources with Available Timeseries Data",
+#     #                 "columns": ["Brick Class", "Stream ID"],
+#     #                 "data_source": "ModelQuality_MissingTimeseries",
+#     #                 "filter": "has_data == True",
+#     #                 "rows": ["brick_class", "stream_id"],
+#     #                 "dataframe": dataframes["ModelQuality_MissingTimeseries"],
+#     #             },
+#     #         ],
+#     #     }
+#     # },
+#     # "ModelQuality_RecognisedEntities": {
+#     #     "PieChartAndTable": {
+#     #         "title": "Brick Entities in Building Model Recognised by Brick Schema",
+#     #         "pie_charts": [
+#     #             {
+#     #                 "title": "Proportion of Recognised vs Unrecognised Entities",
+#     #                 "labels": "class_in_provided_brick",
+#     #                 "textinfo": "percent+label",
+#     #                 "filter": None,
+#     #                 "dataframe": dataframes["ModelQuality_RecognisedEntities"],
+#     #             },
+#     #             {
+#     #                 "title": "Unrecognised Entities by Class",
+#     #                 "labels": "brick_class",
+#     #                 "textinfo": "percent+label",
+#     #                 "filter": "class_in_provided_brick == False",
+#     #                 "dataframe": dataframes["ModelQuality_RecognisedEntities"],
+#     #             },
+#     #         ],
+#     #         "tables": [
+#     #             {
+#     #                 "title": "Unrecognised Entities",
+#     #                 "columns": ["Brick Class", "Entity ID"],
+#     #                 "data_source": "ModelQuality_RecognisedEntities",  # Main dataframe
+#     #                 "filter": "class_in_provided_brick == False",
+#     #                 "rows": ["brick_class", "entity_id"],
+#     #                 "dataframe": dataframes["ModelQuality_RecognisedEntities"],
+#     #             },
+#     #             {
+#     #                 "title": "Recognised Entities",
+#     #                 "columns": ["Brick Class", "Entity ID"],
+#     #                 "data_source": "ModelQuality_RecognisedEntities",
+#     #                 "filter": "class_in_provided_brick == True",
+#     #                 "rows": ["brick_class", "entity_id"],
+#     #                 "dataframe": dataframes["ModelQuality_RecognisedEntities"],
+#     #             },
+#     #         ],
+#     #     }
+#     # },
+#     "RoomClimate_Rooms": {
+#         "TableAndTimeseries": {
+#             "title": "Room Climate",
+#             "table": {
+#                 "title": "List of Rooms with Air Temperature Sensors and Setpoints",
+#                 "columns": [
+#                     "Room Class",
+#                     "Room ID",
+#                 ],
+#                 "rows": ["room_class", "room_id"],
+#                 "filter": None,
+#                 "dataframe": pd.DataFrame(
+#                     {
+#                         "room_class": [
+#                             "Conference Room",
+#                             "Conference Room",
+#                             "Library",
+#                             "Office",
+#                         ],
+#                         "room_id": ["Room 1", "Room 2", "Room 3", "Room 4"],
+#                     }
+#                 ),
+#             },
+#             "timeseries": [
+#                 {
+#                     "title": "Conference Room",
+#                     "dataframe": pd.DataFrame(
+#                         {
+#                             "Date": pd.date_range(
+#                                 start="2021-01-01", periods=365, freq="D"
+#                             ),
+#                             "Air_Temperature_Sensor": np.random.normal(15, 3, 365),
+#                             "Room_Air_Temperature_Setpoint": np.random.normal(
+#                                 15, 1, 365
+#                             ),
+#                             "Outside_Air_Temperature_Sensor": np.random.normal(
+#                                 15, 5, 365
+#                             ),
+#                         }
+#                     ),
+#                 },
+#                 {
+#                     "title": "Conference Room",
+#                     "dataframe": pd.DataFrame(
+#                         {
+#                             "Date": pd.date_range(
+#                                 start="2021-01-01", periods=365, freq="D"
+#                             ),
+#                             "Air_Temperature_Sensor": np.random.normal(15, 3, 365),
+#                             "Room_Air_Temperature_Setpoint": np.random.normal(
+#                                 15, 1, 365
+#                             ),
+#                             "Outside_Air_Temperature_Sensor": np.random.normal(
+#                                 15, 5, 365
+#                             ),
+#                         }
+#                     ),
+#                 },
+#                 {
+#                     "title": "Library",
+#                     "dataframe": pd.DataFrame(
+#                         {
+#                             "Date": pd.date_range(
+#                                 start="2021-01-01", periods=365, freq="D"
+#                             ),
+#                             "Air_Temperature_Sensor": np.random.normal(15, 3, 365),
+#                             "Room_Air_Temperature_Setpoint": np.random.normal(
+#                                 15, 1, 365
+#                             ),
+#                             "Outside_Air_Temperature_Sensor": np.random.normal(
+#                                 15, 5, 365
+#                             ),
+#                         }
+#                     ),
+#                 },
+#                 {
+#                     "title": "Office",
+#                     "dataframe": pd.DataFrame(
+#                         {
+#                             "Date": pd.date_range(
+#                                 start="2021-01-01", periods=365, freq="D"
+#                             ),
+#                             "Air_Temperature_Sensor": np.random.normal(15, 3, 365),
+#                             "Room_Air_Temperature_Setpoint": np.random.normal(
+#                                 15, 1, 365
+#                             ),
+#                             "Outside_Air_Temperature_Sensor": np.random.normal(
+#                                 15, 5, 365
+#                             ),
+#                         }
+#                     ),
+#                 },
+#             ],
+#         }
+#     },
+#     "RoomClimate_WeatherSensitivity": {
+#         "SurfacePlot": {
+#             "title": "Temperature vs Weather Sensitivity",
+#             "X-value": "Day",
+#             "Y-values": ["Hour"],
+#             "Z-value": "WeatherSensitivity",
+#             "x-axis_label": "Day",
+#             "y-axis_label": "Hour of the Day",
+#             "z-axis_label": "Weather Sensitivity",
+#             "dataframe": dataframes["RoomClimate_WeatherSensitivity"],
+#         }
+#     },
+#     "Consumption_Raw": {
+#         "BoxAndWhisker": {
+#             "title": "Water Data Quality Box and Whisker Plot",
+#             "x-axis": "Measurement",
+#             "y-axis": "Value",
+#             "x-axis_label": "Measurement Type",
+#             "y-axis_label": "Quality Value",
+#             "UI": {
+#                 "dropdown": {
+#                     "instructions": "Select measurements to display:",
+#                     "controls": "Measurement",  # Specify the column to extract unique values from
+#                 }
+#             },
+#             "dataframe": dataframes["Consumption_DataQuality"],
+#         }
+#     },
+#     "Consumption_WeatherSensitivity": {
+#         "Timeseries": {
+#             "title": "Water Usage Over Time",
+#             "x-axis": "Timestamp",
+#             "y-axis": [
+#                 "Usage",
+#                 "Temperature",
+#                 "Pressure",
+#             ],  # Multiple variables to plot
+#             "x-axis_label": "Date",
+#             "y-axis_label": "Values",
+#             "UI": {
+#                 "datepicker": {
+#                     "html.Label": "Select Date Range",
+#                     "min_date_allowed": dataframes["Consumption_GeneralAnalysis"][
+#                         "Timestamp"
+#                     ]
+#                     .min()
+#                     .strftime("%Y-%m-%d"),
+#                     "max_date_allowed": dataframes["Consumption_GeneralAnalysis"][
+#                         "Timestamp"
+#                     ]
+#                     .max()
+#                     .strftime("%Y-%m-%d"),
+#                     "start_date": dataframes["Consumption_GeneralAnalysis"]["Timestamp"]
+#                     .min()
+#                     .strftime("%Y-%m-%d"),
+#                     "end_date": dataframes["Consumption_GeneralAnalysis"]["Timestamp"]
+#                     .max()
+#                     .strftime("%Y-%m-%d"),
+#                     "controls": "Timestamp",
+#                 },
+#                 "radioitem": {
+#                     "html.Label": "Select Frequency",
+#                     "options": [("Hourly", "h"), ("Daily", "D"), ("Monthly", "ME")],
+#                     "controls": "Timestamp",
+#                     "default_value": "D",
+#                 },
+#             },
+#             "dataframe": dataframes["Consumption_GeneralAnalysis"],
+#         }
+#     },
+#     # "Consumption_UsageAnalysis": {
+#     #     "HeatMap": {
+#     #         "title": "Water Usage Heat Map",
+#     #         "x-axis": "Month",
+#     #         "y-axis": "Region",
+#     #         "z-axis": "Usage",
+#     #         "x-axis_label": "Month",
+#     #         "y-axis_label": "Region",
+#     #         "z-axis_label": "Water Usage (Liters)",
+#     #         "dataframe": dataframes["Consumption_UsageAnalysis"],
+#     #     }
+#     # },
+#     # "NoSubcategory": { #@tim: FIXME: make sure having this doesn't break anything
+#     #     "HeatMap": {
+#     #         "title": "Water Usage Heat Map",
+#     #         "x-axis": "Month",
+#     #         "y-axis": "Region",
+#     #         "z-axis": "Usage",
+#     #         "x-axis_label": "Month",
+#     #         "y-axis_label": "Region",
+#     #         "z-axis_label": "Water Usage (Liters)",
+#     #         "dataframe": dataframes["Consumption_UsageAnalysis"],
+#     #     }
+#     # },
+# }
 
 
 ################################################################################
@@ -1836,21 +1841,32 @@ def create_table(
 
 # Run the app
 if __name__ == "__main__":
-    # if len(sys.argv) != 4:
-    #     complain
+    # # Parse command-line arguments
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument("data", help="Path to the data file")
+    # parser.add_argument("mapper", help="Path to the mapper file")
+    # parser.add_argument("model", help="Path to the model file")
+    # parser.add_argument(
+    #     "schema", help="Path to the schema file", nargs="?", default=None
+    # )
+    # args = parser.parse_args()
 
-    # model = sys.argv[1]
-    # data = sys.argv[2]
-    # layout = sys.argv[3]
+    # # Load the data
+    # db = dbmgr.DBManager(args.data, args.mapper, args.model, args.schema)
+
+    # Hard-coded version for convenience during development
+    DATA = "../datasets/bts_site_b_train/train.zip"
+    MAPPER = "../datasets/bts_site_b_train/mapper_TrainOnly.csv"
+    MODEL = "../datasets/bts_site_b_train/Site_B.ttl"
+    SCHEMA = "../datasets/bts_site_b_train/Brick_v1.2.1.ttl"
+
+    # Load the data
+    db = dbmgr.DBManager(DATA, MAPPER, MODEL, SCHEMA)
+
+    # Load the analytics manager
+    # global am
+    am = analyticsmgr.AnalyticsManager(db)
+    plot_configs = am.run_analytics()
 
     construct_layout()
-    # print('processing model...', end='')
-    # process_model()
-    # print('complete')
-    # print('processing data...', end='')
-    # process_datal()
-    # print('complete')
-
-    # process
-
     app.run_server(port=8050, debug=True)
