@@ -1,5 +1,5 @@
 """
-Library for managing the dataset of time series streams, the building model, 
+Module for managing the dataset of time series streams, the building model, 
 and the brick schema.
 """
 
