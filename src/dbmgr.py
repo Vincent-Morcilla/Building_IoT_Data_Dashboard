@@ -188,7 +188,7 @@ class DBManager:
             # @tim: TODO: incorporate this with the non-DataFrame return
             if defrag:
                 for col in df.columns:
-                    df[col] = df[col].apply(DBManager._defrag_uri)
+                    df[col] = df[col].apply(DBManager.defrag_uri)
             return df
         else:
             return results
@@ -271,7 +271,7 @@ class DBManager:
                 self._db[stream_id] = data_df
 
     @staticmethod
-    def _defrag_uri(uri):
+    def defrag_uri(uri):
         """Extract the fragment (last path component) from a URI.
 
         Args:

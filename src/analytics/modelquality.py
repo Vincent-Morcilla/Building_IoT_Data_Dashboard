@@ -1,19 +1,10 @@
 """This module provides a class for assessing the quality of a Brick model."""
 
-from pathlib import Path
-
-import brickschema
 import numpy as np
 import pandas as pd
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 import rdflib
 
-# from rdflib import Namespace
-# from rdflib.namespace import RDFS, SKOS, BRICK
 
-
-# class Analytics:
 class Analytics:
     """TODO"""
 
@@ -357,7 +348,7 @@ class Analytics:
         self._class_consistency_analysis()
 
         for col in self._df.columns:
-            self._df[col] = self._df[col].apply(Analytics._defrag_uri)
+            self._df[col] = self._df[col].apply(self.db.defrag_uri)
 
     def _recognised_entity_analysis(self):
         """Amend the DataFrame to include the results of the recognised entity analysis."""
