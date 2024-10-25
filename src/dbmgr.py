@@ -70,6 +70,7 @@ class DBManager:
         if self._schema_path is not None and not self._schema_path.is_file():
             raise FileNotFoundError(f"Schema file not found: {self._schema_path}")
 
+        self._mapper = pd.read_csv(self._mapper_path, index_col=0)
         self._model = brickschema.Graph().load_file(self._model_path)
 
         if self._schema_path is not None:
@@ -141,6 +142,15 @@ class DBManager:
             dict[str, pd.DataFrame]: The database of streams.
         """
         return self._db
+
+    @property
+    def mapper(self) -> pd.DataFrame:
+        """The mapping of stream IDs to filenames.
+
+        Returns:
+            pd.DataFrame: The mapping of stream IDs to filenames.
+        """
+        return self._mapper
 
     def query(
         self,
@@ -227,13 +237,11 @@ class DBManager:
             self.set_stream(stream_id, data)
 
     def _load_db(self):
-        mapping_df = pd.read_csv(self._mapper_path, index_col=0)
-
         # @tim: TODO: decide whether to keep/remove these filters
         # Mappings for building B only, and ignore streams not saved to file
-        mapping_df = mapping_df[mapping_df["Building"] == "B"]
-        mapping_df = mapping_df[
-            mapping_df["Filename"].str.contains("FILE NOT SAVED") == False
+        self._mapper = self._mapper[self._mapper["Building"] == "B"]
+        self._mapper = self._mapper[
+            self._mapper["Filename"].str.contains("FILE NOT SAVED") == False
         ]
 
         with zipfile.ZipFile(self._data_zip_path, "r") as db_zip:
@@ -242,7 +250,9 @@ class DBManager:
                     continue
 
                 filename = Path(path).name
-                record = mapping_df.loc[mapping_df["Filename"] == filename, "StreamID"]
+                record = self._mapper.loc[
+                    self._mapper["Filename"] == filename, "StreamID"
+                ]
 
                 # ignore streams that don't have a mapping
                 if record.empty:
