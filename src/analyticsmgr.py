@@ -36,8 +36,7 @@ class AnalyticsManager:
 
         for module in tqdm(self._modules):
             try:
-                instance = module.Analytics(self._db)
-                plot_configs |= instance.run()
+                plot_configs |= module.run(self._db)
             except Exception as e:
                 print(f"Error running analytics: {e}")
                 continue
