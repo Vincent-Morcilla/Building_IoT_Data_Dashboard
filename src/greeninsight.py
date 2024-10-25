@@ -1849,24 +1849,32 @@ if __name__ == "__main__":
     # parser.add_argument(
     #     "schema", help="Path to the schema file", nargs="?", default=None
     # )
+    # parser.add_argument("-d", "--debug", help="Enable debug mode", action="store_true")
     # args = parser.parse_args()
 
     # # Load the data
     # db = dbmgr.DBManager(args.data, args.mapper, args.model, args.schema)
+
+    # # Load the analytics manager
+    # am = analyticsmgr.AnalyticsManager(db)
+    # plot_configs = am.run_analytics()
+
+    # construct_layout()
+    # app.run_server(port=8050, debug=args.debug)
 
     # Hard-coded version for convenience during development
     DATA = "../datasets/bts_site_b_train/train.zip"
     MAPPER = "../datasets/bts_site_b_train/mapper_TrainOnly.csv"
     MODEL = "../datasets/bts_site_b_train/Site_B.ttl"
     SCHEMA = "../datasets/bts_site_b_train/Brick_v1.2.1.ttl"
+    DEBUG = True
 
     # Load the data
     db = dbmgr.DBManager(DATA, MAPPER, MODEL, SCHEMA)
 
     # Load the analytics manager
-    # global am
     am = analyticsmgr.AnalyticsManager(db)
     plot_configs = am.run_analytics()
 
     construct_layout()
-    app.run_server(port=8050, debug=True)
+    app.run_server(port=8050, debug=DEBUG)
