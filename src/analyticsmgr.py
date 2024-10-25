@@ -1,11 +1,8 @@
-# import warnings
-
-# warnings.filterwarnings("ignore")
-
-
 import importlib
 import os
 import sys
+
+from tqdm import tqdm
 
 
 class AnalyticsManager:
@@ -35,7 +32,9 @@ class AnalyticsManager:
 
     def run_analytics(self):
         plot_configs = {}
-        for module in self._modules:
+        print("\nRunning analytics...\n")
+
+        for module in tqdm(self._modules):
             try:
                 instance = module.Analytics(self._db)
                 plot_configs |= instance.run()
