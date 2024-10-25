@@ -19,15 +19,7 @@ class Analytics:
 
     def __init__(self, db):
         """TODO"""
-
-        self._g_building = db.model
-        self._g_brick = db.schema
-        self._mapping_df = db.mapper
-
-        # Remove rows where the filename is 'FILE NOT SAVED'
-        self._mapping_df = self._mapping_df[
-            self._mapping_df["Filename"].str.contains("FILE NOT SAVED") == False
-        ]
+        self.db = db
 
         # Initialise our DataFrame with all entities in the Brick model
         self._df = self._get_brick_entities()
@@ -372,7 +364,7 @@ class Analytics:
 
         # Check if all entities in the provided model are in the Brick schema
         self._df["class_in_brick_schema"] = self._df["brick_class"].apply(
-            lambda x: (x, None, None) in self._g_brick
+            lambda x: (x, None, None) in self.db.schema
         )
 
     def _associated_units_analysis(self):
@@ -407,7 +399,7 @@ class Analytics:
             return str(s).strip() in mapping_df["StreamID"].values
 
         self._df["stream_exists_in_mapping"] = self._df["stream_id"].apply(
-            stream_exists_in_mapping, args=(self._mapping_df,)
+            stream_exists_in_mapping, args=(self.db.mapper,)
         )
 
     def _class_consistency_analysis(self):
@@ -425,7 +417,7 @@ class Analytics:
         # Perform the left join
         self._df = pd.merge(
             self._df,
-            self._mapping_df[["StreamID", "strBrickLabel"]],
+            self.db.mapper[["StreamID", "strBrickLabel"]],
             how="left",
             left_on="stream_id_str",
             right_on="StreamID",
@@ -478,7 +470,8 @@ class Analytics:
             filter ( strstarts(str(?brick_class),str(brick:)) ) .
         }
         """
-        return Analytics._sparql_to_df(self._g_building, query)
+        # return Analytics._sparql_to_df(self._g_building, query)
+        return self.db.query(query, return_df=True)
 
     @staticmethod
     def _sparql_to_df(g, q, **kwargs):

@@ -38,7 +38,6 @@ class AnalyticsManager:
         for module in self._modules:
             try:
                 instance = module.Analytics(self._db)
-                # instance = module.Analytics()
                 plot_configs |= instance.run()
             except Exception as e:
                 print(f"Error running analytics: {e}")
