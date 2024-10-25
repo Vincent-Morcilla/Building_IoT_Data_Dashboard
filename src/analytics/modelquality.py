@@ -13,38 +13,16 @@ import rdflib
 # from rdflib.namespace import RDFS, SKOS, BRICK
 
 
-class ModelQuality:
+# class Analytics:
+class Analytics:
     """TODO"""
 
-    def __init__(
-        self,
-        # brick_model="/Users/tarney/code/unsw/comp9900/thecapstoners/datasets/bts_site_b_train/bldg2.ttl",
-        brick_model="/Users/tarney/code/unsw/comp9900/thecapstoners/datasets/bts_site_b_train/Site_B.ttl",
-        brick_schema="/Users/tarney/code/unsw/comp9900/thecapstoners/datasets/bts_site_b_train/Brick_v1.2.1.ttl",
-        mapper="/Users/tarney/code/unsw/comp9900/thecapstoners/datasets/bts_site_b_train/mapper_TrainOnly.csv",
-        time_series=None,
-    ):
-        """TODO
-        + FIXME: remove these default values, decide whether we need the time_series parameter
-        """
-        self._brick_model = Path(brick_model)
-        self._brick_schema = Path(brick_schema)
-        self._mapper = Path(mapper)
+    def __init__(self, db):
+        """TODO"""
 
-        if not self._brick_model.is_file():
-            raise FileNotFoundError(f"Brick model file not found: {self._brick_model}")
-
-        if not self._brick_schema.is_file():
-            raise FileNotFoundError(
-                f"Brick schema file not found: {self._brick_schema}"
-            )
-
-        if not self._mapper.is_file():
-            raise FileNotFoundError(f"Mapper file not found: {self._mapper}")
-
-        self._g_building = brickschema.Graph().load_file(self._brick_model)
-        self._g_brick = brickschema.Graph().load_file(self._brick_schema)
-        self._mapping_df = pd.read_csv(self._mapper, index_col=0)
+        self._g_building = db.model
+        self._g_brick = db.schema
+        self._mapping_df = db.mapper
 
         # Remove rows where the filename is 'FILE NOT SAVED'
         self._mapping_df = self._mapping_df[
@@ -57,12 +35,12 @@ class ModelQuality:
         self._run_analysis()
         # self._df.to_csv("model_quality_v2.csv")
 
-    def __str__(self):
-        return (
-            f"ModelQuality({self._brick_model}, {self._brick_schema}, {self._mapper})"
-        )
+    # def __str__(self):
+    #     return (
+    #         f"ModelQuality({self._brick_model}, {self._brick_schema}, {self._mapper})"
+    #     )
 
-    def get_analyses(self):
+    def run(self):
         """TODO"""
 
         # FIXME: This is a temporary solution to get the analyses
@@ -117,20 +95,6 @@ class ModelQuality:
                             # "dataframe": unrecognised_df_pie,
                         },
                     ],
-                    # "tables": [
-                    #     {
-                    #         "title": "Unrecognised Entities",
-                    #         "columns": ["Brick Class", "Entity ID"],
-                    #         "rows": ["brick_class", "entity_id"],
-                    #         "dataframe": unrecognised_df,
-                    #     },
-                    #     {
-                    #         "title": "Recognised Entities",
-                    #         "columns": ["Brick Class", "Entity ID"],
-                    #         "rows": ["brick_class", "entity_id"],
-                    #         "dataframe": recognised_df,
-                    #     },
-                    # ],
                 },
             }
         }
@@ -163,116 +127,6 @@ class ModelQuality:
             )
 
         return config
-
-    def plot_recognised_entity_analysis(self):
-        """TODO"""
-        df = self._df[["brick_class", "entity_id", "class_in_brick_schema"]].copy()
-        df.sort_values(
-            by=["class_in_brick_schema", "brick_class", "entity_id"], inplace=True
-        )
-
-        recognised_df = df[df["class_in_brick_schema"] == True].copy()
-        unrecognised_df = df[df["class_in_brick_schema"] == False].copy()
-
-        df["class_in_brick_schema"] = df["class_in_brick_schema"].apply(
-            lambda x: "Recognised" if x else "Unrecognised"
-        )
-
-        number_recognised_labels = df["class_in_brick_schema"].value_counts().index
-        number_recognised_values = df["class_in_brick_schema"].value_counts().values
-
-        unrecognised_by_class_labels = (
-            unrecognised_df["brick_class"].value_counts().index
-        )
-        unrecognised_by_class_values = (
-            unrecognised_df["brick_class"].value_counts().values
-        )
-
-        fig = make_subplots(
-            rows=3,
-            cols=2,
-            vertical_spacing=0.05,
-            subplot_titles=[
-                "Proportion of Recognised Entities",
-                "Unrecognised Entities by Class",
-                "Unrecognised Entities",
-                "Recognised Entities",
-            ],
-            specs=[
-                [{"type": "pie"}, {"type": "pie"}],
-                [{"type": "table", "colspan": 2}, None],
-                [{"type": "table", "colspan": 2}, None],
-            ],
-        )
-
-        fig.add_trace(
-            go.Pie(
-                labels=number_recognised_labels,
-                values=number_recognised_values,
-                textposition="inside",
-                textinfo="percent+label",
-                name="",
-            ),
-            row=1,
-            col=1,
-        )
-
-        fig.add_trace(
-            go.Pie(
-                labels=unrecognised_by_class_labels,
-                values=unrecognised_by_class_values,
-                textposition="inside",
-                textinfo="percent+label",
-                name="",
-            ),
-            row=1,
-            col=2,
-        )
-
-        fig.add_trace(
-            go.Table(
-                header=dict(
-                    values=["Brick Class", "Entity ID"],
-                    font=dict(size=10),
-                    align="left",
-                ),
-                cells=dict(
-                    values=[
-                        unrecognised_df[k].tolist() for k in unrecognised_df.columns[:2]
-                    ],
-                    align="left",
-                ),
-            ),
-            row=2,
-            col=1,
-        )
-
-        fig.add_trace(
-            go.Table(
-                header=dict(
-                    values=["Brick Class", "Entity ID"],
-                    font=dict(size=10),
-                    align="left",
-                ),
-                cells=dict(
-                    values=[
-                        recognised_df[k].tolist() for k in recognised_df.columns[:2]
-                    ],
-                    align="left",
-                ),
-            ),
-            row=3,
-            col=1,
-        )
-
-        fig.update_layout(
-            height=1200,
-            showlegend=False,
-            title_text="Brick Entities in Building Model Recognised by Brick Schema",
-            title_x=0.5,
-        )
-
-        return fig
 
     def get_associated_units_analysis(self):
         """TODO"""
@@ -322,20 +176,6 @@ class ModelQuality:
                             # "dataframe": stream_with_named_units_pie,
                         },
                     ],
-                    # "tables": [
-                    #     {
-                    #         "title": "Streams without Units",
-                    #         "columns": ["Brick Class", "Stream ID"],
-                    #         "rows": ["brick_class", "stream_id"],
-                    #         "dataframe": streams_without_units,
-                    #     },
-                    #     {
-                    #         "title": "Streams with Non-Machine Readable Units",
-                    #         "columns": ["Brick Class", "Stream ID", "Unit"],
-                    #         "rows": ["brick_class", "stream_id", "unit"],
-                    #         "dataframe": streams_with_anonymous_units,
-                    #     },
-                    # ],
                 }
             }
         }
@@ -364,122 +204,6 @@ class ModelQuality:
             )
 
         return config
-
-    def plot_associated_units_analysis(self):
-        """TODO"""
-        df = self._df[["brick_class", "stream_id", "unit", "unit_is_named"]].copy()
-        df.dropna(subset=["stream_id"], inplace=True)
-        df.sort_values(by=["brick_class", "stream_id"], inplace=True)
-        df["has_unit"] = df["unit"].apply(
-            lambda x: "No units" if pd.isna(x) else "Units"
-        )
-
-        number_with_units_labels = df["has_unit"].value_counts().index
-        number_with_units_values = df["has_unit"].value_counts().values
-
-        streams_without_units = df[pd.isna(df["unit"])].copy()
-        streams_without_units.sort_values(by=["brick_class", "stream_id"], inplace=True)
-
-        stream_with_named_units = df.dropna(subset=["unit"]).copy()
-        stream_with_named_units["has_named_unit"] = df["unit_is_named"].apply(
-            lambda x: "Machine readable" if x else "Not machine readable"
-        )
-
-        streams_with_anonymous_units = df[df["unit_is_named"] == False]
-        number_with_named_units_labels = (
-            stream_with_named_units["has_named_unit"].value_counts().index
-        )
-        number_with_named_units_values = (
-            stream_with_named_units["has_named_unit"].value_counts().values
-        )
-
-        fig = make_subplots(
-            rows=3,
-            cols=2,
-            vertical_spacing=0.05,
-            subplot_titles=[
-                "Proportion of Streams with Units",
-                "Units that are Machine Readable",
-                "Streams without Units",
-                "Streams with Non-Machine Readable Units",
-            ],
-            specs=[
-                [{"type": "pie"}, {"type": "pie"}],
-                [{"type": "table", "colspan": 2}, None],
-                [{"type": "table", "colspan": 2}, None],
-            ],
-        )
-
-        fig.add_trace(
-            go.Pie(
-                labels=number_with_units_labels,
-                values=number_with_units_values,
-                textposition="inside",
-                textinfo="percent+label",
-                name="",
-            ),
-            row=1,
-            col=1,
-        )
-
-        fig.add_trace(
-            go.Pie(
-                labels=number_with_named_units_labels,
-                values=number_with_named_units_values,
-                textposition="inside",
-                textinfo="percent+label",
-                name="",
-            ),
-            row=1,
-            col=2,
-        )
-
-        fig.add_trace(
-            go.Table(
-                header=dict(
-                    values=["Brick Class", "Stream ID"],
-                    font=dict(size=10),
-                    align="left",
-                ),
-                cells=dict(
-                    values=[
-                        streams_without_units[k].tolist()
-                        for k in streams_without_units.columns[:2]
-                    ],
-                    align="left",
-                ),
-            ),
-            row=2,
-            col=1,
-        )
-
-        fig.add_trace(
-            go.Table(
-                header=dict(
-                    values=["Brick Class", "Stream ID", "Unit"],
-                    font=dict(size=10),
-                    align="left",
-                ),
-                cells=dict(
-                    values=[
-                        streams_with_anonymous_units[k].tolist()
-                        for k in streams_with_anonymous_units.columns[:3]
-                    ],
-                    align="left",
-                ),
-            ),
-            row=3,
-            col=1,
-        )
-
-        fig.update_layout(
-            height=1200,
-            showlegend=False,
-            title_text="Data Sources in Building Model with Associated Units",
-            title_x=0.5,
-        )
-
-        return fig
 
     def get_associated_timeseries_data_analysis(self):
         """TODO"""
@@ -526,20 +250,6 @@ class ModelQuality:
                             # "dataframe": missing_streams_by_class_pie,
                         },
                     ],
-                    # "tables": [
-                    #     {
-                    #         "title": "Data Sources with Missing Timeseries Data",
-                    #         "columns": ["Brick Class", "Stream ID"],
-                    #         "rows": ["brick_class", "stream_id"],
-                    #         "dataframe": missing_data_df,
-                    #     },
-                    #     {
-                    #         "title": "Data Sources with Available Timeseries Data",
-                    #         "columns": ["Brick Class", "Stream ID"],
-                    #         "rows": ["brick_class", "stream_id"],
-                    #         "dataframe": have_data_df,
-                    #     },
-                    # ],
                 }
             }
         }
@@ -568,119 +278,6 @@ class ModelQuality:
             )
 
         return config
-
-    def plot_associated_timeseries_data_analysis(self):
-        """TODO"""
-        df = self._df[["brick_class", "stream_id", "stream_exists_in_mapping"]].copy()
-        df.dropna(subset=["stream_id"], inplace=True)
-        df.sort_values(by=["brick_class", "stream_id"], inplace=True)
-        df["has_data"] = df["stream_exists_in_mapping"].apply(
-            lambda x: "Data" if x else "No data"
-        )
-
-        number_with_data_labels = df["has_data"].value_counts().index
-        number_with_data_values = df["has_data"].value_counts().values
-
-        missing_data_by_class = df[df["stream_exists_in_mapping"] == False].copy()
-        missing_data_by_class = missing_data_by_class.groupby("brick_class").count()
-
-        missing_data_by_class_labels = (
-            df[df["stream_exists_in_mapping"] == False]["brick_class"]
-            .value_counts()
-            .index
-        )
-        missing_data_by_class_values = (
-            df[df["stream_exists_in_mapping"] == False]["brick_class"]
-            .value_counts()
-            .values
-        )
-
-        have_data_df = df[df["stream_exists_in_mapping"] == True]
-        missing_data_df = df[df["stream_exists_in_mapping"] == False]
-
-        fig = make_subplots(
-            rows=3,
-            cols=2,
-            vertical_spacing=0.05,
-            subplot_titles=[
-                "Proportion of Data Sources",
-                "Missing Data by Class",
-                "Data Sources with Missing Timeseries Data",
-                "Data Sources with Available Timeseries Data",
-            ],
-            specs=[
-                [{"type": "pie"}, {"type": "pie"}],
-                [{"type": "table", "colspan": 2}, None],
-                [{"type": "table", "colspan": 2}, None],
-            ],
-        )
-
-        fig.add_trace(
-            go.Pie(
-                labels=number_with_data_labels,
-                values=number_with_data_values,
-                textposition="inside",
-                textinfo="percent+label",
-                name="",
-            ),
-            row=1,
-            col=1,
-        )
-
-        fig.add_trace(
-            go.Pie(
-                labels=missing_data_by_class_labels,
-                values=missing_data_by_class_values,
-                textposition="inside",
-                textinfo="percent+label",
-                name="",
-            ),
-            row=1,
-            col=2,
-        )
-
-        fig.add_trace(
-            go.Table(
-                header=dict(
-                    values=["Brick Class", "Stream ID"],
-                    font=dict(size=10),
-                    align="left",
-                ),
-                cells=dict(
-                    values=[
-                        missing_data_df[k].tolist() for k in missing_data_df.columns[:2]
-                    ],
-                    align="left",
-                ),
-            ),
-            row=2,
-            col=1,
-        )
-
-        fig.add_trace(
-            go.Table(
-                header=dict(
-                    values=["Brick Class", "Stream ID"],
-                    font=dict(size=10),
-                    align="left",
-                ),
-                cells=dict(
-                    values=[have_data_df[k].tolist() for k in have_data_df.columns[:2]],
-                    align="left",
-                ),
-            ),
-            row=3,
-            col=1,
-        )
-
-        fig.update_layout(
-            height=1200,
-            showlegend=False,
-            title_text="Data Sources in Building Model with Timeseries Data",
-            title_x=0.5,
-        )
-
-        return fig
 
     def get_class_consistency_analysis(self):
         """TODO"""
@@ -728,22 +325,6 @@ class ModelQuality:
                             # "dataframe": inconsistent_by_class_pie,
                         },
                     ],
-                    # "tables": [
-                    #     {
-                    #         "title": "Data Sources with Inconsistent Brick Class",
-                    #         "columns": [
-                    #             "Brick Class in Model",
-                    #             "Brick Class in Mapper",
-                    #             "Entity ID",
-                    #         ],
-                    #         "rows": [
-                    #             "brick_class",
-                    #             "brick_class_in_mapper",
-                    #             "entity_id",
-                    #         ],
-                    #         "dataframe": inconsistent_df,
-                    #     },
-                    # ],
                 }
             }
         }
@@ -768,108 +349,6 @@ class ModelQuality:
 
         return config
 
-    def plot_class_consistency_analysis(self):
-        """TODO"""
-        df = self._df[
-            [
-                "brick_class",
-                "brick_class_in_mapper",
-                "entity_id",
-                "brick_class_is_consistent",
-            ]
-        ].copy()
-        df.dropna(subset=["brick_class_in_mapper"], inplace=True)
-        df.sort_values(
-            by=["brick_class", "brick_class_in_mapper", "entity_id"], inplace=True
-        )
-        df["consistency"] = df["brick_class_is_consistent"].apply(
-            lambda x: "Consistent" if x else "Inconsistent"
-        )
-
-        number_consistent_labels = df["consistency"].value_counts().index
-        number_consistent_values = df["consistency"].value_counts().values
-
-        inconsistent_df = df[df["brick_class_is_consistent"] == False].copy()
-
-        inconsistent_by_class_labels = (
-            inconsistent_df["brick_class"].value_counts().index
-        )
-        inconsistent_by_class_values = (
-            inconsistent_df["brick_class"].value_counts().values
-        )
-
-        fig = make_subplots(
-            rows=2,
-            cols=2,
-            # shared_xaxes=True,
-            # vertical_spacing=0.1,
-            vertical_spacing=0.05,
-            subplot_titles=[
-                "Proportion of Data Sources",
-                "Inconsistent by Class",
-                "Data Sources with Inconsistent Brick Class",
-            ],
-            specs=[
-                [{"type": "pie"}, {"type": "pie"}],
-                [{"type": "table", "colspan": 2}, None],
-            ],
-        )
-
-        fig.add_trace(
-            go.Pie(
-                labels=number_consistent_labels,
-                values=number_consistent_values,
-                textposition="inside",
-                textinfo="percent+label",
-                name="",
-            ),
-            row=1,
-            col=1,
-        )
-
-        fig.add_trace(
-            go.Pie(
-                labels=inconsistent_by_class_labels,
-                values=inconsistent_by_class_values,
-                textposition="inside",
-                textinfo="percent+label",
-                name="",
-            ),
-            row=1,
-            col=2,
-        )
-
-        fig.add_trace(
-            go.Table(
-                header=dict(
-                    values=[
-                        "Brick Class in Model",
-                        "Brick Class in Mapper",
-                        "Entity ID",
-                    ],
-                    font=dict(size=10),
-                    align="left",
-                ),
-                cells=dict(
-                    values=[
-                        inconsistent_df[k].tolist() for k in inconsistent_df.columns[:3]
-                    ],
-                    align="left",
-                ),
-            ),
-            row=2,
-            col=1,
-        )
-
-        fig.update_layout(
-            height=800,
-            showlegend=False,
-            title_text="Data Sources with Inconsistent Brick Class between Model and Mapper",
-            title_x=0.5,
-        )
-
-        return fig
-
     def _run_analysis(self):
         """TODO"""
 
@@ -886,7 +365,7 @@ class ModelQuality:
         self._class_consistency_analysis()
 
         for col in self._df.columns:
-            self._df[col] = self._df[col].apply(ModelQuality._defrag_uri)
+            self._df[col] = self._df[col].apply(Analytics._defrag_uri)
 
     def _recognised_entity_analysis(self):
         """Amend the DataFrame to include the results of the recognised entity analysis."""
@@ -999,7 +478,7 @@ class ModelQuality:
             filter ( strstarts(str(?brick_class),str(brick:)) ) .
         }
         """
-        return ModelQuality._sparql_to_df(self._g_building, query)
+        return Analytics._sparql_to_df(self._g_building, query)
 
     @staticmethod
     def _sparql_to_df(g, q, **kwargs):
@@ -1054,7 +533,7 @@ class ModelQuality:
         """TODO"""
         # Strip out all the RDF prefixes from the DataFrame to make it more readable
         for col in df.columns:
-            df[col] = df[col].apply(ModelQuality._defrag_uri)
+            df[col] = df[col].apply(Analytics._defrag_uri)
 
         df.to_csv(path, index=False)
 
