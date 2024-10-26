@@ -251,7 +251,7 @@ class DBManager:
             self._mapper["StreamID"] == stream_id, "strBrickLabel"
         ]
 
-        # ignore streams that don't have a mapping
+        # raise an error if the stream ID is not found
         if record.empty:
             raise KeyError(f"Stream ID '{stream_id}' not found in the database")
 
