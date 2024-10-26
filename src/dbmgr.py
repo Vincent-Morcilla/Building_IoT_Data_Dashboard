@@ -205,7 +205,9 @@ class DBManager:
         try:
             return self._db[str(stream_id)]
         except KeyError as exc:
-            raise KeyError(f"Stream ID {stream_id} not found in the database") from exc
+            raise KeyError(
+                f"Stream ID '{stream_id}' not found in the database"
+            ) from exc
 
     def set_stream(self, stream_id: str, data: pd.DataFrame) -> None:
         """Set the stream data for a given stream ID.
@@ -235,6 +237,25 @@ class DBManager:
         """
         for stream_id, data in stream_data.items():
             self.set_stream(stream_id, data)
+
+    def get_stream_label(self, stream_id: str) -> str:
+        """Get the Brick class of a given stream ID from the mapper file.
+
+        Args:
+            stream_id (str): The stream ID to get the Brick class for.
+
+        Returns:
+            str: The Brick class of the URI.
+        """
+        record = self._mapper.loc[
+            self._mapper["StreamID"] == stream_id, "strBrickLabel"
+        ]
+
+        # ignore streams that don't have a mapping
+        if record.empty:
+            raise KeyError(f"Stream ID '{stream_id}' not found in the database")
+
+        return record.iloc[0]
 
     def _load_db(self):
         # @tim: TODO: decide whether to keep/remove these filters
