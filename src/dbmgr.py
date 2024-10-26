@@ -286,3 +286,28 @@ class DBManager:
             elif "/" in uri:
                 return uri.split("/")[-1]
         return uri
+
+    def get_all_streams(self) -> dict[str, pd.DataFrame]:
+        """Get all streams in the database.
+
+        Returns:
+            dict[str, pd.DataFrame]: A dictionary of all stream data.
+        """
+        return self.data
+
+    def get_label(self, stream_id: str) -> str:
+        """Get the label for a given stream ID.
+
+        Args:
+            stream_id (str): The stream ID.
+
+        Returns:
+            str: The label for the given stream ID.
+
+        Raises:
+            KeyError: If the stream ID is not found in the mapper.
+        """
+        label = self._mapper.loc[self._mapper['StreamID'] == stream_id, 'strBrickLabel']
+        if label.empty:
+            raise KeyError(f"Stream ID {stream_id} not found in the mapper")
+        return label.iloc[0]
