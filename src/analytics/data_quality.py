@@ -520,18 +520,37 @@ def run(db: Any) -> Dict[str, Any]:
     _save_summary_table_to_csv(summary_table_df, output_dir)
 
     return {
-        "DataQualityTable": _create_data_quality_plot(data_quality_df),
-        "SummaryTable": _create_summary_plot(summary_table_df),
-        "DataQualityOverview": _get_data_quality_overview(data_quality_df),
-        "SummaryAnalysis": _get_summary_analysis(summary_table_df),
+        "DataQuality_DataQualityTable": {
+            "Table": {
+                "title": "Data Quality Metrics",
+                "dataframe": data_quality_df,
+                "columns": list(data_quality_df.columns),
+            }
+        },
+        "DataQuality_SummaryTable": {
+            "Table": {
+                "title": "Data Quality Summary",
+                "dataframe": summary_table_df,
+                "columns": list(summary_table_df.columns),
+            }
+        },
+        "DataQuality_Overview": {
+            "PieChartAndTable": _get_data_quality_overview(data_quality_df)
+        },
+        "DataQuality_SummaryAnalysis": {
+            "Table": {
+                "title": "Data Quality Summary by Label",
+                "dataframe": _get_summary_analysis(summary_table_df),
+                "columns": ["Label", "Quality Score", "Interpretation"],
+            }
+        },
     }
 
 
 if __name__ == "__main__":
-    # Example usage
     from dbmgr import Database
 
-    db = Database()  # Initialize your database
+    db = Database() 
     results = run(db)
     print(results)
 
