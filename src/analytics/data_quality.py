@@ -39,9 +39,9 @@ def _preprocess_to_sensor_rows(db):
                 "Label": label,
                 "Timestamps": df["time"],
                 "Values": df["value"].values,
-                "Deduced_Granularity": deduce_granularity(df["time"]),
+                "Deduced_Granularity": _deduce_granularity(df["time"]),
                 "Value_Count": len(df),
-                "Outliers": detect_outliers(df["value"].values)[0],
+                "Outliers": _detect_outliers(df["value"].values)[0],
                 "Missing": df["value"].isna().sum(),
                 "Zeros": (df["value"] == 0).sum(),
                 "Start_Timestamp": df["time"].min(),
@@ -292,48 +292,46 @@ def _get_data_quality_overview(data_quality_df):
         data_quality_df (pd.DataFrame): Data quality metrics.
 
     Returns:
-        dict: Data quality overview.
+        dict: Data quality overview with pie charts and tables.
     """
+    # Create a 'has_outliers' column
+    data_quality_df['has_outliers'] = data_quality_df['Outlier_Count'] > 0
+
+    # Pie chart for outliers
+    outliers_pie = {
+        "title": "Sensors with Outliers",
+        "labels": "has_outliers",
+        "values": "count",
+        "names": ["No Outliers", "Has Outliers"],
+        "dataframe": data_quality_df
+    }
+
+    # Pie chart for gaps
+    gaps_pie = {
+        "title": "Sensors with Gaps",
+        "labels": "Total_Gaps",
+        "values": "count",
+        "names": ["No Gaps", "Has Gaps"],
+        "dataframe": data_quality_df
+    }
+
+    # Table for overall statistics
+    overall_stats = {
+        "title": "Overall Data Quality Statistics",
+        "dataframe": pd.DataFrame({
+            "Metric": ["Total Sensors", "Sensors with Outliers", "Sensors with Gaps", "Average Gap Percentage"],
+            "Value": [
+                len(data_quality_df),
+                data_quality_df['has_outliers'].sum(),
+                (data_quality_df['Total_Gaps'] > 0).sum(),
+                data_quality_df['Gap_Percentage'].mean()
+            ]
+        })
+    }
+
     return {
-        "PieChartAndTable": {
-            "title": "Data Quality Overview",
-            "pie_charts": [
-                {
-                    "title": "Proportion of Streams with Outliers",
-                    "labels": "has_outliers",
-                    "textinfo": "percent+label",
-                    "dataframe": data_quality_df["Outlier_Count"].apply(
-                        lambda x: "Has Outliers" if x > 0 else "No Outliers"
-                    ),
-                },
-                {
-                    "title": "Proportion of Streams with Missing Data",
-                    "labels": "has_missing",
-                    "textinfo": "percent+label",
-                    "dataframe": data_quality_df["Missing"].apply(
-                        lambda x: "Has Missing" if x > 0 else "No Missing"
-                    ),
-                },
-            ],
-            "tables": [
-                {
-                    "title": "Data Quality Summary",
-                    "columns": ["Metric", "Value"],
-                    "rows": [
-                        ["Total Streams", len(data_quality_df)],
-                        [
-                            "Streams with Outliers",
-                            (data_quality_df["Outlier_Count"] > 0).sum(),
-                        ],
-                        [
-                            "Streams with Missing Data",
-                            (data_quality_df["Missing"] > 0).sum(),
-                        ],
-                        ["Streams with Zeros", (data_quality_df["Zeros"] > 0).sum()],
-                    ],
-                }
-            ],
-        }
+        "pie_charts": [outliers_pie, gaps_pie],
+        "tables": [overall_stats]
     }
 
 
@@ -491,7 +489,6 @@ def _save_summary_table_to_csv(summary_table_df, output_dir):
     summary_table_df.to_csv(output_file_path, index=False)
     print(f"Summary table saved to {output_file_path}")
 
-
 def run(db: Any) -> Dict[str, Any]:
     """
     Run all analyses and return the results.
@@ -519,6 +516,8 @@ def run(db: Any) -> Dict[str, Any]:
     # Save summary table to CSV
     _save_summary_table_to_csv(summary_table_df, output_dir)
 
+    overview_data = _get_data_quality_overview(data_quality_df)
+
     return {
         "DataQuality_DataQualityTable": {
             "Table": {
@@ -535,7 +534,11 @@ def run(db: Any) -> Dict[str, Any]:
             }
         },
         "DataQuality_Overview": {
-            "PieChartAndTable": _get_data_quality_overview(data_quality_df)
+            "PieChartAndTable": {
+                "title": "Data Quality Overview",
+                "pie_charts": overview_data["pie_charts"],
+                "tables": overview_data["tables"],
+            }
         },
         "DataQuality_SummaryAnalysis": {
             "Table": {

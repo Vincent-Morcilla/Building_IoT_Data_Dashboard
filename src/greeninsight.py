@@ -1875,7 +1875,8 @@ if __name__ == "__main__":
     # Load the analytics manager
     am = analyticsmgr.AnalyticsManager(db)
     plot_configs = am.run_analytics()
-    plot_configs |= sample_plot_configs
+    print("Plot configs keys:", plot_configs.keys())
+    # plot_configs |= sample_plot_configs
 
     construct_layout()
     app.run_server(port=8050, debug=DEBUG)
