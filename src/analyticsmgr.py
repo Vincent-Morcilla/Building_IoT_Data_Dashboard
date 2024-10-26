@@ -1,3 +1,9 @@
+"""
+This module is responsible for managing the analytics modules.  It imports all
+modules from the 'analytics' directory and runs them, collecting the plot
+configurations returned by each module.
+"""
+
 import importlib
 import os
 import sys
@@ -6,7 +12,22 @@ from tqdm import tqdm
 
 
 class AnalyticsManager:
+    """
+    Class for managing the analytics modules.
+
+    Args:
+        db (DBManager): An instance of the DBManager class.
+
+    Returns:
+        AnalyticsManager: An instance of the AnalyticsManager class.
+    """
+
     def __init__(self, db):
+        """Initialize the AnalyticsManager.
+
+        Args:
+            db (DBManager): An instance of the DBManager class.
+        """
         self._db = db
         self._modules = []
 
@@ -31,13 +52,18 @@ class AnalyticsManager:
                     print(f"Failed to import {module_name}: {e}")
 
     def run_analytics(self):
+        """Run the analytics modules.
+
+        Returns:
+            dict: A dictionary containing the plot configurations returned by
+                the analytics modules.
+        """
         plot_configs = {}
         print("\nRunning analytics...\n")
 
         for module in tqdm(self._modules):
             try:
-                instance = module.Analytics(self._db)
-                plot_configs |= instance.run()
+                plot_configs |= module.run(self._db)
             except Exception as e:
                 print(f"Error running analytics: {e}")
                 continue
