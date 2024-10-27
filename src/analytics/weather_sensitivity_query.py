@@ -41,6 +41,39 @@ WHERE {
 ORDER BY ?meter
 """
 
+chiller_query_str = """
+SELECT ?meter ?sensor ?stream_id
+WHERE {
+    ?sensor rdf:type brick:Chilled_Water_Differential_Temperature_Sensor .
+    ?meter rdf:type brick:Chiller .
+    ?sensor brick:isPointOf ?meter .
+    ?sensor senaps:stream_id ?stream_id
+}
+ORDER BY ?meter
+"""
+
+water_query_str = """
+SELECT ?meter ?sensor ?stream_id
+WHERE {
+    ?sensor rdf:type brick:Usage_Sensor .
+    ?meter rdf:type brick:Building_Water_Meter .
+    ?sensor brick:isPointOf ?meter .
+    ?sensor senaps:stream_id ?stream_id
+}
+ORDER BY ?meter
+"""
+
+boiler_query_str = """
+SELECT ?meter ?sensor ?stream_id
+WHERE {
+    ?sensor rdf:type brick:Water_Temperature_Sensor .
+    ?meter rdf:type brick:Hot_Water_System .
+    ?sensor brick:isPointOf ?meter .
+    ?sensor senaps:stream_id ?stream_id
+}
+ORDER BY ?meter
+"""
+
 outside_air_temperature_query_str = """
 SELECT ?sensor ?stream_id 
 WHERE {

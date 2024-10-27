@@ -12,13 +12,15 @@ import rdflib
 from rdflib import Graph
 from rdflib.namespace import BRICK
 
-from weather_sensitivity_query import electric_energy_query_str , electric_power_query_str, outside_air_temperature_query_str, gas_query_str
+from analytics.weather_sensitivity_query import electric_energy_query_str , electric_power_query_str, outside_air_temperature_query_str, gas_query_str
+# from weather_sensitivity_query import electric_energy_query_str , electric_power_query_str, outside_air_temperature_query_str, gas_query_str
 
 
 import sys
 sys.path.append("..")
+sys.path.append("../src")
 
-path_to_datasets ='../../datasets/'
+path_to_datasets ='../datasets/'
 data = path_to_datasets + '/bts_site_b_train/train.zip'
 mapper = path_to_datasets + 'bts_site_b_train/mapper_TrainOnly.csv'
 model = path_to_datasets + 'bts_site_b_train/Site_B.ttl'
@@ -31,7 +33,7 @@ warnings.filterwarnings('ignore')
 
 class WeatherSensitivity:
     
-    def __init__(self, db):
+    def __init__(self):
         self.db = db
         self.rdf_data = None
     
@@ -46,7 +48,7 @@ class WeatherSensitivity:
         # Function to retrieve sensor data from the database for a given stream ID
         def get_sensor_data_for_stream(stream_id):
             if pd.isna(stream_id):  # Handle missing stream_id
-                print(f"Stream ID is missing: {stream_id}")
+                # print(f"Stream ID is missing: {stream_id}")
                 return None
             
             # Fetch the sensor data from the database using the provided stream ID
@@ -68,7 +70,6 @@ class WeatherSensitivity:
 
         # Apply the function to load sensor data for each stream ID
         df['sensor_data'] = df['stream_id'].apply(get_sensor_data_for_stream)
-
         return df
     
     
@@ -89,7 +90,7 @@ class WeatherSensitivity:
     def get_sensor_data(self):
         sensor_data = {}
         for sensor in self.rdf_data.keys():
-            sensor_data[sensor]= load_sensors_from_db(self.rdf_data[sensor], db)
+            sensor_data[sensor]= self.load_sensors_from_db(self.rdf_data[sensor])
         return sensor_data
 
     def get_daily_median_outside_temperature(df_outside_air_temp_data):
@@ -133,21 +134,23 @@ class WeatherSensitivity:
                 lambda x: stats.spearmanr(x["outside_temp"], x[sensor_column])[0]
             )
 
-        sensor_columns = []
+        sensor_columns = {}
         for i in range(1,df_sensor_outside_data.shape[1]-2):
-            val = f'sensor{i}'
-            sensor_columns.append(val)
+            if i <= 9:
+                sensor_columns[f'sensor{i}']=f'sensor0{i}'
+            else:
+                sensor_columns[f'sensor{i}']=f'sensor{i}'
 
         # Dictionary to store results
         monthly_correlations = {}
 
-        for sensor in sensor_columns:
+        for sensor in sensor_columns.keys():
             # Skip sensors with all NaN values
-            if df_sensor_outside_data[sensor].isna().all():
-                # print(f"Skipping {sensor} as it contains all NaN values.")
-                continue
+            # if df_sensor_outside_data[sensor].isna().all():
+            #     # print(f"Skipping {sensor} as it contains all NaN values.")
+            #     continue
             
-            monthly_correlations[sensor] = calculate_monthly_correlation(df_sensor_outside_data, sensor)
+            monthly_correlations[sensor_columns[sensor]] = calculate_monthly_correlation(df_sensor_outside_data, sensor)
 
         # Convert results to a dataframe
         result_df = pd.DataFrame(monthly_correlations)
@@ -196,28 +199,32 @@ class WeatherSensitivity:
             value_name='Correlation' 
         )   
         df_vis = df_vis.sort_values(['date', 'sensor']).reset_index(drop=True)
-        
+        df_vis.columns = ["Date", "Sensor ID", "Correlation"]
         return df_vis
 
 
-    def prefer_data_for_vis(df, title):
+    def prepare_data_for_vis(df, meter, title):
         return {
-            "title": title,
-            "x-axis": "Date",
-            "y-axis": "Sensor ID",
-            "z-axis": "Correlation",
-            "x-axis_label": "Date",
-            "y-axis_label": "Sensors",
-            "z-axis_label": "Correlation",
-            "dataframe": df
+            
+                  "HeatMap": {
+                    "title": title,
+                    "x-axis": "Date",
+                    "y-axis": "Sensor ID",
+                    "z-axis": "Correlation",
+                    "x-axis_label": "Date",
+                    "y-axis_label": "Sensors",
+                    "z-axis_label": "Correlation",
+                    "dataframe": df
+                }
+             
         }
 
     def get_data_for_dash(weather_sensitivity_results):
         data_for_vis = {}
         for meter in weather_sensitivity_results.keys():
             transpose_df = WeatherSensitivity.transpose_dataframe_for_vis(weather_sensitivity_results[meter])
-            df_vis = WeatherSensitivity.prefer_data_for_vis(transpose_df,  f"{meter.title()} Sensor Correlations with Outside Temperature")
-            data_for_vis[f"{meter.title()}_Meter_WeatherSensitivity"] = df_vis
+            df_vis = WeatherSensitivity.prepare_data_for_vis(transpose_df, meter,  f"{meter.title().replace('_',' ')} Sensor Correlations with Outside Temperature")
+            data_for_vis[f"{meter.title().replace('_','')}_WeatherSensitivity"] = df_vis
         return data_for_vis
     
     
@@ -231,7 +238,8 @@ class WeatherSensitivity:
         
 
 
-ws = WeatherSensitivity(db)
+ws = WeatherSensitivity()
 data = ws.get_weather_sensitivity_data()
-print(data)
+# print(data)
 
+data['ElecticEnergy_WeatherSensitivity']['HeatMap'][ 'dataframe']
