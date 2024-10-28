@@ -75,8 +75,13 @@ class DBManager:
 
         if self._schema_path is not None:
             self._schema = brickschema.Graph().load_file(self._schema_path)
+            self._expanded_model = brickschema.Graph().load_file(self._schema_path)
         else:
             self._schema = brickschema.Graph(load_brick_nightly=True)
+            self._expanded_model = brickschema.Graph(load_brick_nightly=True)
+
+        self._expanded_model.load_file(self._model_path)
+        self._expanded_model.expand(profile="rdfs")
 
         self._db = {}
         self._load_db()
@@ -175,6 +180,8 @@ class DBManager:
             graph = self._model
         elif graph == "schema":
             graph = self._schema
+        elif graph == "expanded_model":
+            graph = self._expanded_model
         else:
             raise ValueError(f"Unknown graph: {graph}")
 
