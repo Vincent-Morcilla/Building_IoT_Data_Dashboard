@@ -71,17 +71,17 @@ class DBManager:
             raise FileNotFoundError(f"Schema file not found: {self._schema_path}")
 
         self._mapper = pd.read_csv(self._mapper_path, index_col=0)
-        self._model = brickschema.Graph().load_file(self._model_path)
+        self._g = {"model": brickschema.Graph().load_file(self._model_path)}
 
         if self._schema_path is not None:
-            self._schema = brickschema.Graph().load_file(self._schema_path)
-            self._expanded_model = brickschema.Graph().load_file(self._schema_path)
+            self._g["schema"] = brickschema.Graph().load_file(self._schema_path)
+            self._g["expanded_model"] = brickschema.Graph().load_file(self._schema_path)
         else:
-            self._schema = brickschema.Graph(load_brick_nightly=True)
-            self._expanded_model = brickschema.Graph(load_brick_nightly=True)
+            self._g["schema"] = brickschema.Graph(load_brick_nightly=True)
+            self._g["expanded_model"] = brickschema.Graph(load_brick_nightly=True)
 
-        self._expanded_model.load_file(self._model_path)
-        self._expanded_model.expand(profile="rdfs")
+        self._g["expanded_model"].load_file(self._model_path)
+        self._g["expanded_model"].expand(profile="rdfs")
 
         self._db = {}
         self._load_db()
@@ -128,7 +128,7 @@ class DBManager:
         Returns:
             brickschema.Graph: The building model in RDF format.
         """
-        return self._model
+        return self._g["model"]
 
     @property
     def schema(self) -> brickschema.Graph:
@@ -137,7 +137,16 @@ class DBManager:
         Returns:
             brickschema.Graph: The brick schema in RDF format.
         """
-        return self._schema
+        return self._g["schema"]
+
+    @property
+    def expanded_model(self) -> brickschema.Graph:
+        """The brick schema as knowledge graph.
+
+        Returns:
+            brickschema.Graph: The brick schema in RDF format.
+        """
+        return self._g["expanded_model"]
 
     @property
     def data(self) -> dict[str, pd.DataFrame]:
@@ -176,14 +185,10 @@ class DBManager:
         Returns:
             rdflib.query.Result | pd.DataFrame: The query results.
         """
-        if graph == "model":
-            graph = self._model
-        elif graph == "schema":
-            graph = self._schema
-        elif graph == "expanded_model":
-            graph = self._expanded_model
-        else:
-            raise ValueError(f"Unknown graph: {graph}")
+        try:
+            graph = self._g[graph]
+        except KeyError as exc:
+            raise ValueError(f"Unknown graph: {graph}") from exc
 
         results = graph.query(query_str, **kwargs)
 
