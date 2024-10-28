@@ -1817,11 +1817,12 @@ def create_table(
             "fontSize": 14,
             "textAlign": "left",
             "padding": "5px",
-            # "overflow": "hidden",
-            # "textOverflow": "ellipsis",
-            "maxWidth": 0,
-            # "width": "1px",
-            # "white-space": "nowrap",
+            "minWidth": "100px",  # Add minimum width
+            "width": "auto",      # Let column expand to content
+            "maxWidth": "400px",  # Add maximum width
+            "whiteSpace": "normal",  # Allow text wrapping
+            "overflow": "hidden",
+            "textOverflow": "ellipsis",
         },
         style_header={
             "fontWeight": "bold",
@@ -1837,7 +1838,7 @@ def create_table(
             }
         ],
         style_table={
-            "height": 400,
+            "height": 1200,
             "overflowX": "auto",
             # "table-layout": "auto"
         },

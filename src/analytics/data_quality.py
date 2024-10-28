@@ -527,6 +527,13 @@ def run(db: Any) -> Dict[str, Any]:
         #         "columns": list(data_quality_df.columns),
         #     }
         # },
+        "DataQuality_Overview": {
+            "PieChartAndTable": {
+                "title": "Data Quality Overview",
+                "pie_charts": overview_data["pie_charts"],
+                "tables": overview_data["tables"],
+            }
+        },
         "DataQuality_SummaryTable": {
             "Table": {
                 "title": "Data Quality Summary",
@@ -534,13 +541,13 @@ def run(db: Any) -> Dict[str, Any]:
                 "columns": list(summary_table_df.columns),
             }
         },
-        "DataQuality_Overview": {
-            "PieChartAndTable": {
-                "title": "Data Quality Overview",
-                "pie_charts": overview_data["pie_charts"],
-                "tables": overview_data["tables"],
+        "DataQuality_DataQualityTable": {
+            "Table": {
+                "title": "Data Quality Metrics",
+                "dataframe": data_quality_df,
+                "columns": list(data_quality_df.columns),
             }
-        }
+        },
         # "DataQuality_SummaryAnalysis": {
         #     "Table": {
         #         "title": "Data Quality Summary by Label",
