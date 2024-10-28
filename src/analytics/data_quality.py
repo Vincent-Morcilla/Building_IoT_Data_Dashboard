@@ -303,7 +303,7 @@ def _get_data_quality_overview(data_quality_df):
     # Pie chart for gaps
     gaps_pie = {
         "title": "Sensors with Gaps",
-        "labels": "Total_Gaps",
+        "labels": "Label",
         "textinfo": "percent+label",
         "filter": None,
         "dataframe": data_quality_df
