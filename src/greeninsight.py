@@ -1039,8 +1039,13 @@ def update_box_and_whisker(selected_variables, input_id):
 def create_heatmap(
     data, x_column, y_column, z_column, color_scale, title, x_label, y_label, z_label
 ):
-    fig = px.density_heatmap(
-        data, x=x_column, y=y_column, z=z_column, color_continuous_scale=color_scale
+    # fig = px.density_heatmap(
+    #     data, x=x_column, y=y_column, z=z_column, color_continuous_scale=color_scale
+    # )
+    fig = go.Figure(
+        data=go.Heatmap(
+            x=data[x_column], y=data[y_column], z=data[z_column], colorscale=color_scale
+        )
     )
     fig.update_layout(
         title={"text": title, "x": 0.5, "xanchor": "center"},
