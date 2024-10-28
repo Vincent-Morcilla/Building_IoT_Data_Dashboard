@@ -755,8 +755,10 @@ def display_page(pathname):
 
 # Function to create tab content with the graph and UI controls for a given plot type
 def create_tab_content(plot_type, plot_settings, plot_id, subcategory):
-    # @tim: FIXME: see if this can be generalised
-    if plot_type == "PieChartAndTable":
+    """Creates the appropriate tab content based on the plot type."""
+    if plot_type == "Table":
+        return create_table_tab(plot_settings, plot_id, subcategory)
+    elif plot_type == "PieChartAndTable":
         return create_pie_chart_and_table_tab(plot_settings, plot_id, subcategory)
     elif plot_type == "TableAndTimeseries":
         return create_table_and_timeseries_tab(plot_settings, plot_id, subcategory)
@@ -1394,6 +1396,29 @@ def create_pie_chart_and_table_tab(plot_settings, plot_id, subcategory):
     )
 
 
+def create_table_tab(plot_settings, plot_id, subcategory):
+    """Creates a Dash Tab containing just a table."""
+    content = []
+    
+    # Create the table using existing create_table function
+    table_content = dbc.Col(
+        create_table(
+            data=plot_settings["dataframe"],
+            columns=plot_settings["columns"],
+            title=plot_settings["title"]
+        ),
+        width=12,
+        className="mb-4",
+    )
+    
+    content.append(dbc.Row([table_content]))
+
+    return dbc.Tab(
+        dbc.Container(content, fluid=True, className="py-4"),
+        label=subcategory,
+        tab_id=plot_id,
+    )
+
 # Creates a Dash Tab containing a table and a timeseries plot based on the selected row.
 def create_table_and_timeseries_tab(plot_settings, plot_id, subcategory):
     # Extract pie charts and tables configurations
@@ -1437,9 +1462,6 @@ def create_table_and_timeseries_tab(plot_settings, plot_id, subcategory):
 
     # First add the graph on top
     content.append(dcc.Graph(id="updateable-line-chart"))
-
-    # content.append(dbc.Row(table_content))
-    content.append(html.Hr())  # Append the horizontal rule first
 
     # Then create and append the table
     content.append(

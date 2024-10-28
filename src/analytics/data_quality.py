@@ -287,12 +287,6 @@ def _create_summary_table(data_quality_df):
 def _get_data_quality_overview(data_quality_df):
     """
     Generate overview analysis of data quality.
-
-    Args:
-        data_quality_df (pd.DataFrame): Data quality metrics.
-
-    Returns:
-        dict: Data quality overview with pie charts and tables.
     """
     # Create a 'has_outliers' column
     data_quality_df['has_outliers'] = data_quality_df['Outlier_Count'] > 0
@@ -301,8 +295,8 @@ def _get_data_quality_overview(data_quality_df):
     outliers_pie = {
         "title": "Sensors with Outliers",
         "labels": "has_outliers",
-        "values": "count",
-        "names": ["No Outliers", "Has Outliers"],
+        "textinfo": "percent+label",
+        "filter": None,
         "dataframe": data_quality_df
     }
 
@@ -310,23 +304,30 @@ def _get_data_quality_overview(data_quality_df):
     gaps_pie = {
         "title": "Sensors with Gaps",
         "labels": "Total_Gaps",
-        "values": "count",
-        "names": ["No Gaps", "Has Gaps"],
+        "textinfo": "percent+label",
+        "filter": None,
         "dataframe": data_quality_df
     }
+
+    # Create stats DataFrame
+    stats_df = pd.DataFrame({
+        "Metric": ["Total Sensors", "Sensors with Outliers", "Sensors with Gaps", "Average Gap Percentage"],
+        "Value": [
+            len(data_quality_df),
+            data_quality_df['has_outliers'].sum(),
+            (data_quality_df['Total_Gaps'] > 0).sum(),
+            f"{data_quality_df['Gap_Percentage'].mean():.2%}"
+        ]
+    })
 
     # Table for overall statistics
     overall_stats = {
         "title": "Overall Data Quality Statistics",
-        "dataframe": pd.DataFrame({
-            "Metric": ["Total Sensors", "Sensors with Outliers", "Sensors with Gaps", "Average Gap Percentage"],
-            "Value": [
-                len(data_quality_df),
-                data_quality_df['has_outliers'].sum(),
-                (data_quality_df['Total_Gaps'] > 0).sum(),
-                data_quality_df['Gap_Percentage'].mean()
-            ]
-        })
+        "columns": ["Metric", "Value"],
+        "rows": ["Metric", "Value"],
+        "data_source": "DataQuality_Overview",
+        "filter": None,
+        "dataframe": stats_df
     }
 
     return {
@@ -519,13 +520,13 @@ def run(db: Any) -> Dict[str, Any]:
     overview_data = _get_data_quality_overview(data_quality_df)
 
     return {
-        "DataQuality_DataQualityTable": {
-            "Table": {
-                "title": "Data Quality Metrics",
-                "dataframe": data_quality_df,
-                "columns": list(data_quality_df.columns),
-            }
-        },
+        # "DataQuality_DataQualityTable": {
+        #     "Table": {
+        #         "title": "Data Quality Metrics",
+        #         "dataframe": data_quality_df,
+        #         "columns": list(data_quality_df.columns),
+        #     }
+        # },
         "DataQuality_SummaryTable": {
             "Table": {
                 "title": "Data Quality Summary",
@@ -539,14 +540,14 @@ def run(db: Any) -> Dict[str, Any]:
                 "pie_charts": overview_data["pie_charts"],
                 "tables": overview_data["tables"],
             }
-        },
-        "DataQuality_SummaryAnalysis": {
-            "Table": {
-                "title": "Data Quality Summary by Label",
-                "dataframe": _get_summary_analysis(summary_table_df),
-                "columns": ["Label", "Quality Score", "Interpretation"],
-            }
-        },
+        }
+        # "DataQuality_SummaryAnalysis": {
+        #     "Table": {
+        #         "title": "Data Quality Summary by Label",
+        #         "dataframe": _get_summary_analysis(summary_table_df),
+        #         "columns": ["Label", "Quality Score", "Interpretation"],
+        #     }
+        # },
     }
 
 
