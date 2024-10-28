@@ -12,8 +12,24 @@ import rdflib
 from rdflib import Graph
 from rdflib.namespace import BRICK
 
-from analytics.weather_sensitivity_query import electric_energy_query_str , electric_power_query_str, outside_air_temperature_query_str, gas_query_str
-# from weather_sensitivity_query import electric_energy_query_str , electric_power_query_str, outside_air_temperature_query_str, gas_query_str
+from analytics.weather_sensitivity_query import (electric_energy_query_str , 
+                                                 electric_power_query_str, 
+                                                 outside_air_temperature_query_str, 
+                                                 gas_query_str,
+                                                 water_query_str,
+                                                 chiller_query_str,
+                                                 boiler_query_str
+                                            
+)
+# from weather_sensitivity_query import (electric_energy_query_str , 
+#                                                  electric_power_query_str, 
+#                                                  outside_air_temperature_query_str, 
+#                                                  gas_query_str,
+#                                                  water_query_str,
+#                                                  chiller_query_str,
+#                                                  boiler_query_str
+                                               
+# )
 
 
 import sys
@@ -77,12 +93,19 @@ class WeatherSensitivity:
         df_electric_energy = self.db.query(electric_energy_query_str, return_df=True)
         df_electric_power = self.db.query(electric_power_query_str, return_df=True)
         df_gas = self.db.query(gas_query_str, return_df=True)
+        df_water = self.db.query(water_query_str, return_df=True)
+        df_chiller = self.db.query(chiller_query_str, return_df=True)
+        df_boiler = self.db.query(boiler_query_str, return_df=True)
+
 
         df_outside_air_temp = self.db.query(outside_air_temperature_query_str, return_df=True)
         
         self.rdf_data = {"electic_energy": df_electric_energy,
                     "electic_power": df_electric_power,
                     "gas":df_gas, 
+                    "water":df_water,
+                    "chiller":df_chiller,
+                    "boiler":df_boiler,
                     "outside_temp": df_outside_air_temp
                     }
 
@@ -242,4 +265,4 @@ ws = WeatherSensitivity()
 data = ws.get_weather_sensitivity_data()
 # print(data)
 
-data['ElecticEnergy_WeatherSensitivity']['HeatMap'][ 'dataframe']
+# data['ElecticEnergy_WeatherSensitivity']['HeatMap'][ 'dataframe']
