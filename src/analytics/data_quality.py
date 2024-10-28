@@ -206,6 +206,8 @@ def _create_summary_table(data_quality_df):
     Returns:
         pd.DataFrame: Summary table.
     """
+    from collections import Counter
+    
     def sum_timedelta(x):
         if pd.api.types.is_timedelta64_dtype(x):
             return x.sum()
@@ -216,7 +218,7 @@ def _create_summary_table(data_quality_df):
         data_quality_df.groupby("Label")
         .agg({
             "StreamID": "count",
-            "Deduced_Granularity": lambda x: stats.mode(x)[0][0],
+            # "Deduced_Granularity": lambda x: stats.mode(x)[0][0],
             "Start_Timestamp": "min",
             "End_Timestamp": "max",
             "Value_Count": "sum",
@@ -237,6 +239,16 @@ def _create_summary_table(data_quality_df):
         .reset_index()
     )
 
+    granularity_by_label = {}
+    for label in data_quality_df['Label'].unique():
+        granularities = data_quality_df[data_quality_df['Label'] == label]['Deduced_Granularity']
+        counter = Counter(granularities)
+        most_common = counter.most_common(1)[0][0] if counter else None
+        granularity_by_label[label] = most_common
+    
+    # Add granularity column to summary table
+    summary_table['Deduced_Granularity'] = summary_table['Label'].map(granularity_by_label)
+    
     # Calculate Total_Gap_Percent
     summary_table["Total_Gap_Percent"] = (
         summary_table["Total_Gap_Size_Seconds"]
