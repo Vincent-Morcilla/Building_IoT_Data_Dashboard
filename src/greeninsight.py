@@ -1112,7 +1112,9 @@ def update_heatmap(selected_color_scale, input_id):
     category_key, plot_type = plot_id.rsplit(
         "-", 1
     )  # Split to get dataframe key and plot type
-    data = dataframes[category_key]  # Retrieve the relevant dataframe
+    data = plot_configs[category_key]["HeatMap"][
+        "dataframe"
+    ]  # Retrieve the relevant dataframe
     plot_settings = plot_configs[category_key][plot_type]  # Get plot settings
 
     # Create an updated heatmap with the new color scale
