@@ -6,7 +6,7 @@ import sys
 
 import dash
 import dash_bootstrap_components as dbc
-from dash import dash_table, Input, Output, dcc, html, State, MATCH
+from dash import dash_table, Input, Output, dcc, html, State, MATCH, ctx
 import numpy as np
 import pandas as pd
 import plotly.express as px
@@ -760,6 +760,8 @@ def create_tab_content(plot_type, plot_settings, plot_id, subcategory):
         return create_pie_chart_and_table_tab(plot_settings, plot_id, subcategory)
     elif plot_type == "TableAndTimeseries":
         return create_table_and_timeseries_tab(plot_settings, plot_id, subcategory)
+    elif plot_type == "TimeseriesAndTable":
+        return create_timeseries_and_table_tab(plot_settings, plot_id, subcategory)
 
     else:
         # Handle other plot types
@@ -1450,6 +1452,81 @@ def create_table_and_timeseries_tab(plot_settings, plot_id, subcategory):
                 table_title,
                 # id=f"{plot_id}-table",
                 id="datatable",
+                # id=table["id"],
+                row_selectable="single",
+                selected_rows=[0],
+                sort_action="none",
+            ),
+            width=12,  # Full-width for each table
+            className="mb-4",  # Add margin-bottom for spacing
+        )
+    )
+
+    # Combine all elements into a single tab
+    return dbc.Tab(
+        dbc.Container(content, fluid=True, className="py-4"),
+        label=subcategory,
+        tab_id=plot_id,
+    )
+
+
+# Creates a Dash Tab containing a table and a timeseries plot based on the selected row.
+def create_timeseries_and_table_tab(plot_settings, plot_id, subcategory):
+    # Extract pie charts and tables configurations
+    table = plot_settings.get("table", [])
+    timeseries = plot_settings.get("timeseries", [])
+
+    content = []
+    content.append(html.H2(plot_settings["title"], className="text-center"))
+
+    data = table["dataframe"]
+    table_title = table.get("title", "Table")
+    columns = table.get("columns", [])
+    filter_condition = table.get("filter", None)
+    rows = table.get("rows", columns)
+
+    if filter_condition:
+        # Apply the filter using pandas query
+        try:
+            filtered_data = data.query(filter_condition)
+        except Exception as e:
+            print(
+                f"Error applying filter '{filter_condition}' on dataframe '{plot_id}': {e}"
+            )
+            filtered_data = data  # Fallback to unfiltered data if there's an error
+    else:
+        filtered_data = data
+
+    # Select and rename columns as needed
+    selected_columns = rows
+    # Ensure all selected columns exist in the dataframe
+    existing_columns = [col for col in selected_columns if col in filtered_data.columns]
+    if not existing_columns:
+        print(
+            f"No matching columns found for table '{table_title}' in dataframe '{plot_id}'."
+        )
+        return  # Skip creating this table
+
+    display_data = filtered_data[existing_columns].rename(
+        columns=dict(zip(selected_columns, columns))  # Rename to user-friendly names
+    )
+
+    # First add the graph on top
+    content.append(dcc.Graph(id="streams-updateable-line-chart"))
+
+    # content.append(dbc.Row(table_content))
+    content.append(html.Hr())  # Append the horizontal rule first
+
+    # Then create and append the table
+    content.append(
+        dbc.Col(
+            create_table(
+                display_data,
+                columns,
+                table_title,
+                # id=f"{plot_id}-table",
+                id="streams_datatable",
+                # id=table["id"],
                 row_selectable="single",
                 selected_rows=[0],
                 sort_action="none",
@@ -1469,15 +1546,30 @@ def create_table_and_timeseries_tab(plot_settings, plot_id, subcategory):
 
 # @tim: FIXME: can these I/O identifiers be dynamic?
 @app.callback(
-    Output("updateable-line-chart", "figure"), [Input("datatable", "selected_rows")]
+    Output("updateable-line-chart", "figure"),
+    [Input("datatable", "selected_rows")],
+    # Output("updateable-line-chart", "figure"),
+    # Input("roomclimate_table", "selected_rows"),
+    # Input("streams_table", "selected_rows"),
+    # [
+    #     Input(table, "selected_rows")
+    #     for table in ["roomclimate_table", "streams_table"]
+    # ],  # Multiple Inputs
 )
+# def update_graph(*selected_rows_list):
 def update_graph(selected_rows):
+    # print(f"{ctx.triggered_id=}")
+    # print(f"{ctx.states=}")
+    # print(f"{ctx.triggered=}")
+    # print(f"{ctx.inputs=}")
+    # print("selected_rows_list", selected_rows_list)
     if selected_rows:  # Check if a row is selected
         row_idx = selected_rows[0]  # Get the index of the selected row
     else:
         row_idx = 0  # Default to the first row if nothing is selected
 
     # @tim: FIXME: can we deduce this from the callback context?
+    # if
     config = plot_configs["RoomClimate_RoomClimate"]["TableAndTimeseries"][
         "timeseries"
     ][row_idx]
@@ -1497,6 +1589,55 @@ def update_graph(selected_rows):
             "Room_Air_Temperature_Setpoint",
             "Outside_Air_Temperature_Sensor",
         ],
+        title=title,
+    )
+
+    # Modify layout to place the legend below the plot
+    fig.update_layout(
+        font=dict(
+            color="black"  # Set all plot text (title, axis labels, legend) to black
+        ),
+        title=dict(
+            text=title,
+            xanchor="center",  # Center the title
+            x=0.5,  # Position the title in the horizontal center
+            font=dict(color="black"),  # Set title font colour to black
+        ),
+        legend=dict(
+            orientation="h",  # Horizontal orientation for the legend
+            yanchor="bottom",  # Align the legend to the bottom
+            y=-0.3,  # Push the legend below the plot
+            xanchor="center",  # Centre the legend horizontally
+            x=0.5,  # Centre position for the legend
+        ),
+    )
+    return fig
+
+
+# @tim: FIXME: can these I/O identifiers be dynamic?
+@app.callback(
+    Output("streams-updateable-line-chart", "figure"),
+    [Input("streams_datatable", "selected_rows")],
+)
+def update_other_graph(selected_rows):
+    if selected_rows:  # Check if a row is selected
+        row_idx = selected_rows[0]  # Get the index of the selected row
+    else:
+        row_idx = 0  # Default to the first row if nothing is selected
+
+    # @tim: FIXME: can we deduce this from the callback context?
+    # if
+    config = plot_configs["Streams_Streams"]["TimeseriesAndTable"]["timeseries"][
+        row_idx
+    ]
+    title = config.get("title", "Line Chart")
+    df = config["dataframe"]
+
+    # @tim: FIXME: can we utilise the create_line_plot function?
+    fig = px.line(
+        data_frame=df,
+        x="Date",
+        y=df.columns,
         title=title,
     )
 
