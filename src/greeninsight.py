@@ -332,113 +332,113 @@ sample_plot_configs = {
     #         ],
     #     }
     # },
-    "RoomClimate_Rooms": {
-        "TableAndTimeseries": {
-            "title": "Room Climate",
-            "table": {
-                "title": "List of Rooms with Air Temperature Sensors and Setpoints",
-                "columns": [
-                    "Room Class",
-                    "Room ID",
-                ],
-                "rows": ["room_class", "room_id"],
-                "filter": None,
-                "dataframe": pd.DataFrame(
-                    {
-                        "room_class": [
-                            "Conference Room",
-                            "Conference Room",
-                            "Library",
-                            "Office",
-                        ],
-                        "room_id": ["Room 1", "Room 2", "Room 3", "Room 4"],
-                    }
-                ),
-            },
-            "timeseries": [
-                {
-                    "title": "Conference Room",
-                    "dataframe": pd.DataFrame(
-                        {
-                            "Date": pd.date_range(
-                                start="2021-01-01", periods=365, freq="D"
-                            ),
-                            "Air_Temperature_Sensor": np.random.normal(15, 3, 365),
-                            "Room_Air_Temperature_Setpoint": np.random.normal(
-                                15, 1, 365
-                            ),
-                            "Outside_Air_Temperature_Sensor": np.random.normal(
-                                15, 5, 365
-                            ),
-                        }
-                    ),
-                },
-                {
-                    "title": "Conference Room",
-                    "dataframe": pd.DataFrame(
-                        {
-                            "Date": pd.date_range(
-                                start="2021-01-01", periods=365, freq="D"
-                            ),
-                            "Air_Temperature_Sensor": np.random.normal(15, 3, 365),
-                            "Room_Air_Temperature_Setpoint": np.random.normal(
-                                15, 1, 365
-                            ),
-                            "Outside_Air_Temperature_Sensor": np.random.normal(
-                                15, 5, 365
-                            ),
-                        }
-                    ),
-                },
-                {
-                    "title": "Library",
-                    "dataframe": pd.DataFrame(
-                        {
-                            "Date": pd.date_range(
-                                start="2021-01-01", periods=365, freq="D"
-                            ),
-                            "Air_Temperature_Sensor": np.random.normal(15, 3, 365),
-                            "Room_Air_Temperature_Setpoint": np.random.normal(
-                                15, 1, 365
-                            ),
-                            "Outside_Air_Temperature_Sensor": np.random.normal(
-                                15, 5, 365
-                            ),
-                        }
-                    ),
-                },
-                {
-                    "title": "Office",
-                    "dataframe": pd.DataFrame(
-                        {
-                            "Date": pd.date_range(
-                                start="2021-01-01", periods=365, freq="D"
-                            ),
-                            "Air_Temperature_Sensor": np.random.normal(15, 3, 365),
-                            "Room_Air_Temperature_Setpoint": np.random.normal(
-                                15, 1, 365
-                            ),
-                            "Outside_Air_Temperature_Sensor": np.random.normal(
-                                15, 5, 365
-                            ),
-                        }
-                    ),
-                },
-            ],
-        }
-    },
-    "RoomClimate_WeatherSensitivity": {
-        "SurfacePlot": {
-            "title": "Temperature vs Weather Sensitivity",
-            "X-value": "Day",
-            "Y-values": ["Hour"],
-            "Z-value": "WeatherSensitivity",
-            "x-axis_label": "Day",
-            "y-axis_label": "Hour of the Day",
-            "z-axis_label": "Weather Sensitivity",
-            "dataframe": dataframes["RoomClimate_WeatherSensitivity"],
-        }
-    },
+    # "RoomClimate_Rooms": {
+    #     "TableAndTimeseries": {
+    #         "title": "Room Climate",
+    #         "table": {
+    #             "title": "List of Rooms with Air Temperature Sensors and Setpoints",
+    #             "columns": [
+    #                 "Room Class",
+    #                 "Room ID",
+    #             ],
+    #             "rows": ["room_class", "room_id"],
+    #             "filter": None,
+    #             "dataframe": pd.DataFrame(
+    #                 {
+    #                     "room_class": [
+    #                         "Conference Room",
+    #                         "Conference Room",
+    #                         "Library",
+    #                         "Office",
+    #                     ],
+    #                     "room_id": ["Room 1", "Room 2", "Room 3", "Room 4"],
+    #                 }
+    #             ),
+    #         },
+    #         "timeseries": [
+    #             {
+    #                 "title": "Conference Room",
+    #                 "dataframe": pd.DataFrame(
+    #                     {
+    #                         "Date": pd.date_range(
+    #                             start="2021-01-01", periods=365, freq="D"
+    #                         ),
+    #                         "Air_Temperature_Sensor": np.random.normal(15, 3, 365),
+    #                         "Room_Air_Temperature_Setpoint": np.random.normal(
+    #                             15, 1, 365
+    #                         ),
+    #                         "Outside_Air_Temperature_Sensor": np.random.normal(
+    #                             15, 5, 365
+    #                         ),
+    #                     }
+    #                 ),
+    #             },
+    #             {
+    #                 "title": "Conference Room",
+    #                 "dataframe": pd.DataFrame(
+    #                     {
+    #                         "Date": pd.date_range(
+    #                             start="2021-01-01", periods=365, freq="D"
+    #                         ),
+    #                         "Air_Temperature_Sensor": np.random.normal(15, 3, 365),
+    #                         "Room_Air_Temperature_Setpoint": np.random.normal(
+    #                             15, 1, 365
+    #                         ),
+    #                         "Outside_Air_Temperature_Sensor": np.random.normal(
+    #                             15, 5, 365
+    #                         ),
+    #                     }
+    #                 ),
+    #             },
+    #             {
+    #                 "title": "Library",
+    #                 "dataframe": pd.DataFrame(
+    #                     {
+    #                         "Date": pd.date_range(
+    #                             start="2021-01-01", periods=365, freq="D"
+    #                         ),
+    #                         "Air_Temperature_Sensor": np.random.normal(15, 3, 365),
+    #                         "Room_Air_Temperature_Setpoint": np.random.normal(
+    #                             15, 1, 365
+    #                         ),
+    #                         "Outside_Air_Temperature_Sensor": np.random.normal(
+    #                             15, 5, 365
+    #                         ),
+    #                     }
+    #                 ),
+    #             },
+    #             {
+    #                 "title": "Office",
+    #                 "dataframe": pd.DataFrame(
+    #                     {
+    #                         "Date": pd.date_range(
+    #                             start="2021-01-01", periods=365, freq="D"
+    #                         ),
+    #                         "Air_Temperature_Sensor": np.random.normal(15, 3, 365),
+    #                         "Room_Air_Temperature_Setpoint": np.random.normal(
+    #                             15, 1, 365
+    #                         ),
+    #                         "Outside_Air_Temperature_Sensor": np.random.normal(
+    #                             15, 5, 365
+    #                         ),
+    #                     }
+    #                 ),
+    #             },
+    #         ],
+    #     }
+    # },
+    # "RoomClimate_WeatherSensitivity": {
+    #     "SurfacePlot": {
+    #         "title": "Temperature vs Weather Sensitivity",
+    #         "X-value": "Day",
+    #         "Y-values": ["Hour"],
+    #         "Z-value": "WeatherSensitivity",
+    #         "x-axis_label": "Day",
+    #         "y-axis_label": "Hour of the Day",
+    #         "z-axis_label": "Weather Sensitivity",
+    #         "dataframe": dataframes["RoomClimate_WeatherSensitivity"],
+    #     }
+    # },
     "Consumption_Raw": {
         "BoxAndWhisker": {
             "title": "Water Data Quality Box and Whisker Plot",
@@ -1500,9 +1500,9 @@ def update_graph(selected_rows):
         row_idx = 0  # Default to the first row if nothing is selected
 
     # @tim: FIXME: can we deduce this from the callback context?
-    config = plot_configs["RoomClimate_Rooms"]["TableAndTimeseries"]["timeseries"][
-        row_idx
-    ]
+    config = plot_configs["RoomClimate_RoomClimate"]["TableAndTimeseries"][
+        "timeseries"
+    ][row_idx]
     title = config.get("title", "Line Chart")
     df = config["dataframe"]
 
