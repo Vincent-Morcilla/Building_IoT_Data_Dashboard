@@ -5,12 +5,12 @@ It includes functions for preprocessing sensor data, analyzing gaps,
 detecting outliers, and generating summary statistics and visualizations.
 """
 
+from collections import Counter
 import os
 from typing import Dict, Any
 
 import numpy as np
 import pandas as pd
-from scipy import stats
 
 
 def _preprocess_to_sensor_rows(db):
@@ -74,12 +74,14 @@ def _profile_groups(df):
     grouped = df.groupby("Label")
 
     def calculate_group_stats(group):
-        return pd.Series({
-            "Group_Mean": group["Sensor_Mean"].mean(),
-            "Group_Std": group["Sensor_Mean"].std(),
-            "Group_Min": group["Sensor_Min"].min(),
-            "Group_Max": group["Sensor_Max"].max(),
-        })
+        return pd.Series(
+            {
+                "Group_Mean": group["Sensor_Mean"].mean(),
+                "Group_Std": group["Sensor_Mean"].std(),
+                "Group_Min": group["Sensor_Min"].min(),
+                "Group_Max": group["Sensor_Max"].max(),
+            }
+        )
 
     group_stats = grouped.apply(calculate_group_stats)
     return df.merge(group_stats, left_on="Label", right_index=True)
@@ -95,27 +97,29 @@ def _analyse_sensor_gaps(df):
     Returns:
         pd.DataFrame: Gap analysis results.
     """
+
     def process_row(row):
         timestamps = row["Timestamps"]
         granularity = row["Deduced_Granularity"]
 
         if len(timestamps) < 2:
-            return pd.Series({
-                "Small_Gap_Count": 0,
-                "Medium_Gap_Count": 0,
-                "Large_Gap_Count": 0,
-                "Total_Gaps": 0,
-                "Gap_Percentage": 0,
-                "Total_Gap_Size_Seconds": 0,
-            })
+            return pd.Series(
+                {
+                    "Small_Gap_Count": 0,
+                    "Medium_Gap_Count": 0,
+                    "Large_Gap_Count": 0,
+                    "Total_Gaps": 0,
+                    "Gap_Percentage": 0,
+                    "Total_Gap_Size_Seconds": 0,
+                }
+            )
 
         granularity_parts = str(granularity).split()
         time_granularity = int(granularity_parts[0])
         time_unit = granularity_parts[1]
-        granularity_in_seconds = time_granularity * {
-            "minutes": 60,
-            "hours": 3600
-        }.get(time_unit, 86400)
+        granularity_in_seconds = time_granularity * {"minutes": 60, "hours": 3600}.get(
+            time_unit, 86400
+        )
 
         time_diffs = np.diff(timestamps.astype(int)) / 1e9  # Convert to seconds
         expected_diff = granularity_in_seconds
@@ -135,14 +139,16 @@ def _analyse_sensor_gaps(df):
             else 0.0
         )
 
-        return pd.Series({
-            "Small_Gap_Count": small_gap,
-            "Medium_Gap_Count": medium_gap,
-            "Large_Gap_Count": large_gap,
-            "Total_Gaps": total_gaps,
-            "Gap_Percentage": gap_percentage,
-            "Total_Gap_Size_Seconds": total_gap_size_seconds,
-        })
+        return pd.Series(
+            {
+                "Small_Gap_Count": small_gap,
+                "Medium_Gap_Count": medium_gap,
+                "Large_Gap_Count": large_gap,
+                "Total_Gaps": total_gaps,
+                "Gap_Percentage": gap_percentage,
+                "Total_Gap_Size_Seconds": total_gap_size_seconds,
+            }
+        )
 
     return df.apply(process_row, axis=1)
 
@@ -158,12 +164,26 @@ def _prepare_data_quality_df(sensor_df):
         pd.DataFrame: Data quality metrics.
     """
     columns = [
-        "StreamID", "Label", "Deduced_Granularity", "Value_Count",
-        "Outliers", "Missing", "Zeros", "Small_Gap_Count",
-        "Medium_Gap_Count", "Large_Gap_Count", "Total_Gaps",
-        "Gap_Percentage", "Total_Gap_Size_Seconds", "Group_Mean",
-        "Group_Std", "Sensor_Mean", "Sensor_Max", "Sensor_Min",
-        "Start_Timestamp", "End_Timestamp",
+        "StreamID",
+        "Label",
+        "Deduced_Granularity",
+        "Value_Count",
+        "Outliers",
+        "Missing",
+        "Zeros",
+        "Small_Gap_Count",
+        "Medium_Gap_Count",
+        "Large_Gap_Count",
+        "Total_Gaps",
+        "Gap_Percentage",
+        "Total_Gap_Size_Seconds",
+        "Group_Mean",
+        "Group_Std",
+        "Sensor_Mean",
+        "Sensor_Max",
+        "Sensor_Min",
+        "Start_Timestamp",
+        "End_Timestamp",
     ]
     data_quality_df = sensor_df[columns].copy()
 
@@ -181,7 +201,10 @@ def _prepare_data_quality_df(sensor_df):
         .apply(
             lambda group: (
                 (group["Sensor_Mean"] < (group["Group_Mean"] - 3 * group["Group_Std"]))
-                | (group["Sensor_Mean"] > (group["Group_Mean"] + 3 * group["Group_Std"]))
+                | (
+                    group["Sensor_Mean"]
+                    > (group["Group_Mean"] + 3 * group["Group_Std"])
+                )
             ).astype(int)
         )
         .reset_index(level=0, drop=True)
@@ -206,6 +229,7 @@ def _create_summary_table(data_quality_df):
     Returns:
         pd.DataFrame: Summary table.
     """
+
     def sum_timedelta(x):
         if pd.api.types.is_timedelta64_dtype(x):
             return x.sum()
@@ -214,28 +238,33 @@ def _create_summary_table(data_quality_df):
 
     summary_table = (
         data_quality_df.groupby("Label")
-        .agg({
-            "StreamID": "count",
-            "Deduced_Granularity": lambda x: stats.mode(x)[0][0],
-            "Start_Timestamp": "min",
-            "End_Timestamp": "max",
-            "Value_Count": "sum",
-            "Outlier_Count": "sum",
-            "Missing": "sum",
-            "Zeros": "sum",
-            "Small_Gap_Count": "sum",
-            "Medium_Gap_Count": "sum",
-            "Large_Gap_Count": "sum",
-            "Total_Gaps": "sum",
-            "Group_Mean": "first",
-            "Group_Std": "first",
-            "FlaggedForRemoval": "sum",
-            "Time_Delta": sum_timedelta,
-            "Total_Gap_Size_Seconds": "sum",
-            "Total_Time_Delta_Seconds": "sum",
-        })
+        .agg(
+            {
+                "StreamID": "count",
+                "Start_Timestamp": "min",
+                "End_Timestamp": "max",
+                "Value_Count": "sum",
+                "Outlier_Count": "sum",
+                "Missing": "sum",
+                "Zeros": "sum",
+                "Small_Gap_Count": "sum",
+                "Medium_Gap_Count": "sum",
+                "Large_Gap_Count": "sum",
+                "Total_Gaps": "sum",
+                "Group_Mean": "first",
+                "Group_Std": "first",
+                "FlaggedForRemoval": "sum",
+                "Time_Delta": sum_timedelta,
+                "Total_Gap_Size_Seconds": "sum",
+                "Total_Time_Delta_Seconds": "sum",
+            }
+        )
         .reset_index()
     )
+
+    counter = Counter(data_quality_df["Deduced_Granularity"])
+    highest_count_key = max(counter, key=counter.get)
+    summary_table["Deduced_Granularity"] = highest_count_key
 
     # Calculate Total_Gap_Percent
     summary_table["Total_Gap_Percent"] = (
@@ -271,12 +300,25 @@ def _create_summary_table(data_quality_df):
 
     # Reorder columns
     column_order = [
-        "Label", "Stream_Count", "Common_Granularity", "Earliest_Timestamp",
-        "Latest_Timestamp", "Total_Value_Count", "Total_Outliers",
-        "Total_Missing", "Total_Zeros", "Group_Mean", "Group_Std",
-        "Total_Small_Gaps", "Total_Medium_Gaps", "Total_Large_Gaps",
-        "Total_Gaps", "Total_Time_Delta_Seconds", "Total_Gap_Size_Seconds",
-        "Total_Gap_Percent", "Total_Flagged_For_Removal",
+        "Label",
+        "Stream_Count",
+        "Common_Granularity",
+        "Earliest_Timestamp",
+        "Latest_Timestamp",
+        "Total_Value_Count",
+        "Total_Outliers",
+        "Total_Missing",
+        "Total_Zeros",
+        "Group_Mean",
+        "Group_Std",
+        "Total_Small_Gaps",
+        "Total_Medium_Gaps",
+        "Total_Large_Gaps",
+        "Total_Gaps",
+        "Total_Time_Delta_Seconds",
+        "Total_Gap_Size_Seconds",
+        "Total_Gap_Percent",
+        "Total_Flagged_For_Removal",
     ]
     summary_table = summary_table[column_order]
 
@@ -289,7 +331,7 @@ def _get_data_quality_overview(data_quality_df):
     Generate overview analysis of data quality.
     """
     # Create a 'has_outliers' column
-    data_quality_df['has_outliers'] = data_quality_df['Outlier_Count'] > 0
+    data_quality_df["has_outliers"] = data_quality_df["Outlier_Count"] > 0
 
     # Pie chart for outliers
     outliers_pie = {
@@ -297,7 +339,7 @@ def _get_data_quality_overview(data_quality_df):
         "labels": "has_outliers",
         "textinfo": "percent+label",
         "filter": None,
-        "dataframe": data_quality_df
+        "dataframe": data_quality_df,
     }
 
     # Pie chart for gaps
@@ -306,19 +348,26 @@ def _get_data_quality_overview(data_quality_df):
         "labels": "Label",
         "textinfo": "percent+label",
         "filter": None,
-        "dataframe": data_quality_df
+        "dataframe": data_quality_df,
     }
 
     # Create stats DataFrame
-    stats_df = pd.DataFrame({
-        "Metric": ["Total Sensors", "Sensors with Outliers", "Sensors with Gaps", "Average Gap Percentage"],
-        "Value": [
-            len(data_quality_df),
-            data_quality_df['has_outliers'].sum(),
-            (data_quality_df['Total_Gaps'] > 0).sum(),
-            f"{data_quality_df['Gap_Percentage'].mean():.2%}"
-        ]
-    })
+    stats_df = pd.DataFrame(
+        {
+            "Metric": [
+                "Total Sensors",
+                "Sensors with Outliers",
+                "Sensors with Gaps",
+                "Average Gap Percentage",
+            ],
+            "Value": [
+                len(data_quality_df),
+                data_quality_df["has_outliers"].sum(),
+                (data_quality_df["Total_Gaps"] > 0).sum(),
+                f"{data_quality_df['Gap_Percentage'].mean():.2%}",
+            ],
+        }
+    )
 
     # Table for overall statistics
     overall_stats = {
@@ -327,13 +376,10 @@ def _get_data_quality_overview(data_quality_df):
         "rows": ["Metric", "Value"],
         "data_source": "DataQuality_Overview",
         "filter": None,
-        "dataframe": stats_df
+        "dataframe": stats_df,
     }
 
-    return {
-        "pie_charts": [outliers_pie, gaps_pie],
-        "tables": [overall_stats]
-    }
+    return {"pie_charts": [outliers_pie, gaps_pie], "tables": [overall_stats]}
 
 
 def _get_summary_analysis(summary_table_df):
@@ -369,7 +415,9 @@ def _deduce_granularity(timestamps):
     if len(time_diffs) == 0:
         return None
 
-    granularity = pd.Series(time_diffs).mode()[0]  # Most common time interval in seconds
+    granularity = pd.Series(time_diffs).mode()[
+        0
+    ]  # Most common time interval in seconds
 
     # Upgrade granularity
     if granularity % 86400 == 0:  # 86400 seconds = 1 day
@@ -490,6 +538,7 @@ def _save_summary_table_to_csv(summary_table_df, output_dir):
     summary_table_df.to_csv(output_file_path, index=False)
     print(f"Summary table saved to {output_file_path}")
 
+
 def run(db: Any) -> Dict[str, Any]:
     """
     Run all analyses and return the results.
@@ -559,9 +608,19 @@ def run(db: Any) -> Dict[str, Any]:
 
 
 if __name__ == "__main__":
-    from dbmgr import Database
 
-    db = Database() 
+    DATA = "../../datasets/bts_site_b_train/train.zip"
+    MAPPER = "../../datasets/bts_site_b_train/mapper_TrainOnly.csv"
+    MODEL = "../../datasets/bts_site_b_train/Site_B.ttl"
+    SCHEMA = "../../datasets/bts_site_b_train/Brick_v1.2.1.ttl"
+
+    import sys
+
+    sys.path.append("..")
+
+    from dbmgr import DBManager
+
+    db = DBManager(DATA, MAPPER, MODEL, SCHEMA)
+
     results = run(db)
     print(results)
-
