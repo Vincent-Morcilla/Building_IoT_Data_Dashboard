@@ -529,11 +529,10 @@ sample_plot_configs = {
 }
 
 
-ws = WeatherSensitivity()
-sample_plot_configs = ws.get_weather_sensitivity_data()
+
 
 # sample_plot_configs |= data
-print(sample_plot_configs)
+# print(sample_plot_configs)
 
 
 
@@ -1049,10 +1048,12 @@ def update_box_and_whisker(selected_variables, input_id):
 # Create heatmap function
 def create_heatmap(
     data, x_column, y_column, z_column, color_scale, title, x_label, y_label, z_label
-):
-    fig = px.density_heatmap(
-        data, x=x_column, y=y_column, z=z_column, color_continuous_scale=color_scale
-    )
+):  
+    print(f'{data[z_column].max()=}')
+    # fig = px.density_heatmap(
+    #     data, x=x_column, y=y_column, z=z_column, color_continuous_scale=color_scale, 
+    # )
+    fig = go.Figure(data=go.Heatmap(z=data[z_column], x=data[x_column], y=data[y_column], colorscale=color_scale))
     fig.update_layout(
         title={"text": title, "x": 0.5, "xanchor": "center"},
         xaxis_title=x_label,
@@ -1123,7 +1124,7 @@ def update_heatmap(selected_color_scale, input_id):
     category_key, plot_type = plot_id.rsplit(
         "-", 1
     )  # Split to get dataframe key and plot type
-    data = dataframes[category_key]  # Retrieve the relevant dataframe
+    data = plot_configs[category_key]['HeatMap']['dataframe']  # Retrieve the relevant dataframe
     plot_settings = plot_configs[category_key][plot_type]  # Get plot settings
 
     # Create an updated heatmap with the new color scale
@@ -1887,8 +1888,11 @@ if __name__ == "__main__":
 
     # Load the analytics manager
     am = analyticsmgr.AnalyticsManager(db)
-    plot_configs = am.run_analytics()
-    plot_configs |= sample_plot_configs
+    plot_configs = sample_plot_configs
+    plot_configs |= am.run_analytics()
+    
 
+    # ws = WeatherSensitivity(db)
+    # sample_plot_configs = ws.get_weather_sensitivity_data()
     construct_layout()
     app.run_server(port=8050, debug=DEBUG)

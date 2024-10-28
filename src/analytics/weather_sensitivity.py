@@ -12,15 +12,92 @@ import rdflib
 from rdflib import Graph
 from rdflib.namespace import BRICK
 
-from analytics.weather_sensitivity_query import (electric_energy_query_str , 
-                                                 electric_power_query_str, 
-                                                 outside_air_temperature_query_str, 
-                                                 gas_query_str,
-                                                 water_query_str,
-                                                 chiller_query_str,
-                                                 boiler_query_str
-                                            
-)
+electric_energy_query_str = """
+SELECT ?meter ?sensor ?stream_id ?phase_count ?phases ?unit ?power_complexity ?power_flow
+WHERE {
+    ?sensor rdf:type brick:Electrical_Energy_Sensor .
+    ?meter rdf:type brick:Electrical_Meter .
+    ?sensor brick:isPointOf ?meter .
+    ?sensor senaps:stream_id ?stream_id .
+    OPTIONAL { ?sensor brick:electricalPhaseCount [ brick:value ?phase_count ] . }
+    OPTIONAL { ?sensor brick:electricalPhases [ brick:value ?phases ] . }
+    OPTIONAL { ?sensor brick:hasUnit [ brick:value ?unit ] . }
+    OPTIONAL { ?sensor brick:powerComplexity [ brick:value ?power_complexity ] . }
+    OPTIONAL { ?sensor brick:powerFlow [ brick:value ?power_flow ] . }
+}
+ORDER BY ?meter
+"""
+
+electric_power_query_str = """
+SELECT ?meter ?sensor ?stream_id ?phase_count ?phases ?unit ?power_complexity ?power_flow
+WHERE {
+    ?sensor rdf:type brick:Electrical_Power_Sensor .
+    ?meter rdf:type brick:Electrical_Meter .
+    ?sensor brick:isPointOf ?meter .
+    ?sensor senaps:stream_id ?stream_id .
+    OPTIONAL { ?sensor brick:electricalPhaseCount [ brick:value ?phase_count ] . }
+    OPTIONAL { ?sensor brick:electricalPhases [ brick:value ?phases ] . }
+    OPTIONAL { ?sensor brick:hasUnit [ brick:value ?unit ] . }
+    OPTIONAL { ?sensor brick:powerComplexity [ brick:value ?power_complexity ] . }
+    OPTIONAL { ?sensor brick:powerFlow [ brick:value ?power_flow ] . }
+}
+ORDER BY ?meter
+"""
+
+gas_query_str = """
+SELECT ?meter ?sensor ?stream_id
+WHERE {
+    ?sensor rdf:type brick:Usage_Sensor .
+    ?meter rdf:type brick:Building_Gas_Meter .
+    ?sensor brick:isPointOf ?meter .
+    ?sensor senaps:stream_id ?stream_id
+}
+ORDER BY ?meter
+"""
+
+chiller_query_str = """
+SELECT ?meter ?sensor ?stream_id
+WHERE {
+    ?sensor rdf:type brick:Chilled_Water_Differential_Temperature_Sensor .
+    ?meter rdf:type brick:Chiller .
+    ?sensor brick:isPointOf ?meter .
+    ?sensor senaps:stream_id ?stream_id
+}
+ORDER BY ?meter
+"""
+
+water_query_str = """
+SELECT ?meter ?sensor ?stream_id
+WHERE {
+    ?sensor rdf:type brick:Usage_Sensor .
+    ?meter rdf:type brick:Building_Water_Meter .
+    ?sensor brick:isPointOf ?meter .
+    ?sensor senaps:stream_id ?stream_id
+}
+ORDER BY ?meter
+"""
+
+boiler_query_str = """
+SELECT ?meter ?sensor ?stream_id
+WHERE {
+    ?sensor rdf:type brick:Water_Temperature_Sensor .
+    ?meter rdf:type brick:Hot_Water_System .
+    ?sensor brick:isPointOf ?meter .
+    ?sensor senaps:stream_id ?stream_id
+}
+ORDER BY ?meter
+"""
+
+outside_air_temperature_query_str = """
+SELECT ?sensor ?stream_id 
+WHERE {
+    ?sensor rdf:type brick:Outside_Air_Temperature_Sensor .
+    ?sensor brick:isPointOf   ?loc .
+    ?loc a brick:Weather_Station .
+    ?sensor senaps:stream_id ?stream_id .
+}
+ORDER BY ?stream_id
+"""
 # from weather_sensitivity_query import (electric_energy_query_str , 
 #                                                  electric_power_query_str, 
 #                                                  outside_air_temperature_query_str, 
@@ -32,24 +109,25 @@ from analytics.weather_sensitivity_query import (electric_energy_query_str ,
 # )
 
 
-import sys
-sys.path.append("..")
-sys.path.append("../src")
+# import sys
+# sys.path.append("..")
+# # sys.path.append("../..")
+# sys.path.append("../src")
 
-path_to_datasets ='../datasets/'
-data = path_to_datasets + '/bts_site_b_train/train.zip'
-mapper = path_to_datasets + 'bts_site_b_train/mapper_TrainOnly.csv'
-model = path_to_datasets + 'bts_site_b_train/Site_B.ttl'
-schema = path_to_datasets + 'bts_site_b_train/Brick_v1.2.1.ttl'
+# path_to_datasets ='../datasets/'
+# data = path_to_datasets + 'bts_site_b_train/train.zip'
+# mapper = path_to_datasets + 'bts_site_b_train/mapper_TrainOnly.csv'
+# model = path_to_datasets + 'bts_site_b_train/Site_B.ttl'
+# schema = path_to_datasets + 'bts_site_b_train/Brick_v1.2.1.ttl'
 
-from dbmgr import DBManager
-db = DBManager(data, mapper, model, schema)
+# from dbmgr import DBManager
+# db = DBManager(data, mapper, model, schema)
 
 warnings.filterwarnings('ignore')
 
 class WeatherSensitivity:
     
-    def __init__(self):
+    def __init__(self, db):
         self.db = db
         self.rdf_data = None
     
@@ -260,9 +338,9 @@ class WeatherSensitivity:
         return WeatherSensitivity.get_data_for_dash(weather_sensitivity_results)
         
 
-
-ws = WeatherSensitivity()
-data = ws.get_weather_sensitivity_data()
-# print(data)
-
+def run(db):
+    ws = WeatherSensitivity(db)
+    data = ws.get_weather_sensitivity_data()
+    #print(data.keys())
+    return data
 # data['ElecticEnergy_WeatherSensitivity']['HeatMap'][ 'dataframe']
