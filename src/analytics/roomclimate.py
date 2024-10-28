@@ -4,6 +4,12 @@ air temperature sensor and air temperature setpoint, and for each, extracts
 the timeseries data.  If the building also has an outside air temperature 
 sensor, the timeseries data for that sensor is also extracted.  The module
 returns a dictionary containing the analysis results.
+
+@tim: TODO:
+    - consider error conditions (e.g. missing stream data)
+    - incorporate units (if available)
+    - write tests
+    - fix front-end code to be less hacky
 """
 
 import pandas as pd
