@@ -17,7 +17,7 @@ import pandas as pd
 from dbmgr import DBManager  # only imported for type hinting
 
 
-def _get_rooms_with_temp(db):
+def _get_rooms_with_temp(db: DBManager) -> pd.DataFrame:
     query = """
     SELECT ?room_id ?room_class ?ats ?ats_stream ?atsp ?atsp_stream WHERE  {
                 ?ats    a                 brick:Air_Temperature_Sensor .
@@ -34,7 +34,7 @@ def _get_rooms_with_temp(db):
     return db.query(query, graph="expanded_model", return_df=True, defrag=True)
 
 
-def _get_outside_air_temp(db):
+def _get_outside_air_temp(db: DBManager) -> pd.DataFrame:
     query = """
         SELECT ?oats ?oats_stream WHERE  {
             ?oats  a                 brick:Outside_Air_Temperature_Sensor .
@@ -46,7 +46,6 @@ def _get_outside_air_temp(db):
     return db.query(query, graph="expanded_model", return_df=True, defrag=True)
 
 
-# def run(db: DBManager) -> dict:
 def run(db: DBManager) -> dict:
     """
     Run the room climate analysis.
