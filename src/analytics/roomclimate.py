@@ -69,7 +69,7 @@ def run(db: DBManager) -> dict:
     table = df[["room_class", "room_id"]]
 
     config = {
-        "RoomClimate_Rooms": {
+        "RoomClimate_RoomClimate": {
             "TableAndTimeseries": {
                 "title": "Room Climate",
                 "table": {
@@ -87,7 +87,7 @@ def run(db: DBManager) -> dict:
         }
     }
 
-    for index, row in df.iterrows():
+    for _, row in df.iterrows():
         ats_stream = db.get_stream(row["ats_stream"])
         ats_stream = ats_stream.pivot(
             index="time", columns="brick_class", values="value"
@@ -114,7 +114,7 @@ def run(db: DBManager) -> dict:
         room_df["Date"] = room_df.index
         room_type = row["room_class"].replace("_", " ")
 
-        config["RoomClimate_Rooms"]["TableAndTimeseries"]["timeseries"].append(
+        config["RoomClimate_RoomClimate"]["TableAndTimeseries"]["timeseries"].append(
             {
                 "title": f"{room_type} Mean Temperature",
                 "dataframe": room_df,

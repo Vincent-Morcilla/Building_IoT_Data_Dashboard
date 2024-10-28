@@ -1478,9 +1478,9 @@ def update_graph(selected_rows):
         row_idx = 0  # Default to the first row if nothing is selected
 
     # @tim: FIXME: can we deduce this from the callback context?
-    config = plot_configs["RoomClimate_Rooms"]["TableAndTimeseries"]["timeseries"][
-        row_idx
-    ]
+    config = plot_configs["RoomClimate_RoomClimate"]["TableAndTimeseries"][
+        "timeseries"
+    ][row_idx]
     title = config.get("title", "Line Chart")
     df = config["dataframe"]
 
