@@ -109,6 +109,13 @@ dataframes = {
             "Usage": [500, 600, 550, 620, 640, 630, 580, 610, 590, 605, 615, 620],
         }
     ),
+    "NoSubcategory": pd.DataFrame(
+        {
+            "Month": pd.date_range(start="2021-01-01", periods=12, freq="ME"),
+            "Region": ["Region A"] * 6 + ["Region B"] * 6,
+            "Usage": [500, 600, 550, 620, 640, 630, 580, 610, 590, 605, 615, 620],
+        }
+    ),
 }
 
 plot_configs = m.get_analyses()
@@ -504,18 +511,18 @@ plot_configs |= {
             "dataframe": dataframes["Consumption_UsageAnalysis"],
         }
     },
-    # "NoSubcategory": { #@tim: FIXME: make sure having this doesn't break anything
-    #     "HeatMap": {
-    #         "title": "Water Usage Heat Map",
-    #         "x-axis": "Month",
-    #         "y-axis": "Region",
-    #         "z-axis": "Usage",
-    #         "x-axis_label": "Month",
-    #         "y-axis_label": "Region",
-    #         "z-axis_label": "Water Usage (Liters)",
-    #         "dataframe": dataframes["Consumption_UsageAnalysis"],
-    #     }
-    # },
+    "NoSubcategory": { #@tim: FIXME: make sure having this doesn't break anything
+        "HeatMap": {
+            "title": "Water Usage Heat Map",
+            "x-axis": "Month",
+            "y-axis": "Region",
+            "z-axis": "Usage",
+            "x-axis_label": "Month",
+            "y-axis_label": "Region",
+            "z-axis_label": "Water Usage (Liters)",
+            "dataframe": dataframes["Consumption_UsageAnalysis"],
+        }
+    },
 }
 
 

@@ -1,28 +1,42 @@
 from dash import Dash
-from data.plot_configs import plot_configs
 import dash_bootstrap_components as dbc
-
-# Importing layout and callbacks
 from components.layout import create_layout
-from callbacks.general_callbacks import general_callbacks
+from callbacks.general_callbacks import register_general_callbacks
+from callbacks.plot_callbacks import register_plot_callbacks
 from helpers.helpers import create_category_structure
+from data.plot_configs import plot_configs
 
 # Name of the application
 APP_NAME = "Network in Progress"
 
-# Initialize the app
-app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], suppress_callback_exceptions=True)
-app.title = APP_NAME
+def create_app() -> Dash:
+    """
+    Initialize and configure the Dash application.
 
-# Set the layout
-app.layout = create_layout(plot_configs)
+    Returns:
+        Dash: Configured Dash application instance.
+    """
+    # Initialize the Dash app with Bootstrap styling
+    app = Dash(
+        __name__,
+        external_stylesheets=[dbc.themes.BOOTSTRAP],
+        suppress_callback_exceptions=True
+    )
+    app.title = APP_NAME
 
-# Create categories structure for tabs
-categories_structure = create_category_structure(plot_configs.keys())
+    # Create category structure for tabs and retrieve mappings
+    categories, category_key_mapping, subcategory_key_mapping = create_category_structure(plot_configs.keys())
+    categories_structure = (categories, category_key_mapping, subcategory_key_mapping)
 
-# Register callbacks
-general_callbacks(app, categories_structure)
+    # Set the app layout
+    app.layout = create_layout(plot_configs, categories_structure)
 
-# Run the server
+    # Register general and plot-related callbacks
+    register_general_callbacks(app, categories_structure)
+    register_plot_callbacks(app, plot_configs)
+
+    return app
+
 if __name__ == "__main__":
-    app.run_server(debug=True)
+    # Run the Dash app server with debug mode enabled
+    create_app().run_server(debug=True)

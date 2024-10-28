@@ -1,15 +1,24 @@
 from dash import dcc, html
 import dash_bootstrap_components as dbc
 from components.sidebar import generate_sidebar
-from helpers.helpers import create_category_structure, create_url_mapping
 
-# Creates the main layout for the Dash application, which includes a sidebar and tabs, URL routing, and a content area.
-def create_layout(plot_configs):
-    # Create a mapping from URL-friendly paths to dataframe keys
-    url_to_key_mapping = create_url_mapping(plot_configs)
+def create_layout(plot_configs, categories_structure):
+    """
+    Create the main layout for the Dash application.
 
-    # Create categories and subcategories from the dataframe keys
-    categories = create_category_structure(plot_configs.keys())
+    The layout includes a sidebar for navigation, a content area where specific
+    page content will be displayed, and URL routing for page navigation.
+
+    Args:
+        plot_configs (dict): The configuration for various plots used in the app.
+        categories_structure (tuple): A tuple containing the categories, category key mapping,
+                                      and subcategory key mapping.
+
+    Returns:
+        html.Div: A Div component representing the overall layout of the application.
+    """
+    # Unpack the categories structure
+    categories, category_key_mapping, subcategory_key_mapping = categories_structure
 
     # Generate the sidebar
     sidebar = generate_sidebar(categories)
@@ -23,16 +32,26 @@ def create_layout(plot_configs):
             dcc.Location(id="url"),  # To capture the current URL
             sidebar,  # Sidebar with categories
             dbc.Spinner(
-                children=[
-                    content,  # Main content area
-                ], 
-                color="#3c9639", fullscreen=False, type="border", size="md"
+                children=[content],  # Main content area
+                color="#3c9639",
+                fullscreen=False,
+                type="border",
+                size="md"
             ),
         ]
     )
 
-# Creates the Homepage content for the Dash application
+
 def home_page_content():
+    """
+    Create the homepage content for the Dash application.
+
+    The homepage displays a logo and a message prompting users to select an option
+    from the sidebar.
+
+    Returns:
+        html.Div: A Div component containing the homepage content.
+    """
     return html.Div(
         [
             html.Img(src="/assets/title-logo.svg", alt="Title-Logo", className="title-logo"),

@@ -1,56 +1,57 @@
 import re
-from collections import defaultdict
 
-# Converts a string written in PascalCase into a space-separated string for better readability.
 def pascal_to_words(text):
-    return re.sub(r"(?<!^)(?=[A-Z])", " ", text)
+    """
+    Convert a PascalCase string into a space-separated string.
 
-# Creates a dictionary structure for categories and subcategories from a list of analysis tuples.
+    Args:
+        text (str): The input string in PascalCase.
+
+    Returns:
+        str: A space-separated version of the input string.
+    """
+    return ' '.join(re.findall(r'[A-Za-z][^A-Z]*', text))
+
+
 def create_category_structure(analysis_list):
+    """
+    Create a dictionary structure for categories and subcategories from a list of analysis tuples.
+
+    Args:
+        analysis_list (list): A list of tuples or strings, where each tuple contains a 
+                              category and optionally a subcategory.
+
+    Returns:
+        tuple: A tuple containing:
+            - categories (dict): A dictionary where keys are display names for categories, 
+                                 and values are lists of subcategories.
+            - category_key_mapping (dict): A dictionary mapping display names to the original 
+                                           category keys.
+            - subcategory_key_mapping (dict): A dictionary mapping (display category, display 
+                                              subcategory) to the original subcategory keys.
+    """
     categories = {}
+    category_key_mapping = {}  # Map from display name to original key
+    subcategory_key_mapping = {}  # Map from (display name, display subcategory) to original subcategory
+
     for key in analysis_list:
-        # Check if key is a tuple, if not, treat it as a single category with no subcategory
         if isinstance(key, tuple):
             main_cat, sub_cat = key
         else:
             main_cat, sub_cat = key, None
 
-        main_cat = pascal_to_words(main_cat)
+        display_main_cat = pascal_to_words(main_cat)
 
-        # Handle cases where sub_cat is None or empty
         if not sub_cat:
-            sub_cat = "Main"
+            display_sub_cat = "Main"
         else:
-            sub_cat = pascal_to_words(sub_cat)
+            display_sub_cat = pascal_to_words(sub_cat)
 
-        if main_cat not in categories:
-            categories[main_cat] = []
-        if sub_cat and sub_cat not in categories[main_cat]:
-            categories[main_cat].append(sub_cat)
+        if display_main_cat not in categories:
+            categories[display_main_cat] = []
+            category_key_mapping[display_main_cat] = main_cat
+        if display_sub_cat and display_sub_cat not in categories[display_main_cat]:
+            categories[display_main_cat].append(display_sub_cat)
+            subcategory_key_mapping[(display_main_cat, display_sub_cat)] = sub_cat
 
-    return categories
-
-# Generates a URL mapping from a dictionary of plot configurations.
-def create_url_mapping(plot_configs):
-    url_mapping = defaultdict(list)
-    
-    for key in plot_configs.keys():
-        # Check if key is a tuple, if not, treat it as a single category with no subcategory
-        if isinstance(key, tuple):
-            main_cat, sub_cat = key
-        else:
-            main_cat, sub_cat = key, None
-
-        # Convert the main category to a lowercase, URL-friendly format
-        url_friendly_key = main_cat.lower()
-
-        # Handle cases where sub_cat is None or empty
-        if sub_cat:
-            # If a subcategory exists, create a URL in the format "/maincategory/subcategory"
-            url_mapping[main_cat.lower()].append(f"/{main_cat.lower()}/{sub_cat.lower()}")
-        else:
-            # If no subcategory, create a URL in the format "/maincategory"
-            url_mapping[main_cat.lower()].append(f"/{main_cat.lower()}")
-
-    return url_mapping
-
+    return categories, category_key_mapping, subcategory_key_mapping
