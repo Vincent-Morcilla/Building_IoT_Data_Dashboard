@@ -419,16 +419,29 @@ def _get_data_quality_overview(data_quality_df):
         'StreamID': 'count'
     }).reset_index()
 
-    # Ensure timestamps are datetime
-    timeline_data['Start_Timestamp'] = pd.to_datetime(timeline_data['Start_Timestamp'])
-    timeline_data['End_Timestamp'] = pd.to_datetime(timeline_data['End_Timestamp'])
+    # Ensure timestamps are properly converted to datetime
+    timeline_data['Start_Timestamp'] = pd.to_datetime(timeline_data['Start_Timestamp'], utc=True)
+    timeline_data['End_Timestamp'] = pd.to_datetime(timeline_data['End_Timestamp'], utc=True)
+    
+    # Convert to local timezone and remove timezone info to avoid mixing aware/naive datetimes
+    timeline_data['Start_Timestamp'] = timeline_data['Start_Timestamp'].dt.tz_localize(None)
+    timeline_data['End_Timestamp'] = timeline_data['End_Timestamp'].dt.tz_localize(None)
+    
+    # Sort the data by start timestamp
+    timeline_data = timeline_data.sort_values('Start_Timestamp')
+
+    # Print timestamp range for debugging
+    print("Timeline date range:", 
+          timeline_data['Start_Timestamp'].min(),
+          "to",
+          timeline_data['End_Timestamp'].max())
 
     sensor_timeline = {
         "title": "Sensor Time Coverage by Label",
         "type": "Timeline",
         "x-axis": ["Start_Timestamp", "End_Timestamp"],
         "y-axis": "Label",
-        "size": "StreamID",  # This represents the number of streams for each label
+        "size": "StreamID",
         "x-axis_label": "Time Range",
         "y-axis_label": "Sensor Label",
         "dataframe": timeline_data
