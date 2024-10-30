@@ -2087,23 +2087,34 @@ def create_histogram_plot(data, x_column, y_column, title, x_label, y_label):
 
 def create_timeline_plot(data, x_columns, y_column, size_column, title, x_label, y_label):
     """Create a timeline visualization showing sensor coverage."""
+    # Ensure timestamps are datetime
+    data['Start_Timestamp'] = pd.to_datetime(data['Start_Timestamp'])
+    data['End_Timestamp'] = pd.to_datetime(data['End_Timestamp'])
+    
+    # Calculate date range with small buffer
+    date_min = data['Start_Timestamp'].min() - pd.Timedelta(days=5)
+    date_max = data['End_Timestamp'].max() + pd.Timedelta(days=5)
+    
     fig = go.Figure()
     
     for idx, row in data.iterrows():
+        # Calculate the duration for this bar
+        duration = (row['End_Timestamp'] - row['Start_Timestamp']).total_seconds() * 1000  # Convert to milliseconds
+        
         fig.add_trace(go.Bar(
-            x=[row['End_Timestamp']],
+            x=[duration],  # Use the duration as the bar length
             y=[row[y_column]],
             orientation='h',
-            base=row['Start_Timestamp'],
+            base=row['Start_Timestamp'],  # Start point
             marker=dict(
                 color='#3c9639',
                 opacity=0.7,
             ),
-            width=0.3,  # Reduced from 0.8 to 0.3 for narrower bars
+            width=0.3,
             hovertemplate=(
                 f"<b>{row[y_column]}</b><br>"
-                f"Start: {row['Start_Timestamp']}<br>"
-                f"End: {row['End_Timestamp']}<br>"
+                f"Start: {row['Start_Timestamp'].strftime('%Y-%m-%d')}<br>"
+                f"End: {row['End_Timestamp'].strftime('%Y-%m-%d')}<br>"
                 f"Number of Streams: {row[size_column]}<br>"
                 "<extra></extra>"
             )
@@ -2116,29 +2127,31 @@ def create_timeline_plot(data, x_columns, y_column, size_column, title, x_label,
             type='date',
             showgrid=True,
             gridcolor='lightgrey',
+            tickformat='%Y-%m-%d',
+            range=[date_min, date_max]  # Set the visible range
         ),
         yaxis=dict(
             title=y_label,
             showgrid=True,
             gridcolor='lightgrey',
-            automargin=True,  # Automatically adjust margin for labels
+            automargin=True,
         ),
-        height=max(200, len(data) * 20),  # Reduced from 400 and 30 to 200 and 20
-        margin=dict(  # Add margins to control plot padding
-            l=150,    # left margin
-            r=20,     # right margin
-            t=30,     # top margin
-            b=20      # bottom margin
+        height=max(200, len(data) * 20),
+        margin=dict(
+            l=150,
+            r=20,
+            t=30,
+            b=20
         ),
         showlegend=False,
         plot_bgcolor="white",
         font_color="black",
         barmode='overlay',
-        bargap=0.2    # Reduced gap between bars
+        bargap=0.2
     )
     
-    # Make y-axis labels more compact
-    fig.update_yaxes(ticksuffix=' ')  # Add small space after labels
+    # Ensure y-axis labels have proper spacing
+    fig.update_yaxes(ticksuffix=' ')
     
     return fig
 
