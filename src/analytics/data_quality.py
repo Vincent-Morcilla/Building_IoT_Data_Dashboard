@@ -208,8 +208,17 @@ def _prepare_data_quality_df(sensor_df):
     # Skip flagging for groups with std = 0
     data_quality_df.loc[data_quality_df["Group_Std"] == 0, "FlaggedForRemoval"] = 0
 
-    for col in ["Group_Mean", "Group_Std", "Sensor_Mean", "Sensor_Max", "Sensor_Min"]:
-        data_quality_df[col] = data_quality_df[col].astype(float)
+    # Round float columns to 2 decimal places
+    float_columns = [
+        "Group_Mean",
+        "Group_Std",
+        "Sensor_Mean",
+        "Sensor_Max",
+        "Sensor_Min"
+    ]
+    
+    for col in float_columns:
+        data_quality_df[col] = data_quality_df[col].round(2)
 
     return data_quality_df
 
@@ -273,9 +282,21 @@ def _create_summary_table(data_quality_df):
         / summary_table["Total_Time_Delta_Seconds"]
     ).fillna(0)
 
-    # Format Total_Gap_Percent as percentage string
+    # Round float columns to 2 decimal places
+    float_columns = [
+        "Group_Mean",
+        "Group_Std",
+        "Total_Time_Delta_Seconds",
+        "Total_Gap_Size_Seconds"
+    ]
+    
+    for col in float_columns:
+        if col in summary_table.columns:
+            summary_table[col] = summary_table[col].round(2)
+
+    # Format Total_Gap_Percent as percentage string with 2 decimal places
     summary_table["Total_Gap_Percent"] = summary_table["Total_Gap_Percent"].apply(
-        lambda x: f"{x:.2%}"
+        lambda x: f"{float(x):.2%}"
     )
 
     # Format Time_Delta as string
