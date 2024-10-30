@@ -13,6 +13,19 @@ def pascal_to_words(text):
     return ' '.join(re.findall(r'[A-Za-z][^A-Z]*', text))
 
 
+def sanitise_filename(text):
+    """
+    Sanitise a string to be used as a filename by replacing invalid characters with underscores.
+    
+    Args:
+        text (str): The input string.
+    
+    Returns:
+        str: A sanitised string safe for use as a filename.
+    """
+    return re.sub(r'[^A-Za-z0-9_\-]', '_', text)
+
+
 def create_category_structure(analysis_list):
     """
     Create a dictionary structure for categories and subcategories from a list of analysis tuples.
@@ -55,3 +68,4 @@ def create_category_structure(analysis_list):
             subcategory_key_mapping[(display_main_cat, display_sub_cat)] = sub_cat
 
     return categories, category_key_mapping, subcategory_key_mapping
+

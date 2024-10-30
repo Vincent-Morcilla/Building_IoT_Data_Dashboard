@@ -39,4 +39,4 @@ def test_create_layout_for_category():
     - The length of the output list matches the expected number of components.
     """
     assert isinstance(layout_components, list), "Output should be a list."
-    assert len(layout_components) == 3, "Output should contain three components: title and two elements."
+    assert len(layout_components) == 5, "Output should contain five components: title, two elements, separator, and download button."

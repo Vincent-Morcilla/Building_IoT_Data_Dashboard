@@ -323,15 +323,25 @@ def register_plot_callbacks(app, plot_configs):
                             except ValueError as error:
                                 print(error)
                                 return [no_update] * len(outputs)
-                            data_frame = data_source_component.get('kwargs', {}).get('data_frame')
-                            if data_frame is None:
-                                data_frame = data_source_component.get('dataframe')
+                            
+                            # Retrieve data_frame based on whether component is `px` or `go`
+                            library = data_source_component.get('library')
+                            if library == 'px':
+                                data_frame = data_source_component.get('kwargs', {}).get('data_frame')
+                            elif library == 'go':
+                                data_frame = data_source_component.get('data_frame')
+                            else:
+                                data_frame = None
+                            
+                            # Check if data_frame exists after retrieval
                             if data_frame is None:
                                 print(f"Data source component '{data_source_id}' does not contain data.")
                                 return [no_update] * len(outputs)
+                            
                             update_kwargs = interaction.get('update_kwargs', {})
                             filters = interaction.get('filters', {})
                             data_processing = interaction.get('data_processing', {})
+                            
                             return action_func(
                                 data_frame,
                                 update_kwargs,

@@ -1,7 +1,7 @@
 import pytest
 import pandas as pd
 from dash import dcc
-from components.plot_generator import create_plot_component
+from components.plot_generator import create_plot_component, process_data_frame
 
 # Test DataFrame with a list column for data processing example
 df = pd.DataFrame({
@@ -18,8 +18,8 @@ component_config = {
     'kwargs': {
         'x': 'Category',
         'y': 'Value',
+        'data_frame': df,
     },
-    'data_frame': df,
     'data_processing': {
         'transformations': [
             {
@@ -39,10 +39,17 @@ component_config = {
 
 def test_create_plot_component_with_explode():
     """Test creating a plot component with explode transformation."""
+    # Process DataFrame explicitly in test to verify transformation
+    transformed_df = process_data_frame(df, component_config['data_processing'])
+    print(transformed_df)  # Temporary print statement to debug the transformation
+    assert len(transformed_df) == 4  # Check if DataFrame is exploded correctly
+
+    # Now create the plot component with the transformed DataFrame
     plot_component = create_plot_component(component_config)
     assert isinstance(plot_component, dcc.Graph)
     fig = plot_component.figure
-    # Verify that the data has been exploded correctly
+
+    # Verify that the data has been exploded correctly in the plot
     assert len(fig.data[0].x) == 4  # 2 categories * 2 values each after exploding
 
 # Test without data processing
@@ -63,8 +70,8 @@ def test_create_plot_component_without_data_processing():
             'x': 'Category',
             'y': 'Value',
             'color': 'Category',
+            'data_frame': df_simple,
         },
-        'data_frame': df_simple,
         'layout_kwargs': {
             'title': 'Test Bar Chart'
         },

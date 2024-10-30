@@ -1,6 +1,7 @@
 from dash import dcc, html, dash_table
 import plotly.express as px
 import plotly.graph_objects as go
+from components.download_button import create_global_download_button
 from helpers.data_processing import apply_transformation
 
 def create_plot_component(component):
@@ -30,23 +31,27 @@ def create_plot_component(component):
     kwargs = component.get('kwargs', {}).copy()
     layout_kwargs = component.get('layout_kwargs', {})
     css = component.get('css', {})
-    data_frame = component.get('data_frame')
     data_processing = component.get('data_processing', {})
+
+    # Retrieve data_frame based on the `library` type
+    if library == 'px':
+        data_frame = kwargs.get("data_frame")
+    elif library == 'go':
+        data_frame = component.get("data_frame")
+    else:
+        raise ValueError(f"Unsupported library '{library}'. Use 'px' or 'go'.")
 
     # Apply data processing if specified
     if data_processing:
-        data_frame = data_frame.copy()
-        transformations = data_processing.get('transformations', [])
-        for transformation in transformations:
-            data_frame = apply_transformation(data_frame, transformation, {})
+        data_frame = process_data_frame(data_frame, data_processing)
 
+    # Generate the figure based on library
     if library == 'px':
         fig = create_px_figure(func_name, data_frame, kwargs)
     elif library == 'go':
         fig = create_go_figure(data_frame, data_processing, component, kwargs)
-    else:
-        raise ValueError(f"Unsupported library '{library}'. Use 'px' or 'go'.")
 
+    # Update layout and return the figure as a Dash Graph
     fig.update_layout(**layout_kwargs)
     return dcc.Graph(figure=fig, id=component_id, style=css)
 
@@ -69,22 +74,57 @@ def create_px_figure(func_name, data_frame, kwargs):
 
 
 def create_go_figure(data_frame, data_processing, component, kwargs):
-    """Create a Plotly Graph Objects figure.
-
+    """Create a Plotly Graph Objects figure with flexibility for various trace types.
+    
     Args:
         data_frame (pd.DataFrame): The data frame to use.
         data_processing (dict): Instructions for processing the data frame.
-        component (dict): The component configuration.
-        kwargs (dict): Keyword arguments for the figure.
+        component (dict): The component configuration containing trace_type.
+        kwargs (dict): Keyword arguments for the trace.
 
     Returns:
-        plotly.graph_objects.Figure: The Plotly figure.
+        plotly.graph_objects.Figure: The Plotly figure with the appropriate trace.
     """
-    if data_frame is not None:
-        df_processed = process_data_frame(data_frame, data_processing)
-        traces = create_traces(df_processed, component)
-        return go.Figure(data=traces, **kwargs)
-    return go.Figure(**kwargs)
+    # Determine the trace type (e.g., Heatmap, Pie, etc.)
+    trace_type = component.get("trace_type")
+    if not trace_type:
+        raise ValueError("Trace type is required in 'component' to create the figure.")
+    
+    # Get the trace class dynamically from `go`
+    trace_class = getattr(go, trace_type, None)
+    if trace_class is None:
+        raise ValueError(f"Invalid trace type '{trace_type}' specified.")
+    
+    # Map columns from `df_processed` to trace properties using `data_mappings` if specified
+    df_processed = data_frame.copy()
+    updated_kwargs = kwargs.copy()
+
+    # If `data_mappings` is present, map columns to their corresponding trace properties
+    data_mappings = data_processing.get("data_mappings", {})
+    for key, column_name in data_mappings.items():
+        # Replace column name strings with actual data from the processed DataFrame
+        if column_name in df_processed.columns:
+            updated_kwargs[key] = df_processed[column_name]
+    
+    # For Heatmap or other traces requiring x, y, and z, map those columns directly
+    for axis in ['x', 'y', 'z']:
+        if axis in updated_kwargs and isinstance(updated_kwargs[axis], str):
+            column_name = updated_kwargs[axis]
+            if column_name in df_processed.columns:
+                updated_kwargs[axis] = df_processed[column_name]
+    
+    # Apply any additional trace-specific arguments from `trace_kwargs`
+    trace_kwargs = data_processing.get("trace_kwargs", {})
+    updated_kwargs.update(trace_kwargs)
+
+    # Create the trace using dynamically resolved kwargs
+    trace = trace_class(**updated_kwargs)
+
+    # Generate the figure and apply layout customizations
+    fig = go.Figure(data=[trace])
+    fig.update_layout(**component.get("layout_kwargs", {}))
+
+    return fig
 
 
 def process_data_frame(data_frame, data_processing):
@@ -132,6 +172,16 @@ def process_data_frame(data_frame, data_processing):
             return df
         df = df.groupby(groupby_columns).agg(**agg_dict).reset_index()
 
+    # Apply explode transformation
+    transformations = data_processing.get('transformations', [])
+    for transformation in transformations:
+        if transformation['type'] == 'explode':
+            for column in transformation['columns']:
+                if column in df.columns and isinstance(df[column].iloc[0], list):
+                    df = df.explode(column, ignore_index=True)
+                else:
+                    raise ValueError(f"Column '{column}' cannot be exploded. Ensure it contains lists.")
+    
     return df
 
 
@@ -299,32 +349,41 @@ def create_ui_component(component):
     return ui_element
 
 
-def create_layout_for_category(category_key, plot_config):
+from typing import Dict, List
+from dash import html
+
+def create_layout_for_category(category_key: str, plot_config: Dict) -> List:
     """
     Generate the layout for a category based on the provided plot configuration.
 
     Args:
         category_key (str): The key representing the category.
-        plot_config (dict): The configuration dictionary for the category's layout, containing:
-                            - title: the section title.
-                            - title_element: the HTML element for the title.
-                            - title_style: styling for the title.
-                            - components: list of components (plot, table, UI) to include in the layout.
+        plot_config (dict): Configuration dictionary for the category's layout, containing:
+            title (str): The section title.
+            title_element (str): The HTML element for the title (e.g., 'H2').
+            title_style (dict): Styling for the title, such as font size and alignment.
+            components (list): List of components (plot, table, UI) to include in the layout.
 
     Returns:
-        list: A list of Dash components for the category's layout.
+        list: A list of Dash components representing the category's layout, including:
+            - Section title component.
+            - Specified UI, plot, table, and separator components.
+            - A global download button for downloading data.
     """
     components = []
 
     # Create the section title
     title_text = plot_config.get("title", "")
     title_element = plot_config.get("title_element", "H2")
-    title_style = plot_config.get("title_style", {
-        "fontSize": "28px",
-        "textAlign": "center",
-        "marginTop": "20px",
-        "marginBottom": "20px",
-    })
+    title_style = plot_config.get(
+        "title_style",
+        {
+            "fontSize": "28px",
+            "textAlign": "center",
+            "marginTop": "20px",
+            "marginBottom": "20px",
+        },
+    )
     title_component = getattr(html, title_element, html.H2)(title_text, style=title_style)
     components.append(title_component)
 
@@ -342,6 +401,11 @@ def create_layout_for_category(category_key, plot_config):
             components.append(html.Hr(style=separator_style))
         else:
             raise ValueError(f"Unsupported component type '{comp_type}'")
+
+    components.append(html.Hr())
+
+    global_download_button = create_global_download_button()
+    components.append(global_download_button)
 
     return components
 

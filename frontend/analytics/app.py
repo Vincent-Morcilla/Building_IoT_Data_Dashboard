@@ -1,6 +1,7 @@
 from dash import Dash
 import dash_bootstrap_components as dbc
 from components.layout import create_layout
+from callbacks.download_button_callbacks import register_download_callbacks
 from callbacks.general_callbacks import register_general_callbacks
 from callbacks.plot_callbacks import register_plot_callbacks
 from helpers.helpers import create_category_structure
@@ -31,7 +32,8 @@ def create_app() -> Dash:
     # Set the app layout
     app.layout = create_layout(plot_configs, categories_structure)
 
-    # Register general and plot-related callbacks
+    # Register download, general and plot-related callbacks
+    register_download_callbacks(app, plot_configs)
     register_general_callbacks(app, categories_structure)
     register_plot_callbacks(app, plot_configs)
 

@@ -270,25 +270,25 @@ plot_configs = {
             # Plot Component: Heatmap using density_heatmap
             {
                 "type": "plot",
-                "library": "px",
-                "function": "density_heatmap",
+                "library": "go",
+                "function": "Heatmap",
                 "id": "consumption-heatmap",
-                "kwargs": {
-                    "data_frame": pd.DataFrame({
-                        "Month": pd.date_range(start="2021-01-01", periods=12, freq="MS").strftime('%b'),
-                        "Region": ["Region A"] * 6 + ["Region B"] * 6,
-                        "Usage": [500, 600, 550, 620, 640, 630, 580, 610, 590, 605, 615, 620],
+                "data_frame": pd.DataFrame({
+                        "Date": pd.date_range(start="2021-01-01", periods=12, freq="MS").strftime('%b'),
+                        "Sensor": ["Sensor A"] * 6 + ["Sensor B"] * 6,
+                        "Correlation": [-0.5, 0, 0.9, 0.8, 0.3, -0.4, -0.8, 0.5, -0.2, -0.1, 0.95, 0.13],
                     }),
-                    "x": "Month",
-                    "y": "Region",
-                    "z": "Usage",
-                    "histfunc": "avg",  # Can use 'avg' or 'sum'
-                    "color_continuous_scale": "Viridis",
+                "trace_type": "Heatmap",  # Specify the trace type
+                "kwargs": {
+                    "x": "Date",
+                    "y": "Sensor",
+                    "z": "Correlation",
+                    "colorscale": "Viridis",
                 },
                 "layout_kwargs": {
                     "title": {"text": "Water Usage Heatmap", "x": 0.5, "xanchor": "center"},
-                    "xaxis_title": "Month",
-                    "yaxis_title": "Region",
+                    "xaxis_title": "Date",
+                    "yaxis_title": "Sensor",
                     "font_color": "black",
                     "plot_bgcolor": "white",
                     "coloraxis_colorbar": {
@@ -362,7 +362,7 @@ plot_configs = {
                 "action": "update_plot_property",
                 "data_source": "consumption-heatmap",
                 "update_kwargs": {
-                    "color_continuous_scale": "selected_color_scale",
+                    "colorscale": "selected_color_scale",
                 },
             },
         ],
@@ -506,10 +506,10 @@ plot_configs = {
                 "function": "Figure",
                 "id": "inconsistent-classes-pie",
                 "data_frame": pd.DataFrame({
-                        "entity": ["Entity_1", "Entity_2", "Entity_3", "Entity_4"],
-                        "brick_class": ["Class_A", "Class_B", "Class_C", "Class_D"],
-                        "brick_class_in_mapping": ["Class_A", "Class_E", "Class_C", "Class_F"],
-                        "brick_class_is_consistent": [True, False, True, False],
+                        "entity": ["Entity_3", "Entity_4", "Entity_3", "Entity_4", "Entity_5"],
+                        "brick_class": ["Class_B", "Class_B", "Class_C", "Class_D", "Class_A"],
+                        "brick_class_in_mapping": ["Class_B", "Class_D", "Class_C", "Class_F", "Class_F"],
+                        "brick_class_is_consistent": [True, False, True, False, False],
                     }),
                 "trace_type": "Pie",
                 "data_processing": {
@@ -580,7 +580,6 @@ plot_configs = {
                         }
                     ],
                     "style_table": {
-                        "height": 400,
                         "overflowX": "auto",
                     },
                     "export_format":"csv",
@@ -591,112 +590,7 @@ plot_configs = {
             },
         ],
     },
-
-    # Surface Plot for Room Climate Weather Sensitivity
-    ("RoomClimate", "WeatherSensitivity"): {
-        "title": None,
-        "components": [
-            # Plot Component: Heatmap
-            {
-                "type": "plot",
-                "library": "px",
-                "function": "density_heatmap",
-                "id": "weather-sensitivity-heatmap",
-                "kwargs": {
-                    "data_frame": pd.DataFrame({
-                        "Day": pd.date_range(start="2021-01-01", periods=365, freq="D"),
-                        "Hour": np.tile(np.arange(0, 24), int(365/24) + 1)[:365],
-                        "Temperature": np.random.uniform(15, 35, size=365),
-                        "WeatherSensitivity": np.random.uniform(0, 1, size=365),
-                    }),
-                    "x": "Day",
-                    "y": "Hour",
-                    "z": "WeatherSensitivity",
-                    "histfunc": "avg",
-                    "color_continuous_scale": "Viridis",
-                },
-                "layout_kwargs": {
-                    "title": {"text": "Water Usage Heatmap", "x": 0.5, "xanchor": "center"},
-                    "xaxis_title": "Month",
-                    "yaxis_title": "Region",
-                    "font_color": "black",
-                    "plot_bgcolor": "white",
-                    "coloraxis_colorbar": {
-                        "title": "Usage",
-                        "orientation": "h",
-                        "yanchor": "top",
-                        "y": -0.4,
-                        "xanchor": "center",
-                        "x": 0.5,
-                        "title_side": "bottom",
-                    },
-                    "xaxis": {
-                        "mirror": True,
-                        "ticks": "outside",
-                        "showline": True,
-                        "linecolor": "black",
-                        "gridcolor": "lightgrey",
-                    },
-                    "yaxis": {
-                        "mirror": True,
-                        "ticks": "outside",
-                        "showline": True,
-                        "linecolor": "black",
-                        "gridcolor": "lightgrey",
-                    },
-                },
-                "css": {
-                    "padding": "10px",
-                },
-            },
-            # Separator
-            {
-                "type": "separator",
-                "style": {"margin": "20px 0"}
-            },
-            # UI Component: Color Scale Dropdown
-            {
-                "type": "UI",
-                "element": "Dropdown",
-                "id": "weather-heatmap-color-scale-dropdown",
-                "label": "Select Color Scale",
-                "label_position": "above",
-                "kwargs": {
-                    "options": [
-                        {"label": scale, "value": scale}
-                        for scale in px.colors.named_colorscales()
-                    ],
-                    "value": "Viridis",
-                    "clearable": False,
-                },
-                "css": {
-                    "padding": "10px",
-                },
-            },
-        ],
-        "interactions": [
-            {
-                "triggers": [
-                    {
-                        "component_id": "weather-heatmap-color-scale-dropdown",
-                        "component_property": "value",
-                        "input_key": "selected_color_scale",
-                    },
-                ],
-                "outputs": [
-                    {
-                        "component_id": "weather-sensitivity-heatmap",
-                        "component_property": "figure",
-                    },
-                ],
-                "action": "update_plot_property",
-                "data_source": "weather-sensitivity-heatmap",
-                "update_kwargs": {
-                    "color_continuous_scale": "selected_color_scale",
-                },
-            },
-        ],
-    },
+    
     ("RoomClimate", "Rooms"): {
         "title": None,
         "components": [
@@ -769,7 +663,6 @@ plot_configs = {
                         }
                     ],
                     "style_table": {
-                        "height": 400,
                         "overflowX": "auto",
                     },
                 },
