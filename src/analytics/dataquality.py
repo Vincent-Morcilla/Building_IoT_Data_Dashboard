@@ -444,13 +444,13 @@ def _get_data_quality_overview(data_quality_df):
     # Sort the data by start timestamp
     timeline_data = timeline_data.sort_values("Start_Timestamp")
 
-    # Print timestamp range for debugging
-    print(
-        "Timeline date range:",
-        timeline_data["Start_Timestamp"].min(),
-        "to",
-        timeline_data["End_Timestamp"].max(),
-    )
+    # # Print timestamp range for debugging
+    # print(
+    #     "Timeline date range:",
+    #     timeline_data["Start_Timestamp"].min(),
+    #     "to",
+    #     timeline_data["End_Timestamp"].max(),
+    # )
 
     sensor_timeline = {
         "title": "Sensor Time Coverage by Label",
