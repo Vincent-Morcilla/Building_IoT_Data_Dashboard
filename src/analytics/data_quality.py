@@ -31,7 +31,6 @@ def _preprocess_to_sensor_rows(db):
             label = db.get_label(stream_id)
 
             if df.empty:
-                print(f"Warning: Empty DataFrame for stream {stream_id}")
                 continue
 
             row = {
@@ -51,14 +50,10 @@ def _preprocess_to_sensor_rows(db):
                 "Sensor_Min": df["value"].min(),
             }
             sensor_data.append(row)
-        except Exception as e:
-            print(f"Error processing stream {stream_id}: {str(e)}")
+        except Exception:
+            continue
 
-    result_df = pd.DataFrame(sensor_data)
-    print(f"Preprocessed data shape: {result_df.shape}")
-    print(f"Columns: {result_df.columns}")
-    print(result_df.head())
-    return result_df
+    return pd.DataFrame(sensor_data)
 
 
 def _profile_groups(df):
@@ -385,7 +380,45 @@ def _get_data_quality_overview(data_quality_df):
         "dataframe": stats_df,
     }
 
-    return {"pie_charts": [outliers_pie, gaps_pie], "tables": [overall_stats]}
+    # Add histogram configuration
+    stream_histogram = {
+        "title": "Stream Counts by Label Type",
+        "type": "Histogram",  # Match existing plot type pattern
+        "x-axis": "Label",
+        "y-axis": "Stream_Count",  # Using the column name from summary table
+        "x-axis_label": "Label Type",
+        "y-axis_label": "Number of Streams",
+        "dataframe": data_quality_df.groupby("Label").size().reset_index(name="Stream_Count")
+    }
+
+    # Add timeline configuration
+    timeline_data = data_quality_df.groupby('Label').agg({
+        'Start_Timestamp': 'min',
+        'End_Timestamp': 'max',
+        'StreamID': 'count'
+    }).reset_index()
+
+    # Ensure timestamps are datetime
+    timeline_data['Start_Timestamp'] = pd.to_datetime(timeline_data['Start_Timestamp'])
+    timeline_data['End_Timestamp'] = pd.to_datetime(timeline_data['End_Timestamp'])
+
+    sensor_timeline = {
+        "title": "Sensor Time Coverage by Label",
+        "type": "Timeline",
+        "x-axis": ["Start_Timestamp", "End_Timestamp"],
+        "y-axis": "Label",
+        "size": "StreamID",  # This represents the number of streams for each label
+        "x-axis_label": "Time Range",
+        "y-axis_label": "Sensor Label",
+        "dataframe": timeline_data
+    }
+
+    return {
+        "pie_charts": [outliers_pie, gaps_pie],
+        "tables": [overall_stats],
+        "histogram": stream_histogram,
+        "timeline": sensor_timeline
+    }
 
 
 def _get_summary_analysis(summary_table_df):
@@ -526,7 +559,6 @@ def _save_data_quality_to_csv(data_quality_df, output_dir):
 
     output_file_path = os.path.join(output_dir, "data_quality_table.csv")
     data_quality_df.to_csv(output_file_path, index=False)
-    print(f"Data quality table saved to {output_file_path}")
 
 
 def _save_summary_table_to_csv(summary_table_df, output_dir):
@@ -542,7 +574,6 @@ def _save_summary_table_to_csv(summary_table_df, output_dir):
 
     output_file_path = os.path.join(output_dir, "summary_table.csv")
     summary_table_df.to_csv(output_file_path, index=False)
-    print(f"Summary table saved to {output_file_path}")
 
 
 def run(db: Any) -> Dict[str, Any]:
@@ -575,18 +606,13 @@ def run(db: Any) -> Dict[str, Any]:
     overview_data = _get_data_quality_overview(data_quality_df)
 
     return {
-        # "DataQuality_DataQualityTable": {
-        #     "Table": {
-        #         "title": "Data Quality Metrics",
-        #         "dataframe": data_quality_df,
-        #         "columns": list(data_quality_df.columns),
-        #     }
-        # },
         "DataQuality_Overview": {
-            "PieChartAndTable": {
+            "PieChartAndTableAndHistogram": {
                 "title": "Data Quality Overview",
                 "pie_charts": overview_data["pie_charts"],
                 "tables": overview_data["tables"],
+                "histogram": overview_data["histogram"],
+                "timeline": overview_data["timeline"]  
             }
         },
         "DataQuality_SummaryTable": {

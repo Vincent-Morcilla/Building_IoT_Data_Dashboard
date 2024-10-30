@@ -764,6 +764,8 @@ def create_tab_content(plot_type, plot_settings, plot_id, subcategory):
         return create_table_and_timeseries_tab(plot_settings, plot_id, subcategory)
     elif plot_type == "TimeseriesAndTable":
         return create_timeseries_and_table_tab(plot_settings, plot_id, subcategory)
+    elif plot_type == "PieChartAndTableAndHistogram":
+        return create_pie_chart_and_table_tab(plot_settings, plot_id, subcategory)
 
     else:
         # Handle other plot types
@@ -868,6 +870,10 @@ def create_plot(plot_type, plot_settings):
             y_columns=plot_settings["y-axis"],
             title=title,
         )
+
+    elif plot_type == "PieChartAndTableAndHistogram":
+        # Handle the new combined plot type
+        return create_pie_chart_and_table_tab(plot_settings)
 
     return None  # Return None if the plot type doesn't match expected ones
 
@@ -1012,14 +1018,12 @@ def update_box_and_whisker(selected_variables, input_id):
 
     # If no variables are selected, default to all available measurements
     if not selected_variables:
-        controls_column = (
-            plot_settings.get("UI", {}).get("dropdown", {}).get("controls", "")
-        )
+        controls_column = plot_settings.get("UI", {}).get("dropdown", {}).get("controls", "")
         if controls_column and controls_column in data.columns:
             selected_variables = data[controls_column].unique()
         else:
             selected_variables = []
-
+        
     # Filter data based on selected variables
     filtered_data = data[data["Measurement"].isin(selected_variables)]
 
@@ -1087,23 +1091,21 @@ def create_heatmap(
 # Function to dynamically create UI specifically for HeatMap plot types
 def create_ui_for_heatmap(plot_type, plot_id):
     if plot_type == "HeatMap":
-        return html.Div(
-            [
-                html.Label("Select Color Scale"),
-                dcc.Dropdown(
-                    id={
-                        "type": "heatmap-color-scale-dropdown",
-                        "index": plot_id,
-                    },  # Use pattern-matching ID
-                    options=[
-                        {"label": scale, "value": scale}
-                        for scale in px.colors.named_colorscales()
-                    ],
-                    value="Viridis",
-                    clearable=False,
-                ),
-            ]
-        )
+        return html.Div([
+            html.Label("Select Color Scale"),
+            dcc.Dropdown(
+                id={
+                    "type": "heatmap-color-scale-dropdown",
+                    "index": plot_id,
+                },  # Use pattern-matching ID
+                options=[
+                    {"label": scale, "value": scale}
+                    for scale in px.colors.named_colorscales()
+                ],
+                value="Viridis",
+                clearable=False,
+            ),
+        ])
     return None
 
 
@@ -1298,113 +1300,142 @@ def create_pie_chart(
 
 # Creates a Dash Tab containing pie charts and tables based on the provided settings.
 def create_pie_chart_and_table_tab(plot_settings, plot_id, subcategory):
-    # Extract pie charts and tables configurations
-    pie_charts = plot_settings.get("pie_charts", [])
-    tables = plot_settings.get("tables", [])
-
-    pie_content = []
-    # Create pie charts
-    for pie_chart in pie_charts:
-        data = pie_chart["dataframe"]
-        chart_title = pie_chart.get("title", "Pie Chart")
-        chart_labels = pie_chart.get("labels", "")
-        textinfo = pie_chart.get("textinfo", "percent+label")
-        filter_condition = pie_chart.get("filter", None)  # Get filter if present
-
-        # Apply filter if specified
-        if filter_condition:
-            try:
-                filtered_data = data.query(filter_condition)
-            except Exception as e:
-                print(
-                    f"Error applying filter '{filter_condition}' on dataframe '{plot_id}': {e}"
-                )
-                filtered_data = data  # Fallback to unfiltered data if there's an error
-        else:
-            filtered_data = data
-
-        # Create pie chart figure
-        pie_figure = create_pie_chart(
-            data=filtered_data,
-            labels_column=chart_labels,
-            values_column=None,  # 'values' is not used in create_pie_chart
-            title=chart_title,
-            textinfo=textinfo,
-        )
-
-        pie_content.append(
-            dbc.Col(
-                dcc.Graph(figure=pie_figure),
-                width=6,  # Adjust width as needed
-                className="mb-4",  # Add margin-bottom for spacing
-            )
-        )
-
-    table_content = []
-    # Create tables with applied filters
-    for table in tables:
-        data = table["dataframe"]
-        table_title = table.get("title", "Table")
-        columns = table.get("columns", [])
-        filter_condition = table.get("filter", None)
-        rows = table.get("rows", columns)
-
-        if filter_condition:
-            # Apply the filter using pandas query
-            try:
-                filtered_data = data.query(filter_condition)
-            except Exception as e:
-                print(
-                    f"Error applying filter '{filter_condition}' on dataframe '{plot_id}': {e}"
-                )
-                filtered_data = data  # Fallback to unfiltered data if there's an error
-        else:
-            filtered_data = data
-
-        # Select and rename columns as needed
-        selected_columns = rows
-        # Ensure all selected columns exist in the dataframe
-        existing_columns = [
-            col for col in selected_columns if col in filtered_data.columns
-        ]
-        if not existing_columns:
-            print(
-                f"No matching columns found for table '{table_title}' in dataframe '{plot_id}'."
-            )
-            continue  # Skip creating this table
-
-        display_data = filtered_data[existing_columns].rename(
-            columns=dict(
-                zip(selected_columns, columns)
-            )  # Rename to user-friendly names
-        )
-
-        # Create and append the table
-        table_content.append(
-            dbc.Col(
-                create_table(display_data, columns, table_title),
-                width=12,  # Full-width for each table
-                className="mb-4",  # Add margin-bottom for spacing
-            )
-        )
-
-    # Combine pie charts and tables into layout
+    """Creates a Dash Tab containing pie charts, tables, histogram, and timeline."""
     content = []
     content.append(html.H2(plot_settings["title"], className="text-center"))
-    if pie_content:
-        content.append(dbc.Row(pie_content, justify="center"))
-    if table_content:
-        content.append(html.Hr())  # Append the horizontal rule first
-        content.append(dbc.Row(table_content))
 
-    # Combine all elements into a single tab
+    # Create pie charts row if pie charts are present
+    if "pie_charts" in plot_settings:
+        pie_charts = []
+        for chart_config in plot_settings["pie_charts"]:
+            data = chart_config["dataframe"]
+            filter_condition = chart_config.get("filter", None)
+
+            if filter_condition:
+                # Apply the filter using pandas query
+                try:
+                    filtered_data = data.query(filter_condition)
+                except Exception as e:
+                    print(f"Error applying filter '{filter_condition}' on dataframe '{plot_id}': {e}")
+                    filtered_data = data
+            else:
+                filtered_data = data
+
+            # Create pie chart figure
+            figure = create_pie_chart(
+                data=filtered_data,
+                labels_column=chart_config["labels"],
+                values_column=chart_config.get("values", "count"),
+                title=chart_config["title"],
+                textinfo=chart_config.get("textinfo", "percent+label"),
+            )
+
+            pie_charts.append(
+                dbc.Col(
+                    dcc.Graph(figure=figure),
+                    width=6,  # Two charts per row
+                    className="mb-4",
+                )
+            )
+
+        # Add pie charts in rows of two
+        for i in range(0, len(pie_charts), 2):
+            row_charts = pie_charts[i : i + 2]
+            content.append(dbc.Row(row_charts, justify="center"))
+
+    # Add histogram if present
+    if "histogram" in plot_settings:
+        histogram_settings = plot_settings["histogram"]
+        figure = create_histogram_plot(
+            data=histogram_settings["dataframe"],
+            x_column=histogram_settings["x-axis"],
+            y_column=histogram_settings["y-axis"],
+            title=histogram_settings["title"],
+            x_label=histogram_settings["x-axis_label"],
+            y_label=histogram_settings["y-axis_label"]
+        )
+        content.append(html.Hr())
+        content.append(
+            dbc.Row(
+                dbc.Col(
+                    dcc.Graph(figure=figure),
+                    width=12
+                ),
+                justify="center",
+                className="mb-4"
+            )
+        )
+
+    # Add timeline if present
+    if "timeline" in plot_settings:
+        timeline_settings = plot_settings["timeline"]
+        figure = create_timeline_plot(
+            data=timeline_settings["dataframe"],
+            x_columns=timeline_settings["x-axis"],
+            y_column=timeline_settings["y-axis"],
+            size_column=timeline_settings["size"],
+            title=timeline_settings["title"],
+            x_label=timeline_settings["x-axis_label"],
+            y_label=timeline_settings["y-axis_label"]
+        )
+        content.append(html.Hr())
+        content.append(
+            dbc.Row(
+                dbc.Col(
+                    dcc.Graph(figure=figure),
+                    width=12
+                ),
+                justify="center",
+                className="mb-4"
+            )
+        )
+
+    # Add tables if present
+    if "tables" in plot_settings:
+        content.append(html.Hr())  # Add separator between charts and tables
+        for table_config in plot_settings["tables"]:
+            data = table_config["dataframe"]
+            table_title = table_config.get("title", "Table")
+            columns = table_config.get("columns", [])
+            filter_condition = table_config.get("filter", None)
+            rows = table_config.get("rows", columns)
+
+            if filter_condition:
+                try:
+                    filtered_data = data.query(filter_condition)
+                except Exception as e:
+                    print(f"Error applying filter '{filter_condition}' on dataframe '{plot_id}': {e}")
+                    filtered_data = data
+            else:
+                filtered_data = data
+
+            selected_columns = rows
+            existing_columns = [col for col in selected_columns if col in filtered_data.columns]
+            if not existing_columns:
+                print(f"No matching columns found for table '{table_title}' in dataframe '{plot_id}'.")
+                continue
+
+            display_data = filtered_data[existing_columns].rename(
+                columns=dict(zip(selected_columns, columns))
+            )
+
+            content.append(
+                dbc.Col(
+                    create_table(
+                        display_data,
+                        columns,
+                        table_title,
+                    ),
+                    width=12,
+                    className="mb-4",
+                )
+            )
+
     return dbc.Tab(
         dbc.Container(content, fluid=True, className="py-4"),
         label=subcategory,
         tab_id=plot_id,
     )
-
-
 def create_table_tab(plot_settings, plot_id, subcategory):
     """Creates a Dash Tab containing just a table."""
     content = []
@@ -1692,6 +1723,7 @@ def update_other_graph(selected_rows):
     return fig
 
 
+
 # -----------------------------  SUNBURST CHART  ----------------------------- #
 
 
@@ -1854,6 +1886,7 @@ def create_surface_plot(X, Y, Z, color_scale, title, x_label, y_label, z_label):
     return fig
 
 
+
 # Function to dynamically create UI specifically for Surface plot types
 def create_ui_for_surface_plot(plot_type, plot_id):
     if plot_type == "SurfacePlot":
@@ -2005,6 +2038,109 @@ def create_table(
         # style={"height": 400, "overflowY": "scroll"},
     )
 
+
+# Histogram plot
+def create_histogram_plot(data, x_column, y_column, title, x_label, y_label):
+    """Create a histogram figure."""
+    fig = px.bar(
+        data,
+        x=x_column,
+        y=y_column,
+        title=title,
+        height=700
+
+    )
+    
+    fig.update_layout(
+        title={"text": title, "x": 0.5, "xanchor": "center"},
+        xaxis_title=x_label,
+        yaxis_title=y_label,
+        font_color="black",
+        plot_bgcolor="white",
+        bargap=0.5,  # Adjust space between bars (0-1, larger = skinnier bars)
+    )
+    
+    fig.update_traces(
+        marker_color="#3c9639",
+        width=0.6,  # Adjust bar width (0-1, smaller = skinnier bars)
+    )
+    
+    fig.update_xaxes(
+        mirror=True,
+        ticks="outside",
+        showline=True,
+        linecolor="black",
+        gridcolor="lightgrey",
+        tickangle=45
+    )
+    fig.update_yaxes(
+        mirror=True,
+        ticks="outside",
+        showline=True,
+        linecolor="black",
+        gridcolor="lightgrey"
+    )
+    
+    return fig
+
+# Timeline plot/Gantt chart
+
+def create_timeline_plot(data, x_columns, y_column, size_column, title, x_label, y_label):
+    """Create a timeline visualization showing sensor coverage."""
+    fig = go.Figure()
+    
+    for idx, row in data.iterrows():
+        fig.add_trace(go.Bar(
+            x=[row['End_Timestamp']],
+            y=[row[y_column]],
+            orientation='h',
+            base=row['Start_Timestamp'],
+            marker=dict(
+                color='#3c9639',
+                opacity=0.7,
+            ),
+            width=0.3,  # Reduced from 0.8 to 0.3 for narrower bars
+            hovertemplate=(
+                f"<b>{row[y_column]}</b><br>"
+                f"Start: {row['Start_Timestamp']}<br>"
+                f"End: {row['End_Timestamp']}<br>"
+                f"Number of Streams: {row[size_column]}<br>"
+                "<extra></extra>"
+            )
+        ))
+    
+    fig.update_layout(
+        title={"text": title, "x": 0.5, "xanchor": "center"},
+        xaxis=dict(
+            title=x_label,
+            type='date',
+            showgrid=True,
+            gridcolor='lightgrey',
+        ),
+        yaxis=dict(
+            title=y_label,
+            showgrid=True,
+            gridcolor='lightgrey',
+            automargin=True,  # Automatically adjust margin for labels
+        ),
+        height=max(200, len(data) * 20),  # Reduced from 400 and 30 to 200 and 20
+        margin=dict(  # Add margins to control plot padding
+            l=150,    # left margin
+            r=20,     # right margin
+            t=30,     # top margin
+            b=20      # bottom margin
+        ),
+        showlegend=False,
+        plot_bgcolor="white",
+        font_color="black",
+        barmode='overlay',
+        bargap=0.2    # Reduced gap between bars
+    )
+    
+    # Make y-axis labels more compact
+    fig.update_yaxes(ticksuffix=' ')  # Add small space after labels
+    
+    return fig
 
 ################################################################################
 #                                     MAIN                                     #
