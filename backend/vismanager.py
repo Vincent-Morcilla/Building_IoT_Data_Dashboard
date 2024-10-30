@@ -3,8 +3,6 @@ warnings.filterwarnings('ignore')
 
 import rdflib
 import brickschema
-import plotly.express as px
-import plotly.io as pio
 
 import visualisations.roomtemp as roomtemp
 import visualisations.energyusage as energyusage
@@ -16,10 +14,6 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 from collections import Counter
-from rdflib import Graph, Namespace, RDF, URIRef
-from collections import deque
-
-BRICK = Namespace("https://brickschema.org/schema/Brick#")
 
 class VisManager:
     def __init__(self, db):
@@ -30,14 +24,7 @@ class VisManager:
 
         # Altered model (for Tim)
         building_tim_ttl_file = '../datasets/bts_site_b_train/Site_B_tim.ttl'
-       
-        # Load the Brick ontology into a separate graph
-        self.brick_ontology = rdflib.Graph()
-        self.brick_ontology.parse("../datasets/brick_ontology_file/Brick_v1.2.1.ttl", format="turtle")
-
-        # Define categories for different entity types (using the ontology)
-        self.categories = self.define_categories()
-
+        
         # Provided graph (for Bassel)
         self.g = rdflib.Graph()
         self.g.parse(building_ttl_file)
@@ -66,9 +53,6 @@ class VisManager:
         self.summary_table = None
         self.perform_data_quality_analysis()
 
-        # Prepare entity data for sunburst chart
-        self.df_entities_sorted = self.prepare_entity_data()
-
     def get_rooms_with_temp(self):
         return self.room_temp.get_rooms_with_temp()
     
@@ -92,7 +76,6 @@ class VisManager:
 
     def plot_sensor_data_grouped_by_meter(self, df_with_sensor_data, plot_title):
         return self.utilities_usage.plot_sensor_data_grouped_by_meter(df_with_sensor_data, plot_title)
-
     
     def get_temperature_meters(self, meter_type, sensor_type):
         return self.temperature_monitor.get_temperature(meter_type, sensor_type)
@@ -111,7 +94,7 @@ class VisManager:
         gap_analysis_results = self.analyse_sensor_gaps(self.sensor_df)
         self.sensor_df = pd.concat([self.sensor_df, gap_analysis_results], axis=1)
         self.calculate_group_gap_percentages()
-        self.create_summary_table()
+        # self.create_sumary_table()
 
     def prepare_data_for_preprocessing(self):
         prepared_data = {}
@@ -284,22 +267,6 @@ class VisManager:
 
         return pd.DataFrame(results)
 
-    def get_formatted_sensor_df(self):
-        """Get the first 15 rows of the sensor_df formatted like the summary table."""
-        if self.sensor_df is None:
-            print("sensor_df is not initialized yet.")
-            return None
-        
-        # Format numbers in sensor_df just like the summary table
-        sensor_df_formatted = self.sensor_df.copy()
-        for column in sensor_df_formatted.columns:
-            if sensor_df_formatted[column].dtype in ['int64', 'float64']:
-                sensor_df_formatted[column] = sensor_df_formatted[column].apply(self.format_number)
-        
-        # Return the first 15 rows of the formatted dataframe
-        return sensor_df_formatted.head(15)
-
-
     def calculate_group_gap_percentages(self):
         if 'Gap_Percentage' not in self.sensor_df.columns:
             print("Warning: 'Gap_Percentage' column not found. Skipping group gap percentage calculation.")
@@ -322,8 +289,7 @@ class VisManager:
             'Missing': 'sum',
             'Zeros': 'sum',
             'FlaggedForRemoval': 'sum',
-            # 'Deduced_Granularity': lambda x: stats.mode(x)[0][0],
-            'Deduced_Granularity': lambda x: np.unique(x, return_counts=True)[0][np.argmax(np.unique(x, return_counts=True)[1])],
+            'Deduced_Granularity': lambda x: stats.mode(x)[0][0],
             'Small_Gap_Count': 'sum',
             'Medium_Gap_Count': 'sum',
             'Large_Gap_Count': 'sum',
@@ -362,164 +328,3 @@ class VisManager:
             if summary_table[column].dtype in ['int64', 'float64']:
                 summary_table[column] = summary_table[column].apply(self.format_number)
         return summary_table
-    
-
-    def simplify_identifier(self, identifier):
-        if identifier is None:
-            return None
-        if '#' in identifier:
-            return identifier.split('#')[-1]
-        elif '/' in identifier:
-            return identifier.split('/')[-1]
-        return identifier
-
-    def define_categories(self):
-        """Define entity categories using ontology subclasses."""
-        categories = {
-            'Sensor': list(self.get_all_subclasses(BRICK.Sensor)) + [
-                BRICK.b1a78aa6_d50d_4c0a_920e_5ff7019ab663_Sensor,
-                BRICK.Electrical_Energy_Sensor,
-                BRICK.Electrical_Power_Sensor
-            ],
-            'Point': list(self.get_all_subclasses(BRICK.Point)),
-            'Equipment': list(self.get_all_subclasses(BRICK.Equipment)) + [
-                BRICK.Electrical_Circuit,
-                BRICK.Electrical_Generation_Meter,
-                BRICK.PV_Array,
-                BRICK.Solar_Inverter
-            ],
-            'Location': list(self.get_all_subclasses(BRICK.Location)) + [
-                BRICK.Enclosed_space,
-                BRICK.Open_space,
-                BRICK.Shared_space,
-                BRICK.space,
-                BRICK.space_Kitchen
-            ],
-            'System': [BRICK.System, BRICK.Chilled_Water_System, BRICK.Hot_Water_System, BRICK.Domestic_Hot_Water_System],
-            'Other': [BRICK.Unit]
-        }
-        return categories
-
-    def get_all_subclasses(self, class_type):
-        """Get all subclasses of a Brick class type using the Brick ontology graph."""
-        subclasses = set()
-        for subclass in self.brick_ontology.transitive_subjects(rdflib.RDFS.subClassOf, class_type):
-            subclasses.add(subclass)
-        return subclasses
-
-    def get_category(self, entity_type):
-        """Categorize entity type based on the defined categories."""
-        entity_type_uri = URIRef(entity_type)
-        for category, types in self.categories.items():
-            if entity_type_uri in types:
-                return category
-        return 'Other'
-
-    def bfs_traverse_entities(self, graph, starting_entity, predicates, building_id):
-        visited = set()
-        queue = deque([(starting_entity, None, None, 0, None, 'parent-to-child', building_id)])
-        entities = []
-
-        while queue:
-            entity, parent_id, parent_type, level, predicate, direction, building_id = queue.popleft()
-
-            if entity in visited:
-                continue
-
-            visited.add(entity)
-            child_count = sum(1 for _ in graph.subjects(predicate=None, object=entity))
-            child_count += sum(1 for _ in graph.objects(subject=entity, predicate=None))
-
-            if parent_id:
-                parent_type = graph.value(parent_id, RDF.type)
-
-            entities.append({
-                'EntityID': str(entity),
-                'EntityType': str(graph.value(entity, RDF.type)),
-                'ParentID': str(parent_id) if parent_id else None,
-                'ParentType': str(parent_type) if parent_type else None,
-                'Predicate': str(predicate) if predicate else None,
-                'Direction': direction,
-                'BuildingID': building_id,
-                'Level': level,
-                'ChildCount': child_count
-            })
-
-            for pred in predicates:
-                for related_entity in graph.objects(entity, pred):
-                    if related_entity not in visited:
-                        queue.append((related_entity, entity, graph.value(entity, RDF.type), level + 1, pred, 'parent-to-child', building_id))
-
-                for related_entity in graph.subjects(pred, entity):
-                    if related_entity not in visited:
-                        queue.append((related_entity, entity, graph.value(entity, RDF.type), level + 1, pred, 'child-to-parent', building_id))
-
-        return entities
-
-    def find_all_related_entities_bfs(self, graph, starting_entities, predicates):
-        entities_data = []
-        for building in starting_entities:
-            building_id = str(building)
-            related_entities = self.bfs_traverse_entities(graph, building, predicates, building_id)
-            entities_data.extend(related_entities)
-        
-        return entities_data
-
-    def prepare_entity_data(self):
-        starting_entities = list(self.g.subjects(RDF.type, BRICK.Building))
-        predicates = [BRICK.hasPart, BRICK.isPartOf, BRICK.isLocationOf, BRICK.hasLocation, BRICK.hasPoint, BRICK.isPointOf, BRICK.feeds, BRICK.isFedBy]
-
-        entities_data = self.find_all_related_entities_bfs(self.g, starting_entities, predicates)
-
-        df_entities = pd.DataFrame(entities_data)
-        df_entities['Category'] = df_entities['EntityType'].apply(self.get_category)
-        
-        for col in ['EntityID', 'EntityType', 'ParentID', 'ParentType', 'Predicate', 'BuildingID']:
-            df_entities[col] = df_entities[col].apply(self.simplify_identifier)
-
-        return df_entities[['EntityID', 'EntityType', 'Category', 'ParentID', 'ParentType', 'Predicate', 'Direction', 'Level', 'BuildingID', 'ChildCount']]
-
-    def create_hierarchical_sunburst(self):
-        df_plot = self.df_entities_sorted.copy()
-
-        df_plot['CleanedEntityID'] = df_plot['EntityID'].apply(self.simplify_identifier)
-        df_plot['CleanedParentID'] = df_plot['ParentID'].apply(self.simplify_identifier)
-
-        df_plot['BuildingLabel'] = df_plot.apply(lambda x: f"Building ({x['BuildingID'][-8:]})", axis=1)
-        df_plot['ParentLabel'] = df_plot.apply(
-            lambda x: f"{x['EntityType']} ({x['CleanedParentID'][-8:]})" if x['CleanedParentID'] is not None else x['BuildingLabel'],
-            axis=1
-        )
-        df_plot['EntityLabel'] = df_plot.apply(lambda x: f"{x['EntityType']} ({x['CleanedEntityID'][-8:]})", axis=1)
-
-        df_plot['hover_text'] = df_plot.apply(lambda row:
-            f"Type: {row['EntityType']}<br>Category: {row['Category']}<br>Level: {row['Level']}<br>ID: {row['CleanedEntityID'][-8:]}", axis=1)
-
-        colour_map = {
-            'Location': '#FFB6C1', 'Equipment': '#FFD700', 'Sensor': '#87CEFA',
-            'Point': '#90EE90', 'System': '#DDA0DD', 'Other': '#FF69B4'
-        }
-
-        fig = px.sunburst(
-            df_plot,
-            ids='EntityID',
-            parents='ParentID',
-            names='EntityLabel',
-            color='Category',
-            color_discrete_map=colour_map,
-            hover_data=['hover_text'],
-            custom_data=['hover_text'],
-            title="Building Hierarchy Sunburst Chart",
-            height=1500,
-            width=1500
-        )
-
-        fig.update_traces(textinfo="label", hovertemplate="%{customdata[0]}<extra></extra>")
-        fig.update_layout(uniformtext=dict(minsize=8, mode='hide'), margin=dict(t=30, l=0, r=0, b=0), plot_bgcolor='#F0F0F0', paper_bgcolor='#F0F0F0')
-
-        return fig
-
-    def plot_building_hierarchy(self):
-        fig = self.create_hierarchical_sunburst()
-        fig.show()
-        pio.write_html(fig, file='location_sunburst.html', auto_open=True)

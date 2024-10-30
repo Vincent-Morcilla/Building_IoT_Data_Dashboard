@@ -11,7 +11,7 @@ class TemperatureMonitor:
         self.g = g
         
     def get_temperature(self, meter_type, sensor_type):
-        #Define the SPARQL query to retrieve electrical energy sensors grouped by equipment
+        #Define the SPARQL query to retrieve temperature sensors grouped by equipment
         query = f"""
         SELECT ?meter ?sensor ?stream_id
         WHERE {{
@@ -129,7 +129,7 @@ class TemperatureMonitor:
                 plt.plot(timestamps, values, label=f"Meter: {meter_identifier} ({static_unit})")
             
             # Set plot title and labels using the meter identifier
-            plt.title(f"Meter: {title}")
+            # plt.title(f"Meter: {title}")
             plt.xlabel("Timestamps")
             plt.ylabel(f"{title} ({static_unit})")  # Use static unit as the y-axis label
             

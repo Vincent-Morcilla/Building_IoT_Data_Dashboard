@@ -6,6 +6,16 @@
 @prefix senaps: <http://senaps.io/schema/1.0/senaps#> .
 @prefix unit: <http://qudt.org/vocab/unit/> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+
+<urn:p47d3cfb9_364c_4a1d_897a_e8627a1f7e16> a owl:Ontology ;
+    owl:imports <https://brickschema.org/schema/1.2/Brick#> .
+<urn:p930ebf50_b2ba_4493_aa4d_dbb4c39d5839> a owl:Ontology ;
+    owl:imports <https://brickschema.org/schema/1.2/Brick#> .
+<urn:p33f3e0c2_f2cd_471c_b5a0_4655c2bd4623> a owl:Ontology ;
+    owl:imports <https://brickschema.org/schema/1.2/Brick#> .
+<urn:p33f3e0c2_f2cd_471c_b5a0_4655c2bd4623> a owl:Ontology ;
+    owl:imports <https://brickschema.org/schema/1.2/Brick#> .
 
 p33f3e0c2_f2cd_471c_b5a0_4655c2bd4623:da5873de_e112_4f9b_9e0f_149bd1221894.8084c259_152b_4607_808b_0fd0a92973e2.d851e5bd_1766_4aae_a571_d5070bcc3493 a brick:Temperature_Setpoint ;
     senaps:stream_id "3dfa2bab_f8f2_485b_80e9_5afdeeac9dc4" ;
