@@ -565,8 +565,9 @@ def construct_layout():
     # Create main categories and subcategories from the dataframe keys
     categories = create_category_structure(plot_configs.keys())
 
+    # @tim: TODO: decide whether we need a home?!
     # Special case: Add "Home" as a top-level category without subcategories
-    categories["Home"] = []  # "Home" has no subcategories or associated data
+    # categories["Home"] = []  # "Home" has no subcategories or associated data
 
     # Generate the sidebar component
     sidebar = html.Div(
