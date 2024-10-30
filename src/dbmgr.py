@@ -57,7 +57,6 @@ class DBManager:
         self._mapper_path = Path(mapper_path)
         self._model_path = Path(model_path)
         self._schema_path = None if schema_path is None else Path(schema_path)
-
         if not self._data_zip_path.is_file():
             raise FileNotFoundError(f"Data zip file not found: {self._data_zip_path}")
 

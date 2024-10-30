@@ -12,6 +12,9 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
+
+from analytics.weather_sensitivity import WeatherSensitivity
+
 # FIXME: Remove this hackathon
 # Add my code snippets directory to the system path
 # sys.path.append(
@@ -119,6 +122,8 @@ dataframes = {
 # plot_configs = m.get_analyses()
 
 # Configuration dictionary defining UI components and plot settings for each dataframe
+
+
 sample_plot_configs = {
     "DataQuality_DataQuality": {
         "BoxAndWhisker": {
@@ -455,48 +460,48 @@ sample_plot_configs = {
             "dataframe": dataframes["Consumption_DataQuality"],
         }
     },
-    "Consumption_WeatherSensitivity": {
-        "Timeseries": {
-            "title": "Water Usage Over Time",
-            "x-axis": "Timestamp",
-            "y-axis": [
-                "Usage",
-                "Temperature",
-                "Pressure",
-            ],  # Multiple variables to plot
-            "x-axis_label": "Date",
-            "y-axis_label": "Values",
-            "UI": {
-                "datepicker": {
-                    "html.Label": "Select Date Range",
-                    "min_date_allowed": dataframes["Consumption_GeneralAnalysis"][
-                        "Timestamp"
-                    ]
-                    .min()
-                    .strftime("%Y-%m-%d"),
-                    "max_date_allowed": dataframes["Consumption_GeneralAnalysis"][
-                        "Timestamp"
-                    ]
-                    .max()
-                    .strftime("%Y-%m-%d"),
-                    "start_date": dataframes["Consumption_GeneralAnalysis"]["Timestamp"]
-                    .min()
-                    .strftime("%Y-%m-%d"),
-                    "end_date": dataframes["Consumption_GeneralAnalysis"]["Timestamp"]
-                    .max()
-                    .strftime("%Y-%m-%d"),
-                    "controls": "Timestamp",
-                },
-                "radioitem": {
-                    "html.Label": "Select Frequency",
-                    "options": [("Hourly", "h"), ("Daily", "D"), ("Monthly", "ME")],
-                    "controls": "Timestamp",
-                    "default_value": "D",
-                },
-            },
-            "dataframe": dataframes["Consumption_GeneralAnalysis"],
-        }
-    },
+    # "Consumption_WeatherSensitivity": {
+    #     "Timeseries": {
+    #         "title": "Water Usage Over Time",
+    #         "x-axis": "Timestamp",
+    #         "y-axis": [
+    #             "Usage",
+    #             "Temperature",
+    #             "Pressure",
+    #         ],  # Multiple variables to plot
+    #         "x-axis_label": "Date",
+    #         "y-axis_label": "Values",
+    #         "UI": {
+    #             "datepicker": {
+    #                 "html.Label": "Select Date Range",
+    #                 "min_date_allowed": dataframes["Consumption_GeneralAnalysis"][
+    #                     "Timestamp"
+    #                 ]
+    #                 .min()
+    #                 .strftime("%Y-%m-%d"),
+    #                 "max_date_allowed": dataframes["Consumption_GeneralAnalysis"][
+    #                     "Timestamp"
+    #                 ]
+    #                 .max()
+    #                 .strftime("%Y-%m-%d"),
+    #                 "start_date": dataframes["Consumption_GeneralAnalysis"]["Timestamp"]
+    #                 .min()
+    #                 .strftime("%Y-%m-%d"),
+    #                 "end_date": dataframes["Consumption_GeneralAnalysis"]["Timestamp"]
+    #                 .max()
+    #                 .strftime("%Y-%m-%d"),
+    #                 "controls": "Timestamp",
+    #             },
+    #             "radioitem": {
+    #                 "html.Label": "Select Frequency",
+    #                 "options": [("Hourly", "h"), ("Daily", "D"), ("Monthly", "ME")],
+    #                 "controls": "Timestamp",
+    #                 "default_value": "D",
+    #             },
+    #         },
+    #         "dataframe": dataframes["Consumption_GeneralAnalysis"],
+    #     }
+    # },
     # "Consumption_UsageAnalysis": {
     #     "HeatMap": {
     #         "title": "Water Usage Heat Map",
@@ -522,6 +527,10 @@ sample_plot_configs = {
     #     }
     # },
 }
+
+
+# sample_plot_configs |= data
+# print(sample_plot_configs)
 
 
 ################################################################################
@@ -2022,8 +2031,10 @@ if __name__ == "__main__":
 
     # Load the analytics manager
     am = analyticsmgr.AnalyticsManager(db)
-    plot_configs = am.run_analytics()
-    plot_configs |= sample_plot_configs
+    plot_configs = sample_plot_configs
+    plot_configs |= am.run_analytics()
 
+    # ws = WeatherSensitivity(db)
+    # sample_plot_configs = ws.get_weather_sensitivity_data()
     construct_layout()
     app.run_server(port=8050, debug=DEBUG)
