@@ -12,9 +12,6 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
-
-from analytics.weather_sensitivity import WeatherSensitivity
-
 # FIXME: Remove this hackathon
 # Add my code snippets directory to the system path
 # sys.path.append(

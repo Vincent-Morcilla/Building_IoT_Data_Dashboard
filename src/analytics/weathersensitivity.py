@@ -1,16 +1,7 @@
-import os
-import pickle
 import pandas as pd
-import matplotlib.pyplot as plt
-import numpy as np
-import seaborn as sns
 import warnings
 from scipy import stats
-from tqdm import tqdm
 
-import rdflib
-from rdflib import Graph
-from rdflib.namespace import BRICK
 
 electric_energy_query_str = """
 SELECT ?meter ?sensor ?stream_id ?phase_count ?phases ?unit ?power_complexity ?power_flow
