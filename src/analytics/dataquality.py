@@ -5,15 +5,13 @@ It includes functions for preprocessing sensor data, analyzing gaps,
 detecting outliers, and generating summary statistics and visualizations.
 """
 
-from collections import Counter
-import os
-from typing import Dict, Any
-
 import numpy as np
 import pandas as pd
 
+from dbmgr import DBManager  # only imported for type hinting
 
-def _preprocess_to_sensor_rows(db):
+
+def _preprocess_to_sensor_rows(db: DBManager):
     """
     Preprocess sensor data from the database into a DataFrame.
 
@@ -34,7 +32,7 @@ def _preprocess_to_sensor_rows(db):
                 continue
 
             row = {
-                "StreamID": stream_id,
+                "stream_id": stream_id,
                 "Label": label,
                 "Timestamps": df["time"],
                 "Values": df["value"].values,
@@ -46,8 +44,8 @@ def _preprocess_to_sensor_rows(db):
                 "Start_Timestamp": df["time"].min(),
                 "End_Timestamp": df["time"].max(),
                 "Sensor_Mean": df["value"].mean(),
-                "Sensor_Max": df["value"].max(),
                 "Sensor_Min": df["value"].min(),
+                "Sensor_Max": df["value"].max(),
             }
             sensor_data.append(row)
         except Exception:
@@ -159,7 +157,7 @@ def _prepare_data_quality_df(sensor_df):
         pd.DataFrame: Data quality metrics.
     """
     columns = [
-        "StreamID",
+        "stream_id",
         "Label",
         "Deduced_Granularity",
         "Value_Count",
@@ -175,8 +173,8 @@ def _prepare_data_quality_df(sensor_df):
         "Group_Mean",
         "Group_Std",
         "Sensor_Mean",
-        "Sensor_Max",
         "Sensor_Min",
+        "Sensor_Max",
         "Start_Timestamp",
         "End_Timestamp",
     ]
@@ -213,12 +211,14 @@ def _prepare_data_quality_df(sensor_df):
         "Group_Mean",
         "Group_Std",
         "Sensor_Mean",
-        "Sensor_Max",
         "Sensor_Min",
+        "Sensor_Max",
     ]
 
     for col in float_columns:
         data_quality_df[col] = data_quality_df[col].round(2)
+
+    data_quality_df.sort_values(["Label", "stream_id"], inplace=True)
 
     return data_quality_df
 
@@ -245,7 +245,7 @@ def _create_summary_table(data_quality_df):
         data_quality_df.groupby("Label")
         .agg(
             {
-                "StreamID": "count",
+                "stream_id": "count",
                 # "Deduced_Granularity": lambda x: stats.mode(x)[0][0],
                 "Start_Timestamp": "min",
                 "End_Timestamp": "max",
@@ -310,7 +310,7 @@ def _create_summary_table(data_quality_df):
 
     # Rename columns for clarity
     column_renames = {
-        "StreamID": "Stream_Count",
+        "stream_id": "Stream_Count",
         "Deduced_Granularity": "Common_Granularity",
         "Start_Timestamp": "Earliest_Timestamp",
         "End_Timestamp": "Latest_Timestamp",
@@ -423,7 +423,7 @@ def _get_data_quality_overview(data_quality_df):
     # Add timeline configuration
     timeline_data = (
         data_quality_df.groupby("Label")
-        .agg({"Start_Timestamp": "min", "End_Timestamp": "max", "StreamID": "count"})
+        .agg({"Start_Timestamp": "min", "End_Timestamp": "max", "stream_id": "count"})
         .reset_index()
     )
 
@@ -457,7 +457,7 @@ def _get_data_quality_overview(data_quality_df):
         "type": "Timeline",
         "x-axis": ["Start_Timestamp", "End_Timestamp"],
         "y-axis": "Label",
-        "size": "StreamID",
+        "size": "stream_id",
         "x-axis_label": "Time Range",
         "y-axis_label": "Sensor Label",
         "dataframe": timeline_data,
@@ -626,7 +626,7 @@ def _save_summary_table_to_csv(summary_table_df, output_dir):
     summary_table_df.to_csv(output_file_path, index=False)
 
 
-def run(db: Any) -> Dict[str, Any]:
+def run(db: DBManager) -> dict:
     """
     Run all analyses and return the results.
 
@@ -644,17 +644,17 @@ def run(db: Any) -> Dict[str, Any]:
     data_quality_df = _prepare_data_quality_df(df)
     summary_table_df = _create_summary_table(data_quality_df)
 
-    output_dir = os.path.join(os.getcwd(), "output")
+    # output_dir = os.path.join(os.getcwd(), "output")
 
-    # Save data quality table to CSV
-    _save_data_quality_to_csv(data_quality_df, output_dir)
+    # # Save data quality table to CSV
+    # _save_data_quality_to_csv(data_quality_df, output_dir)
 
-    # Save summary table to CSV
-    _save_summary_table_to_csv(summary_table_df, output_dir)
+    # # Save summary table to CSV
+    # _save_summary_table_to_csv(summary_table_df, output_dir)
 
     overview_data = _get_data_quality_overview(data_quality_df)
 
-    return {
+    config = {
         "DataQuality_Overview": {
             "PieChartAndTableAndHistogram": {
                 "title": "Data Quality Overview",
@@ -664,18 +664,50 @@ def run(db: Any) -> Dict[str, Any]:
                 "timeline": overview_data["timeline"],
             }
         },
-        "DataQuality_SummaryTable": {
+        "DataQuality_ByClass": {
             "Table": {
-                "title": "Data Quality Summary",
+                "title": "Data Quality by Stream Class",
                 "dataframe": summary_table_df,
                 "columns": list(summary_table_df.columns),
             }
         },
-        "DataQuality_DataQualityTable": {
-            "Table": {
-                "title": "Data Quality Metrics",
-                "dataframe": data_quality_df,
-                "columns": list(data_quality_df.columns),
+        "DataQuality_ByStream": {
+            "TimeseriesAndTable": {
+                "title": "Data Quality Metrics by Stream",
+                "table": {
+                    "title": "Data Quality Metrics",
+                    # "columns": list(data_quality_df.columns),
+                    "rows": list(data_quality_df.columns),
+                    "columns": [
+                        "Stream ID",
+                        "Brick Class",
+                        "Sample Rate",
+                        "Samples",
+                        "Outliers",
+                        "Missing",
+                        "Zeros",
+                        "Small Gaps",
+                        "Medium Gaps",
+                        "Large Gaps",
+                        "Total Gaps",
+                        "Gap Percentage",
+                        "Total Gap Size (s)",
+                        "Group Mean",
+                        "Group Std",
+                        "Sensor Mean",
+                        "Sensor Min",
+                        "Sensor Max",
+                        "Start Timestamp",
+                        "End Timestamp",
+                        "Outliers",
+                        "Time Delta",
+                        "Total Time (s)",
+                        "Flagged for Removal",
+                        "Has Outliers",
+                    ],
+                    "dataframe": data_quality_df,
+                },
+                "timeseries": [],
             }
         },
         # "DataQuality_SummaryAnalysis": {
@@ -687,13 +719,30 @@ def run(db: Any) -> Dict[str, Any]:
         # },
     }
 
+    for _, row in data_quality_df.iterrows():
+        stream_df = db.get_stream(row["stream_id"])
+        stream_df = stream_df.pivot(index="time", columns="brick_class", values="value")
+        stream_df = stream_df.resample("1h").mean()
+
+        stream_df["Date"] = stream_df.index
+        stream_type = row["Label"].replace("_", " ")
+
+        config["DataQuality_ByStream"]["TimeseriesAndTable"]["timeseries"].append(
+            {
+                "title": f"{stream_type} Timeseries Data",
+                "dataframe": stream_df,
+            }
+        )
+
+    return config
+
 
 if __name__ == "__main__":
 
-    DATA = "../../datasets/bts_site_b_train/train.zip"
-    MAPPER = "../../datasets/bts_site_b_train/mapper_TrainOnly.csv"
-    MODEL = "../../datasets/bts_site_b_train/Site_B.ttl"
-    SCHEMA = "../../datasets/bts_site_b_train/Brick_v1.2.1.ttl"
+    DATA = "../datasets/bts_site_b_train/train.zip"
+    MAPPER = "../datasets/bts_site_b_train/mapper_TrainOnly.csv"
+    MODEL = "../datasets/bts_site_b_train/Site_B.ttl"
+    SCHEMA = "../datasets/bts_site_b_train/Brick_v1.2.1.ttl"
 
     import sys
 

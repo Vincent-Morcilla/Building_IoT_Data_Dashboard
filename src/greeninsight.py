@@ -1702,8 +1702,7 @@ def update_other_graph(selected_rows):
         row_idx = 0  # Default to the first row if nothing is selected
 
     # @tim: FIXME: can we deduce this from the callback context?
-    # if
-    config = plot_configs["Streams_Streams"]["TimeseriesAndTable"]["timeseries"][
+    config = plot_configs["DataQuality_ByStream"]["TimeseriesAndTable"]["timeseries"][
         row_idx
     ]
     title = config.get("title", "Line Chart")
