@@ -38,7 +38,7 @@ class AnalyticsManager:
         sys.path.append(analytics_dir)
 
         # Iterate through files in the 'analytics' directory
-        for filename in os.listdir(analytics_dir):
+        for filename in sorted(os.listdir(analytics_dir)):
             # Check for .py files, excluding __init__.py
             if filename.endswith(".py") and filename != "__init__.py":
                 module_name = filename[:-3]  # Strip the .py extension
