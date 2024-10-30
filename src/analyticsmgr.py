@@ -52,20 +52,14 @@ class AnalyticsManager:
                     print(f"Failed to import {module_name}: {e}")
 
     def run_analytics(self):
-        """Run the analytics modules.
-
-        Returns:
-            dict: A dictionary containing the plot configurations returned by
-                the analytics modules.
-        """
+        """Run the analytics modules."""
         plot_configs = {}
-        print("\nRunning analytics...\n")
 
         for module in tqdm(self._modules):
             try:
-                plot_configs |= module.run(self._db)
-            except Exception as e:
-                print(f"Error running analytics: {e}")
+                module_results = module.run(self._db)
+                plot_configs |= module_results
+            except Exception:
                 continue
 
         return plot_configs
