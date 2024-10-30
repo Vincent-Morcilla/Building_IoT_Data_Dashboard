@@ -2204,8 +2204,9 @@ if __name__ == "__main__":
 
     # Load the analytics manager
     am = analyticsmgr.AnalyticsManager(db)
-    plot_configs = sample_plot_configs
-    plot_configs |= am.run_analytics()
+    # plot_configs = sample_plot_configs
+    # plot_configs |= am.run_analytics()
+    plot_configs = am.run_analytics()
 
     # ws = WeatherSensitivity(db)
     # sample_plot_configs = ws.get_weather_sensitivity_data()

@@ -214,9 +214,9 @@ def _prepare_data_quality_df(sensor_df):
         "Group_Std",
         "Sensor_Mean",
         "Sensor_Max",
-        "Sensor_Min"
+        "Sensor_Min",
     ]
-    
+
     for col in float_columns:
         data_quality_df[col] = data_quality_df[col].round(2)
 
@@ -234,7 +234,7 @@ def _create_summary_table(data_quality_df):
         pd.DataFrame: Summary table.
     """
     from collections import Counter
-    
+
     def sum_timedelta(x):
         if pd.api.types.is_timedelta64_dtype(x):
             return x.sum()
@@ -243,39 +243,45 @@ def _create_summary_table(data_quality_df):
 
     summary_table = (
         data_quality_df.groupby("Label")
-        .agg({
-            "StreamID": "count",
-            # "Deduced_Granularity": lambda x: stats.mode(x)[0][0],
-            "Start_Timestamp": "min",
-            "End_Timestamp": "max",
-            "Value_Count": "sum",
-            "Outlier_Count": "sum",
-            "Missing": "sum",
-            "Zeros": "sum",
-            "Small_Gap_Count": "sum",
-            "Medium_Gap_Count": "sum",
-            "Large_Gap_Count": "sum",
-            "Total_Gaps": "sum",
-            "Group_Mean": "first",
-            "Group_Std": "first",
-            "FlaggedForRemoval": "sum",
-            "Time_Delta": sum_timedelta,
-            "Total_Gap_Size_Seconds": "sum",
-            "Total_Time_Delta_Seconds": "sum",
-        })
+        .agg(
+            {
+                "StreamID": "count",
+                # "Deduced_Granularity": lambda x: stats.mode(x)[0][0],
+                "Start_Timestamp": "min",
+                "End_Timestamp": "max",
+                "Value_Count": "sum",
+                "Outlier_Count": "sum",
+                "Missing": "sum",
+                "Zeros": "sum",
+                "Small_Gap_Count": "sum",
+                "Medium_Gap_Count": "sum",
+                "Large_Gap_Count": "sum",
+                "Total_Gaps": "sum",
+                "Group_Mean": "first",
+                "Group_Std": "first",
+                "FlaggedForRemoval": "sum",
+                "Time_Delta": sum_timedelta,
+                "Total_Gap_Size_Seconds": "sum",
+                "Total_Time_Delta_Seconds": "sum",
+            }
+        )
         .reset_index()
     )
 
     granularity_by_label = {}
-    for label in data_quality_df['Label'].unique():
-        granularities = data_quality_df[data_quality_df['Label'] == label]['Deduced_Granularity']
+    for label in data_quality_df["Label"].unique():
+        granularities = data_quality_df[data_quality_df["Label"] == label][
+            "Deduced_Granularity"
+        ]
         counter = Counter(granularities)
         most_common = counter.most_common(1)[0][0] if counter else None
         granularity_by_label[label] = most_common
-    
+
     # Add granularity column to summary table
-    summary_table['Deduced_Granularity'] = summary_table['Label'].map(granularity_by_label)
-    
+    summary_table["Deduced_Granularity"] = summary_table["Label"].map(
+        granularity_by_label
+    )
+
     # Calculate Total_Gap_Percent
     summary_table["Total_Gap_Percent"] = (
         summary_table["Total_Gap_Size_Seconds"]
@@ -287,9 +293,9 @@ def _create_summary_table(data_quality_df):
         "Group_Mean",
         "Group_Std",
         "Total_Time_Delta_Seconds",
-        "Total_Gap_Size_Seconds"
+        "Total_Gap_Size_Seconds",
     ]
-    
+
     for col in float_columns:
         if col in summary_table.columns:
             summary_table[col] = summary_table[col].round(2)
@@ -409,32 +415,42 @@ def _get_data_quality_overview(data_quality_df):
         "y-axis": "Stream_Count",  # Using the column name from summary table
         "x-axis_label": "Label Type",
         "y-axis_label": "Number of Streams",
-        "dataframe": data_quality_df.groupby("Label").size().reset_index(name="Stream_Count")
+        "dataframe": data_quality_df.groupby("Label")
+        .size()
+        .reset_index(name="Stream_Count"),
     }
 
     # Add timeline configuration
-    timeline_data = data_quality_df.groupby('Label').agg({
-        'Start_Timestamp': 'min',
-        'End_Timestamp': 'max',
-        'StreamID': 'count'
-    }).reset_index()
+    timeline_data = (
+        data_quality_df.groupby("Label")
+        .agg({"Start_Timestamp": "min", "End_Timestamp": "max", "StreamID": "count"})
+        .reset_index()
+    )
 
     # Ensure timestamps are properly converted to datetime
-    timeline_data['Start_Timestamp'] = pd.to_datetime(timeline_data['Start_Timestamp'], utc=True)
-    timeline_data['End_Timestamp'] = pd.to_datetime(timeline_data['End_Timestamp'], utc=True)
-    
+    timeline_data["Start_Timestamp"] = pd.to_datetime(
+        timeline_data["Start_Timestamp"], utc=True
+    )
+    timeline_data["End_Timestamp"] = pd.to_datetime(
+        timeline_data["End_Timestamp"], utc=True
+    )
+
     # Convert to local timezone and remove timezone info to avoid mixing aware/naive datetimes
-    timeline_data['Start_Timestamp'] = timeline_data['Start_Timestamp'].dt.tz_localize(None)
-    timeline_data['End_Timestamp'] = timeline_data['End_Timestamp'].dt.tz_localize(None)
-    
+    timeline_data["Start_Timestamp"] = timeline_data["Start_Timestamp"].dt.tz_localize(
+        None
+    )
+    timeline_data["End_Timestamp"] = timeline_data["End_Timestamp"].dt.tz_localize(None)
+
     # Sort the data by start timestamp
-    timeline_data = timeline_data.sort_values('Start_Timestamp')
+    timeline_data = timeline_data.sort_values("Start_Timestamp")
 
     # Print timestamp range for debugging
-    print("Timeline date range:", 
-          timeline_data['Start_Timestamp'].min(),
-          "to",
-          timeline_data['End_Timestamp'].max())
+    print(
+        "Timeline date range:",
+        timeline_data["Start_Timestamp"].min(),
+        "to",
+        timeline_data["End_Timestamp"].max(),
+    )
 
     sensor_timeline = {
         "title": "Sensor Time Coverage by Label",
@@ -444,14 +460,14 @@ def _get_data_quality_overview(data_quality_df):
         "size": "StreamID",
         "x-axis_label": "Time Range",
         "y-axis_label": "Sensor Label",
-        "dataframe": timeline_data
+        "dataframe": timeline_data,
     }
 
     return {
         "pie_charts": [outliers_pie, gaps_pie],
         "tables": [overall_stats],
         "histogram": stream_histogram,
-        "timeline": sensor_timeline
+        "timeline": sensor_timeline,
     }
 
 
@@ -620,7 +636,6 @@ def run(db: Any) -> Dict[str, Any]:
     Returns:
         Dict[str, Any]: Analysis results.
     """
-    print("Running Data Quality Analysis...")
     df = _preprocess_to_sensor_rows(db)
     df = _profile_groups(df)
     gap_analysis_results = _analyse_sensor_gaps(df)
@@ -646,7 +661,7 @@ def run(db: Any) -> Dict[str, Any]:
                 "pie_charts": overview_data["pie_charts"],
                 "tables": overview_data["tables"],
                 "histogram": overview_data["histogram"],
-                "timeline": overview_data["timeline"]  
+                "timeline": overview_data["timeline"],
             }
         },
         "DataQuality_SummaryTable": {
