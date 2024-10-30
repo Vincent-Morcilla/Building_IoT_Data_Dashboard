@@ -30,7 +30,6 @@ plot_configs = {
     ("DataQuality", "ConsumptionDataQuality"): {
         "title": None,
         "components": [
-            # Plot Component: Box and Whisker Plot
             {
                 "type": "plot",
                 "library": "px",
@@ -147,7 +146,6 @@ plot_configs = {
     ("Consumption", "GeneralAnalysis"): {
         "title": None,
         "components": [
-            # Plot Component: Line Plot
             {
                 "type": "plot",
                 "library": "px",
@@ -267,7 +265,6 @@ plot_configs = {
     ("Consumption", "UsageAnalysis"): {
         "title": None,
         "components": [
-            # Plot Component: Heatmap using density_heatmap
             {
                 "type": "plot",
                 "library": "go",
@@ -372,7 +369,6 @@ plot_configs = {
     ("BuildingStructure", "BuildingStructure"): {
         "title": None,
         "components": [
-            # Plot Component: Sunburst Chart
             {
                 "type": "plot",
                 "library": "px",
@@ -590,11 +586,10 @@ plot_configs = {
             },
         ],
     },
-    
+
     ("RoomClimate", "Rooms"): {
         "title": None,
         "components": [
-            # Plot Component: Line Plot
             {
                 "type": "plot",
                 "library": "px",

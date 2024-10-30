@@ -1,8 +1,8 @@
 from dash import dcc, html, dash_table
 import plotly.express as px
 import plotly.graph_objects as go
+from typing import Dict, List
 from components.download_button import create_global_download_button
-from helpers.data_processing import apply_transformation
 
 def create_plot_component(component):
     """Create a Plotly-based plot component for the Dash app.
@@ -348,9 +348,6 @@ def create_ui_component(component):
 
     return ui_element
 
-
-from typing import Dict, List
-from dash import html
 
 def create_layout_for_category(category_key: str, plot_config: Dict) -> List:
     """

@@ -1,11 +1,14 @@
+/* Importing Google Fonts - Roboto */
 @import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap");
 
+/* Body styling */
 body {
   font-family: "Roboto", sans-serif;
   margin: 0;
   padding: 0;
 }
 
+/* Sidebar Styling */
 .sidebar {
   position: fixed;
   top: 0;
@@ -19,6 +22,7 @@ body {
   overflow-y: auto;
 }
 
+/* Headings in Sidebar */
 .sidebar .display-4 {
   font-size: 1.5rem;
   color: #3c9639;
@@ -29,16 +33,19 @@ body {
   color: #3c9639;
 }
 
+/* Horizontal Rule in Sidebar */
 .sidebar hr {
   border-color: black;
 }
 
+/* Sidebar Logo Container */
 .sidebar-logo-container {
   display: inline-block;
   padding: 0;
   background-color: transparent !important;
 }
 
+/* Sidebar Logo Button */
 .sidebar-logo {
   background: none;
   border: none;
@@ -49,6 +56,7 @@ body {
   transition: transform 0.3s ease-in-out;
 }
 
+/* Sidebar Logo Hover and Active States */
 .sidebar-logo:hover {
   transform: scale(1.1) translateX(10px);
 }
@@ -57,6 +65,7 @@ body {
   transform: scale(0.9) translateX(-10px);
 }
 
+/* Logo Button */
 #logo-button {
   background: none;
   border: none;
@@ -65,26 +74,25 @@ body {
   cursor: pointer;
 }
 
+/* Sidebar Navigation Links */
 .sidebar .nav-link {
   text-decoration: none;
   color: black;
   font-size: 1.5rem;
 }
 
-.sidebar .nav-link.active {
-  background-color: #3c9639 !important;
-  color: white !important;
-}
-
+.sidebar .nav-link.active,
 .sidebar .nav-link:hover {
   background-color: #3c9639 !important;
   color: white !important;
 }
 
+/* Active State for Sidebar Nav Link */
 .sidebar .nav-link:active {
   transform: scale(0.95);
 }
 
+/* Logo Link */
 .logo-link {
   text-decoration: none;
 }
@@ -93,6 +101,7 @@ body {
   background-color: transparent !important;
 }
 
+/* Main Content Area */
 .content {
   margin-left: 18rem;
   margin-right: 2rem;
@@ -101,6 +110,7 @@ body {
   color: black;
 }
 
+/* General Styling */
 .p-3.bg-light.rounded-3 {
   padding: 1rem;
   background-color: #f8f9fa;
@@ -126,25 +136,6 @@ body {
 
 .tab-content {
   padding: 1rem;
-}
-
-/* Responsive Plot Titles */
-@media (max-width: 576px) {
-  .plotly-graph .title {
-    font-size: 16px !important;
-  }
-}
-
-@media (min-width: 577px) and (max-width: 768px) {
-  .plotly-graph .title {
-    font-size: 20px !important;
-  }
-}
-
-@media (min-width: 769px) {
-  .plotly-graph .title {
-    font-size: 24px !important;
-  }
 }
 
 /* RadioItems and Checkbox Styling */
@@ -259,7 +250,7 @@ input[type="checkbox"] {
   border: 1px solid #3c9639;
 }
 
-/* Homepage */
+/* Homepage Content */
 .home-page-content {
   display: flex;
   flex-direction: column;
@@ -291,8 +282,7 @@ input[type="checkbox"] {
   }
 
   .content {
-    margin-left: 0;
-    margin-right: 0;
+    margin: 0;
     padding: 1rem;
   }
 
@@ -329,30 +319,25 @@ input[type="checkbox"] {
     transform: none;
     margin-left: 65px;
   }
+
+  .plotly-graph .title {
+    font-size: 16px !important;
+  }
 }
 
-/* Move the sort arrows to the right of the column headers */
+@media (min-width: 577px) and (max-width: 768px) {
+  .plotly-graph .title {
+    font-size: 20px !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .plotly-graph .title {
+    font-size: 24px !important;
+  }
+}
+
+/* Table Header Sorting Icon Alignment */
 .column-actions {
   order: 9;
 }
-
-/* Change the sort arrows (src: https://stackoverflow.com/questions/44851964/how-to-change-the-color-of-the-sorting-arrows-in-datatables) */
-/* table.dataTable thead .sorting_asc {
-  background-image: url("/YourImageFolder/sort_asc.png")
-}
-
-table.dataTable thead .sorting_desc {
-  background-image: url("/YourImageFolder/sort_desc.png")
-}
-
-table.dataTable thead .sorting {
-  background-image: url("/YourImageFolder/sort_both.png")
-}
-
-table.dataTable thead .sorting_asc_disabled {
-  background-image: url("/YourImageFolder/sort_asc_disabled.png")
-}
-
-table.dataTable thead .sorting_desc_disabled {
-  background-image: url("/YourImageFolder/sort_desc_disabled.png")
-} */
