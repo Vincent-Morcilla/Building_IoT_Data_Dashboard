@@ -74,11 +74,14 @@ class DBManager:
 
         if self._schema_path is not None:
             self._g["schema"] = brickschema.Graph().load_file(self._schema_path)
+            self._g["schema+model"] = brickschema.Graph().load_file(self._schema_path)
             self._g["expanded_model"] = brickschema.Graph().load_file(self._schema_path)
         else:
             self._g["schema"] = brickschema.Graph(load_brick_nightly=True)
+            self._g["schema+model"] = brickschema.Graph(load_brick_nightly=True)
             self._g["expanded_model"] = brickschema.Graph(load_brick_nightly=True)
 
+        self._g["schema+model"].load_file(self._model_path)
         self._g["expanded_model"].load_file(self._model_path)
         self._g["expanded_model"].expand(profile="rdfs")
 
@@ -339,7 +342,7 @@ class DBManager:
         Raises:
             KeyError: If the stream ID is not found in the mapper.
         """
-        label = self._mapper.loc[self._mapper['StreamID'] == stream_id, 'strBrickLabel']
+        label = self._mapper.loc[self._mapper["StreamID"] == stream_id, "strBrickLabel"]
         if label.empty:
             raise KeyError(f"Stream ID {stream_id} not found in the mapper")
         return label.iloc[0]
