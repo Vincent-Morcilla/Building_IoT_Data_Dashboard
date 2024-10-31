@@ -781,13 +781,14 @@ def create_tab_content(plot_type, plot_settings, plot_id, subcategory):
             return None  # Skip if the plot figure couldn't be created
 
         # Determine which UI components to add based on plot type
-        if plot_type == "HeatMap":
-            ui = create_ui_for_heatmap(plot_type, plot_id)
-            graph_type = "heatmap-graph"
-        elif plot_type == "SunburstChart":
-            ui = create_ui_for_sunburst(plot_type, plot_id)
-            graph_type = "sunburst-graph"
-        elif plot_type == "SurfacePlot":
+        # if plot_type == "HeatMap":
+        #     ui = create_ui_for_heatmap(plot_type, plot_id)
+        #     graph_type = "heatmap-graph"
+        # elif plot_type == "SunburstChart":
+        #     ui = create_ui_for_sunburst(plot_type, plot_id)
+        #     graph_type = "sunburst-graph"
+        # el
+        if plot_type == "SurfacePlot":
             ui = create_ui_for_surface_plot(plot_type, plot_id)
             graph_type = "surface-graph"
         elif plot_type == "BoxAndWhisker":
@@ -836,8 +837,8 @@ def create_plot(plot_type, plot_settings):
         # Create a sunburst chart figure
         return create_sunburst_chart(
             data,
-            label_column="labels",        # Using labels as the entity names
-            parent_column="parents",       # Using parents as the hierarchical structure
+            label_column="labels",  # Using labels as the entity names
+            parent_column="parents",  # Using parents as the hierarchical structure
             title=title,
             color_scale="Viridis",  # Default color scale
         )
@@ -1798,30 +1799,30 @@ def create_ui_for_sunburst(plot_type, plot_id):
     return None
 
 
-# # Callback to update SunburstChart figures based on selected color scale
-# @app.callback(
-#     Output({"type": "sunburst-graph", "index": MATCH}, "figure"),
-#     Input({"type": "sunburst-color-scale-dropdown", "index": MATCH}, "value"),
-#     State({"type": "sunburst-color-scale-dropdown", "index": MATCH}, "id"),
-#     prevent_initial_call=True,
-# )
-# def update_sunburst(selected_color_scale, input_id):
-#     plot_id = input_id["index"]  # Extract the unique plot identifier
-#     category_key, plot_type = plot_id.rsplit(
-#         "-", 1
-#     )  # Split to get dataframe key and plot type
-#     # data = dataframes[category_key]  # Retrieve the relevant dataframe
-#     plot_settings = plot_configs[category_key][plot_type]  # Get plot settings
+# Callback to update SunburstChart figures based on selected color scale
+@app.callback(
+    Output({"type": "sunburst-graph", "index": MATCH}, "figure"),
+    Input({"type": "sunburst-color-scale-dropdown", "index": MATCH}, "value"),
+    State({"type": "sunburst-color-scale-dropdown", "index": MATCH}, "id"),
+    prevent_initial_call=True,
+)
+def update_sunburst(selected_color_scale, input_id):
+    plot_id = input_id["index"]  # Extract the unique plot identifier
+    category_key, plot_type = plot_id.rsplit(
+        "-", 1
+    )  # Split to get dataframe key and plot type
+    # data = dataframes[category_key]  # Retrieve the relevant dataframe
+    plot_settings = plot_configs[category_key][plot_type]  # Get plot settings
 
-#     updated_figure = create_sunburst_chart(
-#         data=data,
-#         label_column="labels",
-#         parent_column="parents",
-#         title=plot_settings["title"],
-#         color_scale=selected_color_scale,
-#     )
+    updated_figure = create_sunburst_chart(
+        data=data,
+        label_column="labels",
+        parent_column="parents",
+        title=plot_settings["title"],
+        color_scale=selected_color_scale,
+    )
 
-#     return updated_figure
+    return updated_figure
 
 
 # ------------------------------  SURFACE PLOT  ------------------------------ #

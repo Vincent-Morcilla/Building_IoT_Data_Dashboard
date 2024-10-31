@@ -246,6 +246,7 @@ def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:
     """
     return db.query(query, return_df=True, defrag=True)
 
+
 def _get_building_area(db: DBManager) -> pd.DataFrame:
     query = """
         SELECT DISTINCT ?parent ?parentLabel ?child ?childLabel ?building ?buildingLabel ?location ?locationLabel ?system ?systemLabel ?equipment ?equipmentLabel ?sensor ?sensorLabel
@@ -295,6 +296,7 @@ def _get_building_area(db: DBManager) -> pd.DataFrame:
     """
     return db.query(query, return_df=True, defrag=True)
 
+
 def run(db: DBManager) -> dict:
     """
     Run the room climate analysis.
@@ -315,24 +317,42 @@ def run(db: DBManager) -> dict:
     # print(df.head())
 
     if df.empty:
-        return {}  
+        return {}
 
-    
-    df['labels'] = df['childLabel'].str.split('#').str[-1] + ' (' + df['child'].str.split('#').str[-1] + ')'
-    df['parents'] = df['parentLabel'].str.split('#').str[-1] + ' (' + df['parent'].str.split('#').str[-1] + ')'
+    df["labels"] = (
+        df["childLabel"].str.split("#").str[-1]
+        + " ("
+        + df["child"].str.split("#").str[-1]
+        + ")"
+    )
+    df["parents"] = (
+        df["parentLabel"].str.split("#").str[-1]
+        + " ("
+        + df["parent"].str.split("#").str[-1]
+        + ")"
+    )
 
-    data = df[['labels', 'parents']]
+    data = df[["labels", "parents"]]
 
     df_area = _get_building_area(db)
 
     if df_area.empty:
         return {}
-    
-    df_area['labels'] = df_area['childLabel'].str.split('#').str[-1] + ' (' + df_area['child'].str.split('#').str[-1] + ')'
-    df_area['parents'] = df_area['parentLabel'].str.split('#').str[-1] + ' (' + df_area['parent'].str.split('#').str[-1] + ')'
 
-    data_area = df_area[['labels', 'parents']]
+    df_area["labels"] = (
+        df_area["childLabel"].str.split("#").str[-1]
+        + " ("
+        + df_area["child"].str.split("#").str[-1]
+        + ")"
+    )
+    df_area["parents"] = (
+        df_area["parentLabel"].str.split("#").str[-1]
+        + " ("
+        + df_area["parent"].str.split("#").str[-1]
+        + ")"
+    )
 
+    data_area = df_area[["labels", "parents"]]
 
     # df1 = pd.DataFrame(
     #     {
@@ -342,7 +362,7 @@ def run(db: DBManager) -> dict:
     # )
 
     config = {
-        "BuildingStructure1_BuildingHierarchy": {
+        "BuildingStructure_BuildingHierarchy": {
             "SunburstChart": {
                 "title": "Building Hierarchy Sunburst",
                 "EntityID": "EntityID",
@@ -354,20 +374,19 @@ def run(db: DBManager) -> dict:
                 "dataframe": data,
             }
         },
-        "BuildingStructure1_BuildingArea": {   
+        "BuildingStructure_BuildingArea": {
             "SunburstChart": {
                 "title": "Building Area Sunburst",
-                "EntityID": "AreaID",          
+                "EntityID": "AreaID",
                 "EntityType": "AreaType",
                 "ParentID": "ParentAreaID",
                 "BuildingID": "BuildingAreaID",
                 "z-axis": "AreaLevel",
                 "z-axis_label": "Area Level",
-                "dataframe": data_area,  
+                "dataframe": data_area,
             }
-        }
+        },
     }
-
 
     return config
 
