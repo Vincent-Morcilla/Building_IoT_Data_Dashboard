@@ -281,6 +281,15 @@ plot_configs = {
                     "y": "Sensor",
                     "z": "Correlation",
                     "colorscale": "Viridis",
+                    "colorbar": {
+                        "title": "Usage",
+                        "orientation": "h",
+                        "yanchor": "bottom",
+                        "y": -0.7,
+                        "xanchor": "center",
+                        "x": 0.5,
+                        "title_side": "bottom",
+                    },
                 },
                 "layout_kwargs": {
                     "title": {"text": "Water Usage Heatmap", "x": 0.5, "xanchor": "center"},
@@ -288,15 +297,6 @@ plot_configs = {
                     "yaxis_title": "Sensor",
                     "font_color": "black",
                     "plot_bgcolor": "white",
-                    "coloraxis_colorbar": {
-                        "title": "Usage",
-                        "orientation": "h",
-                        "yanchor": "top",
-                        "y": -0.4,
-                        "xanchor": "center",
-                        "x": 0.5,
-                        "title_side": "bottom",
-                    },
                     "xaxis": {
                         "mirror": True,
                         "ticks": "outside",
@@ -382,7 +382,6 @@ plot_configs = {
                         "EntityID": ["Room 1", "Device 1", "Room 2", "Device 2"]
                     }),
                     "path": ["BuildingID", "ParentID", "EntityID"],
-                    "color": "EntityType",
                     "title": "Building Structure",
                     "height": 1000,
                     "width": 1000,
