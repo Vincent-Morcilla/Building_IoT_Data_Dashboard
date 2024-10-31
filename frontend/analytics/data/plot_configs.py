@@ -379,16 +379,13 @@ plot_configs = {
                         "BuildingID": ["Building A", "Building A", "Building B", "Building B"],
                         "ParentID": ["Building A", "Room 1", "Building B", "Room 2"],
                         "EntityType": ["Room", "Device", "Room", "Device"],
-                        "EntityID": ["Room 1", "Device 1", "Room 2", "Device 2"],
-                        "Level": [1, 2, 1, 2],
+                        "EntityID": ["Room 1", "Device 1", "Room 2", "Device 2"]
                     }),
-                    "path": ["BuildingID", "EntityType", "EntityID"],
-                    "values": "Level",
-                    "color": "Level",
-                    "color_continuous_scale": "Viridis",
+                    "path": ["BuildingID", "ParentID", "EntityID"],
+                    "color": "EntityType",
                     "title": "Building Structure",
-                    "height": 800,
-                    "width": 800,
+                    "height": 1000,
+                    "width": 1000,
                 },
                 "layout_kwargs": {
                     "title": {"text": "Building Structure", "x": 0.5, "xanchor": "center", "font": {"size": 35}},
@@ -405,52 +402,6 @@ plot_configs = {
                 },
                 "css": {
                     "padding": "10px",
-                },
-            },
-            # Separator
-            {
-                "type": "separator",
-                "style": {"margin": "20px 0"}
-            },
-            # UI Component: Color Scale Dropdown
-            {
-                "type": "UI",
-                "element": "Dropdown",
-                "id": "sunburst-color-scale-dropdown",
-                "label": "Select Color Scale",
-                "label_position": "above",
-                "kwargs": {
-                    "options": [
-                        {"label": scale, "value": scale}
-                        for scale in px.colors.named_colorscales()
-                    ],
-                    "value": "Viridis",
-                    "clearable": False,
-                },
-                "css": {
-                    "padding": "10px",
-                },
-            },
-        ],
-        "interactions": [
-            {
-                "triggers": [
-                    {
-                        "component_id": "sunburst-color-scale-dropdown",
-                        "component_property": "value",
-                        "input_key": "selected_color_scale",
-                    },
-                ],
-                "outputs": [
-                    {
-                        "component_id": "building-structure-sunburst",
-                        "component_property": "figure",
-                    },
-                ],
-                "action": "update_plot_property",
-                "data_source": "building-structure-sunburst",
-                "update_kwargs": {
-                    "color_continuous_scale": "selected_color_scale",
                 },
             },
         ],
