@@ -839,6 +839,7 @@ def create_plot(plot_type, plot_settings):
             data,
             label_column="labels",  # Using labels as the entity names
             parent_column="parents",  # Using parents as the hierarchical structure
+            type_column="entityType",
             title=title,
             color_scale="Viridis",  # Default color scale
         )
@@ -1745,6 +1746,7 @@ def create_sunburst_chart(
     data,
     label_column,
     parent_column,
+    type_column,
     title,
     color_scale="Viridis",
     height=1000,
@@ -1754,12 +1756,14 @@ def create_sunburst_chart(
         data,
         names=label_column,
         parents=parent_column,
-        color=label_column,
+        branchvalues="total",
+        color=type_column,
         color_continuous_scale=color_scale,
         title=title,
         height=height,
         width=width,
     )
+
     fig.update_layout(
         title={"text": title, "x": 0.5, "xanchor": "center"},
         font_color="black",

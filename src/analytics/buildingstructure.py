@@ -19,15 +19,18 @@ from dbmgr import DBManager  # only imported for type hinting
 
 def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:
     query = """
-        SELECT DISTINCT ?parent ?parentLabel ?child ?childLabel ?building ?buildingLabel ?location ?locationLabel ?system ?systemLabel ?equipment ?equipmentLabel ?sensor ?sensorLabel
+        SELECT DISTINCT ?parent ?parentLabel ?child ?childLabel ?building ?buildingLabel ?entityType
         WHERE {
             # Define the building
             ?building a brick:Building . 
-            ?building a ?buildingLabel
-            BIND(?building AS ?location)
-            BIND(?buildingLabel AS ?locationLabel)
+            ?building a ?buildingLabel .
+            BIND('Location' AS ?entityType)
+            # BIND('' AS ?parentLabel)
+            # BIND(?building AS ?child)
+            # BIND(?buildingLabel AS ?childLabel)
 
             OPTIONAL {
+
                 # Match System entities connected to building
                 {
                     ?sys brick:hasLocation ?building .
@@ -38,8 +41,9 @@ def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:
                     BIND(?buildingLabel AS ?parentLabel)
                     BIND(?sys AS ?child)
                     BIND(?sysLabel AS ?childLabel)
-                    BIND(?sys AS ?system)
-                    BIND(?sysLabel AS ?systemLabel)
+                    BIND('System' AS ?entityType)
+                    # BIND(?sys AS ?system)
+                    # BIND(?sysLabel AS ?systemLabel)
                 }
 
                 # match equipments connected to building
@@ -52,6 +56,7 @@ def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:
                     BIND(?buildingLabel AS ?parentLabel)
                     BIND(?equip AS ?child)
                     BIND(?equipLabel AS ?childLabel)
+                    BIND('Equipment' AS ?entityType)
                 }
                 # Match all levels
                 UNION
@@ -63,6 +68,7 @@ def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:
                     BIND(?buildingLabel AS ?parentLabel)
                     BIND(?level AS ?child)
                     BIND(?levelLabel AS ?childLabel)
+                    BIND('Location' AS ?entityType)
                 }
                 # Match all rooms
                 UNION {
@@ -74,6 +80,7 @@ def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:
                     BIND(?levelLabel AS ?parentLabel)
                     BIND(?room AS ?child)
                     BIND(?roomLabel AS ?childLabel)
+                    BIND('Location' AS ?entityType)
                 }
                 # match all HVAC
                 UNION {
@@ -86,6 +93,7 @@ def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:
                     BIND(?roomLabel AS ?parentLabel)
                     BIND(?hvac AS ?child)
                     BIND(?hvacLabel AS ?childLabel)
+                    BIND('Location' AS ?entityType)
                 }
                 # Match equipments connected to a room
                 UNION {
@@ -97,7 +105,8 @@ def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:
                     BIND(?room AS ?parent)
                     BIND(?roomLabel AS ?parentLabel)
                     BIND(?equip1 AS ?child)
-                    BIND(?equip1Label AS ?childLabel)            
+                    BIND(?equip1Label AS ?childLabel)
+                    BIND('Equipment' AS ?entityType)          
                 }
                 # match equipment connected to another equipment
                 UNION {
@@ -112,6 +121,7 @@ def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:
                     BIND(?equip1Label AS ?parentLabel)
                     BIND(?equip2 AS ?child)
                     BIND(?equip2Label AS ?childLabel)
+                    BIND('Equipment' AS ?entityType)
                 }
                 # match equipment connected to a room by inverse (equip brick:feeds room)
                 UNION {
@@ -124,6 +134,7 @@ def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:
                     BIND(?roomLabel AS ?parentLabel)
                     BIND(?equip1 AS ?child)
                     BIND(?equip1Label AS ?childLabel)
+                    BIND('Equipment' AS ?entityType)
                 }
                 # match equipment connected to another equipment by inverse (equip1 brick:feeds equip2)
                 UNION {
@@ -138,6 +149,7 @@ def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:
                     BIND(?equip1Label AS ?parentLabel)
                     BIND(?equip2 AS ?child)
                     BIND(?equip2Label AS ?childLabel)
+                    BIND('Equipment' AS ?entityType)
                 }
 
                 # match sensors connected to levels
@@ -151,6 +163,7 @@ def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:
                     BIND(?levelLabel AS ?parentLabel)
                     BIND(?sensor AS ?child)
                     BIND(?sensorLabel AS ?childLabel)
+                    BIND('Sensor' AS ?entityType)
                 }    
 
                 # match sensors connected to rooms
@@ -165,6 +178,7 @@ def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:
                     BIND(?roomLabel AS ?parentLabel)
                     BIND(?sensor AS ?child)
                     BIND(?sensorLabel AS ?childLabel)
+                    BIND('Sensor' AS ?entityType)
                 }
                 # sensor connected to an equipment in a room 
                 UNION {
@@ -178,7 +192,8 @@ def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:
                     BIND(?equip1 AS ?parent)
                     BIND(?equip1Label AS ?parentLabel)
                     BIND(?sensor AS ?child)
-                    BIND(?sensorLabel AS ?childLabel)           
+                    BIND(?sensorLabel AS ?childLabel)
+                    BIND('Sensor' AS ?entityType)         
                 }
                 # sensor connected to equipment connected to another equipment
                 UNION {
@@ -195,6 +210,7 @@ def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:
                     BIND(?equip2Label AS ?parentLabel)
                     BIND(?sensor AS ?child)
                     BIND(?sensorLabel AS ?childLabel)
+                    BIND('Sensor' AS ?entityType)
                 }
                 # sensors connected to equipment feeds a room
                 # UNION {
@@ -225,6 +241,7 @@ def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:
                     BIND(?equip2Label AS ?parentLabel)
                     BIND(?sensor AS ?child)
                     BIND(?sensorLabel AS ?childLabel)
+                    BIND('Sensor' AS ?entityType)
                 }
 
                 # Match sensors connected to System entities connected to building
@@ -239,7 +256,8 @@ def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:
                     BIND(?system AS ?parent)
                     BIND(?systemLabel AS ?parentLabel)
                     BIND(?sensor AS ?child)
-                    BIND(?sensorLabel AS ?childLabel)       
+                    BIND(?sensorLabel AS ?childLabel)
+                    BIND('Sensor' AS ?entityType)    
                 }
             }    
         }
@@ -249,13 +267,14 @@ def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:
 
 def _get_building_area(db: DBManager) -> pd.DataFrame:
     query = """
-        SELECT DISTINCT ?parent ?parentLabel ?child ?childLabel ?building ?buildingLabel ?location ?locationLabel ?system ?systemLabel ?equipment ?equipmentLabel ?sensor ?sensorLabel
+        SELECT DISTINCT ?parent ?parentLabel ?child ?childLabel ?entityType
         WHERE {
             # Define the building
             ?building a brick:Building . 
             ?building a ?buildingLabel
             BIND(?building AS ?location)
             BIND(?buildingLabel AS ?locationLabel)
+            BIND('Location' AS ?entityType)
 
             OPTIONAL {
                 # Match all levels
@@ -267,6 +286,7 @@ def _get_building_area(db: DBManager) -> pd.DataFrame:
                     BIND(?buildingLabel AS ?parentLabel)
                     BIND(?level AS ?child)
                     BIND(?levelLabel AS ?childLabel)
+                    BIND('Location' AS ?entityType)
                 }
                 # Match all rooms
                 UNION {
@@ -278,6 +298,7 @@ def _get_building_area(db: DBManager) -> pd.DataFrame:
                     BIND(?levelLabel AS ?parentLabel)
                     BIND(?room AS ?child)
                     BIND(?roomLabel AS ?childLabel)
+                    BIND('Location' AS ?entityType)
                 }
                 # # match all HVAC
                 # UNION {
@@ -332,7 +353,7 @@ def run(db: DBManager) -> dict:
         + ")"
     )
 
-    data = df[["labels", "parents"]]
+    data = df[["labels", "parents", "entityType"]]
 
     df_area = _get_building_area(db)
 
@@ -352,7 +373,7 @@ def run(db: DBManager) -> dict:
         + ")"
     )
 
-    data_area = df_area[["labels", "parents"]]
+    data_area = df_area[["labels", "parents", "entityType"]]
 
     # df1 = pd.DataFrame(
     #     {
