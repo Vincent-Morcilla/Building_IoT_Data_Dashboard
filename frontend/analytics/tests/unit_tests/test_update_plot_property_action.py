@@ -4,7 +4,6 @@ from plotly.graph_objects import Figure
 from callbacks.plot_callbacks import update_plot_property_action
 from data.plot_configs import plot_configs
 
-
 def test_update_plot_property_action():
     """Test the update_plot_property_action function with mock input data."""
 

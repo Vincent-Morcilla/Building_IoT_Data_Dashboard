@@ -17,10 +17,12 @@ component_input = {
 # Create the input UI component
 ui_component_input = create_ui_component(component_input)
 
+
 def test_create_ui_component_input():
     """Test if create_ui_component returns an html.Div containing dcc.Input for input component."""
     assert isinstance(ui_component_input, html.Div), "Expected html.Div for input component"
     assert isinstance(ui_component_input.children[1], dcc.Input), "Expected dcc.Input as child of input component"
+
 
 # Define the dropdown component
 component_dropdown = {
@@ -40,6 +42,7 @@ component_dropdown = {
 
 # Create the dropdown UI component
 ui_component_dropdown = create_ui_component(component_dropdown)
+
 
 def test_create_ui_component_dropdown():
     """Test if create_ui_component returns an html.Div containing dcc.Dropdown for dropdown component."""

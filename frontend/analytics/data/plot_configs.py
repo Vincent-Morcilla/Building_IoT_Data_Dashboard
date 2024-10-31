@@ -117,7 +117,7 @@ plot_configs = {
                     {
                         "component_id": "consumption-quality-dropdown",
                         "component_property": "value",
-                        "input_key": "selected_measurements",
+                        "input_key": "selected_measurements",  # Placeholder for inputs
                     },
                 ],
                 "outputs": [

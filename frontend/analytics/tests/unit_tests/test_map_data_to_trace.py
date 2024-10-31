@@ -1,7 +1,6 @@
 import pandas as pd
 from components.plot_generator import process_data_frame, map_data_to_trace
 
-
 # Sample data for testing
 df = pd.DataFrame({
     'Category': ['A', 'B', 'C', 'A', 'B', 'C'],
@@ -35,6 +34,7 @@ expected_trace_kwargs = {
     'y': [22],
     'name': ['X']
 }
+
 
 def test_map_data_to_trace():
     """

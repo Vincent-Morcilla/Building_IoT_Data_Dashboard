@@ -37,6 +37,7 @@ component_config = {
     }
 }
 
+
 def test_create_plot_component_with_explode():
     """Test creating a plot component with explode transformation."""
     # Process DataFrame explicitly in test to verify transformation
@@ -51,6 +52,7 @@ def test_create_plot_component_with_explode():
 
     # Verify that the data has been exploded correctly in the plot
     assert len(fig.data[0].x) == 4  # 2 categories * 2 values each after exploding
+
 
 # Test without data processing
 def test_create_plot_component_without_data_processing():
@@ -109,6 +111,7 @@ component_config_go = {
         'title': 'Test Scatter Plot'
     }
 }
+
 
 def test_create_plot_component_go():
     """Test creating a Plotly GO plot component with trace configuration."""

@@ -2,7 +2,6 @@ import pytest
 import pandas as pd
 from helpers.data_processing import apply_generic_filters
 
-
 def test_apply_generic_filters_equals():
     """Test apply_generic_filters with 'equals' condition."""
     data = {

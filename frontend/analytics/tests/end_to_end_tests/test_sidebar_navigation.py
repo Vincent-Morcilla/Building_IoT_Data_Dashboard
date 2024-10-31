@@ -17,6 +17,7 @@ def driver():
     yield driver
     driver.quit()
 
+
 def test_sidebar_navigation(driver):
     """Test navigation through the sidebar and logo button clicks."""
     # Load the homepage

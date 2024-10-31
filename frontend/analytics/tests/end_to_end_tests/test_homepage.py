@@ -20,6 +20,7 @@ def driver():
     yield driver
     driver.quit()
 
+
 def test_homepage_title(driver):
     """
     Test case to verify the homepage title and essential content on the page.

@@ -1,6 +1,5 @@
 import pandas as pd
 import plotly.graph_objects as go
-
 from components.plot_generator import process_data_frame, create_traces
 
 # Sample data for the DataFrame
@@ -40,6 +39,7 @@ component = {
 
 # Generate traces
 traces = create_traces(df_processed, component)
+
 
 def test_create_traces():
     """Test that `create_traces` returns a list with a single Bar trace."""

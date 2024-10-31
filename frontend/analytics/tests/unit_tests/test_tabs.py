@@ -55,6 +55,7 @@ def mock_plot_configs():
         },
     }
 
+
 @pytest.fixture
 def category_mappings(mock_plot_configs):
     """
@@ -69,6 +70,7 @@ def category_mappings(mock_plot_configs):
     analysis_keys = list(mock_plot_configs.keys())
     categories, category_key_mapping, subcategory_key_mapping = create_category_structure(analysis_keys)
     return categories, category_key_mapping, subcategory_key_mapping
+
 
 @pytest.mark.parametrize(
     "category_name, subcategory, expected_label, expected_id, expected_content",
@@ -134,6 +136,7 @@ def test_create_tab_content(category_name, subcategory, expected_label, expected
                     assert isinstance(h4_element, html.H4)
                     # Check for mocked content
                     assert "Mocked Content for Tab" in h4_element.children
+
 
 @pytest.mark.parametrize(
     "selected_category, expected_tab_ids",

@@ -3,7 +3,6 @@ import pandas as pd
 from callbacks.plot_callbacks import update_table_based_on_plot_click_action
 from data.plot_configs import plot_configs
 
-
 def test_update_table_based_on_plot_click_action():
     """
     Test the `update_table_based_on_plot_click_action` function to ensure that it correctly

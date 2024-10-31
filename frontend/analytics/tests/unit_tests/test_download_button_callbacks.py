@@ -1,21 +1,15 @@
 import pytest
 import pandas as pd
 import hashlib
-from io import BytesIO
 from zipfile import ZipFile
-from dash import Dash
-from dash.exceptions import PreventUpdate
-
 from callbacks.download_button_callbacks import (
     hash_dataframe,
     generate_filename,
     process_dataframe,
     locate_component,
     extract_dataframe_from_component,
-    DownloadManager,
-    register_download_callbacks
+    DownloadManager
 )
-
 
 def test_hash_dataframe():
     """Test hash generation for a DataFrame."""

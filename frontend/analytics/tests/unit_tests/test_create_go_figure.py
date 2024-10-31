@@ -1,7 +1,6 @@
 import pytest
 import pandas as pd
 import plotly.graph_objects as go
-
 from components.plot_generator import create_go_figure
 
 # Sample data for testing

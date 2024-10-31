@@ -3,7 +3,6 @@ from dash import dcc, html
 import dash_bootstrap_components as dbc
 from components.download_button import create_global_download_button
 
-
 def test_create_global_download_button_structure():
     """
     Test the structure and properties of the global download button component.

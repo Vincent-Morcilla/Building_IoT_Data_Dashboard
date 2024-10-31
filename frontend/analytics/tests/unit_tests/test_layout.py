@@ -12,10 +12,12 @@ def mock_plot_configs():
         ("Category2", None): {"title": "Another Plot", "components": []},
     }
 
+
 @pytest.fixture
 def mock_categories_structure(mock_plot_configs):
     """Fixture generating mock category structure from plot configurations."""
     return create_category_structure(mock_plot_configs.keys())
+
 
 def test_create_layout(mock_plot_configs, mock_categories_structure):
     """
@@ -47,12 +49,16 @@ def test_create_layout(mock_plot_configs, mock_categories_structure):
         "The content `html.Div` should have id 'page-content'."
     )
 
-def test_home_page_content():
+
+def test_home_page_content_with_categories():
     """
-    Test that home_page_content returns the correct structure 
-    with specific children components.
+    Test that home_page_content returns the correct structure
+    with categories available in categories_structure.
     """
-    content = home_page_content()
+    # Mock categories_structure with categories present
+    mock_categories_structure = ({"Category1": ["Subcategory1"], "Category2": ["Main"]}, {}, {})
+    
+    content = home_page_content(mock_categories_structure)
 
     assert isinstance(content, html.Div), "home_page_content should return an `html.Div`."
     assert hasattr(content, 'children') and isinstance(content.children, list), (
@@ -71,4 +77,32 @@ def test_home_page_content():
     assert isinstance(paragraph, html.P), "Second child should be an `html.P` for the prompt message."
     assert paragraph.children == "Select an option from the sidebar categories", (
         "Paragraph should contain the prompt 'Select an option from the sidebar categories'."
+    )
+
+
+def test_home_page_content_no_categories():
+    """
+    Test that home_page_content returns the correct structure
+    when no categories are available in categories_structure.
+    """
+    # Mock categories_structure with None to simulate no available categories
+    content = home_page_content(None)
+
+    assert isinstance(content, html.Div), "home_page_content should return an `html.Div`."
+    assert hasattr(content, 'children') and isinstance(content.children, list), (
+        "The returned Div should have a list of child components."
+    )
+
+    # Check that the structure has two children as expected: an image and a paragraph
+    assert len(content.children) == 2, "The content `html.Div` should have exactly two children."
+
+    img, paragraph = content.children[0], content.children[1]
+    assert isinstance(img, html.Img), "First child should be an `html.Img` for the logo."
+    assert img.src == "/assets/title-logo.svg", "The image source should be `/assets/title-logo.svg`."
+    assert img.alt == "Title-Logo", "The image `alt` attribute should be 'Title-Logo'."
+    assert img.className == "title-logo", "The image should have the class `title-logo`."
+
+    assert isinstance(paragraph, html.P), "Second child should be an `html.P` for the prompt message."
+    assert paragraph.children == "No analyses could be run on the provided dataset", (
+        "Paragraph should contain the message 'No analyses could be run on the provided dataset'."
     )

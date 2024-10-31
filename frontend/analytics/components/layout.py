@@ -42,7 +42,7 @@ def create_layout(plot_configs, categories_structure):
     )
 
 
-def home_page_content():
+def home_page_content(categories_structure):
     """
     Create the homepage content for the Dash application.
 
@@ -52,10 +52,14 @@ def home_page_content():
     Returns:
         html.Div: A Div component containing the homepage content.
     """
+    # Check if there are categories available in categories_structure
+    has_categories = categories_structure and categories_structure[0]
+
     return html.Div(
         [
             html.Img(src="/assets/title-logo.svg", alt="Title-Logo", className="title-logo"),
-            html.P("Select an option from the sidebar categories")
+            html.P("Select an option from the sidebar categories" if has_categories 
+                   else "No analyses could be run on the provided dataset")
         ],
         className="home-page-content",
     )

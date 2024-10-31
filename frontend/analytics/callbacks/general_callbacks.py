@@ -52,7 +52,7 @@ def register_general_callbacks(app, categories_structure):
             dash.html.Div: The page content based on the selected category or a default message.
         """
         if pathname == '/' or pathname is None:
-            return home_page_content()
+            return home_page_content(categories_structure)
 
         # Split the pathname to get category and subcategory
         path_parts = pathname.strip('/').split('/')

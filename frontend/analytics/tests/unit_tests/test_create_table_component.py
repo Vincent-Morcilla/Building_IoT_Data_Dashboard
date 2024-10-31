@@ -1,5 +1,3 @@
-"""Test module for the `create_table_component` function."""
-
 from dash import dash_table, html
 import pandas as pd
 from components.plot_generator import create_table_component
@@ -28,6 +26,7 @@ component = {
 
 # Generate the table component using the function.
 table_component = create_table_component(component)
+
 
 def test_create_table_component():
     """
