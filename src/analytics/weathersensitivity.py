@@ -172,8 +172,8 @@ class WeatherSensitivity:
         )
 
         self.rdf_data = {
-            "electic_energy": df_electric_energy,
-            "electic_power": df_electric_power,
+            "electric_energy": df_electric_energy,
+            "electric_power": df_electric_power,
             "gas": df_gas,
             "water": df_water,
             "chiller": df_chiller,
@@ -358,7 +358,7 @@ class WeatherSensitivity:
             df_vis = WeatherSensitivity.prepare_data_for_vis(
                 transpose_df,
                 meter,
-                f"{meter.title().replace('_',' ')} Sensor Correlations with Outside Temperature",
+                f"{meter.title().replace('_',' ')} Usage Correlations with Outside Temperature",
             )
             data_for_vis[f"WeatherSensitivity_{meter.title().replace('_','')}"] = df_vis
         return data_for_vis
