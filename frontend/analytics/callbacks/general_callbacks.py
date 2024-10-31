@@ -12,7 +12,6 @@ def register_general_callbacks(app, categories_structure):
                               and subcategory key mapping.
     """
     from dash import Input, Output, html
-    
     from components.layout import home_page_content
     from components.tabs import create_tab_layout
 

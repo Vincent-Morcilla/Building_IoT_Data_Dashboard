@@ -3,12 +3,10 @@ import io
 import logging
 import zipfile
 from typing import Any, Dict, Optional
-
 import pandas as pd
 from dash import Dash, dcc
 from dash.dependencies import Input, Output
 from dash.exceptions import PreventUpdate
-
 from helpers.helpers import sanitise_filename
 
 # Configure logging
