@@ -28,6 +28,39 @@ for id_val in table_data["ID"]:
     )
     timeseries_data_dict[id_val] = df  # Store each DataFrame with its ID as the key
 
+# Mock Data for Timeline Plot
+timeline_data = pd.DataFrame(
+    {
+        "Sensor": ["Sensor A", "Sensor B", "Sensor C"],
+        "Start_Timestamp": pd.to_datetime(["2023-01-01", "2023-02-15", "2023-03-10"]),
+        "End_Timestamp": pd.to_datetime(["2023-04-01", "2023-05-20", "2023-06-30"]),
+        "Num_Streams": [5, 3, 8],
+    }
+)
+
+timeline_data["Duration"] = (
+    timeline_data["End_Timestamp"] - timeline_data["Start_Timestamp"]
+).dt.total_seconds() * 1000
+timeline_data["Hover_Text"] = timeline_data.apply(
+    lambda row: (
+        f"<b>{row['Sensor']}</b><br>"
+        f"Start: {row['Start_Timestamp'].strftime('%Y-%m-%d')}<br>"
+        f"End: {row['End_Timestamp'].strftime('%Y-%m-%d')}<br>"
+        f"Number of Streams: {row['Num_Streams']}<br>"
+        "<extra></extra>"
+    ),
+    axis=1,
+)
+
+# Mock Data for Histogram Plot
+histogram_data = pd.DataFrame(
+    {
+        "Category": ["Category A", "Category B", "Category C", "Category D"],
+        "Count": [23, 17, 35, 29],
+    }
+)
+
+
 # Plot Configurations
 sample_plot_configs = {
     # Box and Whisker Plot for Data Quality
@@ -299,10 +332,12 @@ sample_plot_configs = {
                     }
                 ),
                 "trace_type": "Heatmap",  # Specify the trace type
-                "kwargs": {
+                "data_mappings": {
                     "x": "Date",
                     "y": "Sensor",
                     "z": "Correlation",
+                },
+                "kwargs": {
                     "colorscale": "Viridis",
                     "colorbar": {
                         "title": "Usage",
@@ -482,19 +517,19 @@ sample_plot_configs = {
                     }
                 ),
                 "trace_type": "Pie",
+                "data_mappings": {
+                    "labels": "brick_class",
+                    "values": "count",
+                },
                 "data_processing": {
                     "filter": {"brick_class_is_consistent": False},
                     "groupby": ["brick_class"],
-                    "aggregation": {"count": ("brick_class", "count")},
-                    "data_mappings": {
-                        "labels": "brick_class",
-                        "values": "count",
-                    },
-                    "trace_kwargs": {
-                        "textinfo": "percent+label",
-                        "textposition": "inside",
-                        "showlegend": False,
-                    },
+                    "aggregations": {"count": ("brick_class", "count")},
+                },
+                "kwargs": {
+                    "textinfo": "percent+label",
+                    "textposition": "inside",
+                    "showlegend": False,
                 },
                 "layout_kwargs": {
                     "title": {
@@ -659,6 +694,121 @@ sample_plot_configs = {
                 "data_source": {
                     "table_data": table_data,
                     "timeseries_data_dict": timeseries_data_dict,  # Pass the dictionary of DataFrames
+                },
+            },
+        ],
+    },
+    ("SensorCoverage", "Timeline"): {
+        "title": "Sensor Coverage Timeline",
+        "components": [
+            {
+                "type": "plot",
+                "library": "go",
+                "function": "Figure",
+                "id": "sensor-coverage-timeline",
+                "data_frame": timeline_data,
+                "trace_type": "Bar",
+                "data_mappings": {
+                    "x": "Duration",
+                    "y": "Sensor",
+                    "base": "Start_Timestamp",
+                    "hovertemplate": "Hover_Text",
+                },
+                "kwargs": {
+                    "orientation": "h",
+                    "marker_color": "#3c9639",
+                    "marker_opacity": 0.7,
+                    "width": 0.3,
+                },
+                "layout_kwargs": {
+                    "title": {
+                        "text": "Sensor Coverage Timeline",
+                        "x": 0.5,
+                        "xanchor": "center",
+                    },
+                    "xaxis": {
+                        "title": "Date",
+                        "type": "date",
+                        "showgrid": True,
+                        "gridcolor": "lightgrey",
+                        "tickformat": "%Y-%m-%d",
+                        "range": [
+                            (
+                                timeline_data["Start_Timestamp"].min()
+                                - pd.Timedelta(days=5)
+                            ).strftime("%Y-%m-%d"),
+                            (
+                                timeline_data["End_Timestamp"].max()
+                                + pd.Timedelta(days=5)
+                            ).strftime("%Y-%m-%d"),
+                        ],
+                    },
+                    "yaxis": {
+                        "title": "Sensor",
+                        "showgrid": True,
+                        "gridcolor": "lightgrey",
+                        "automargin": True,
+                        "ticksuffix": " ",
+                    },
+                    "height": max(200, len(timeline_data) * 60),
+                    "margin": {"l": 150, "r": 20, "t": 50, "b": 20},
+                    "showlegend": False,
+                    "plot_bgcolor": "white",
+                    "font_color": "black",
+                    "barmode": "overlay",
+                    "bargap": 0.2,
+                },
+                "css": {
+                    "padding": "10px",
+                },
+            },
+        ],
+    },
+    ("DataAnalysis", "Histogram"): {
+        "title": "Sample Histogram",
+        "components": [
+            {
+                "type": "plot",
+                "library": "px",
+                "function": "bar",
+                "id": "sample-histogram",
+                "kwargs": {
+                    "data_frame": histogram_data,
+                    "x": "Category",
+                    "y": "Count",
+                    "title": "Sample Histogram",
+                    "height": 700,
+                    "color_discrete_sequence": ["#3c9639"],
+                },
+                "layout_kwargs": {
+                    "title": {
+                        "text": "Sample Histogram",
+                        "x": 0.5,
+                        "xanchor": "center",
+                    },
+                    "xaxis_title": "Category",
+                    "yaxis_title": "Count",
+                    "font_color": "black",
+                    "plot_bgcolor": "white",
+                    "bargap": 0.5,
+                    "xaxis": {
+                        "mirror": True,
+                        "ticks": "outside",
+                        "showline": True,
+                        "linecolor": "black",
+                        "gridcolor": "lightgrey",
+                        "tickangle": 45,
+                    },
+                    "yaxis": {
+                        "mirror": True,
+                        "ticks": "outside",
+                        "showline": True,
+                        "linecolor": "black",
+                        "gridcolor": "lightgrey",
+                    },
+                },
+                "css": {
+                    "padding": "10px",
                 },
             },
         ],

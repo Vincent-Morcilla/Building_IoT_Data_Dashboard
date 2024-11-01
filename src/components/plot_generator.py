@@ -86,7 +86,7 @@ def create_go_figure(data_frame, data_processing, component, kwargs):
     Returns:
         plotly.graph_objects.Figure: The Plotly figure with the appropriate trace.
     """
-    # Determine the trace type (e.g., Heatmap, Pie, etc.)
+    # Determine the trace type (e.g., Heatmap, Pie, Bar, etc.)
     trace_type = component.get("trace_type")
     if not trace_type:
         raise ValueError("Trace type is required in 'component' to create the figure.")
@@ -96,23 +96,33 @@ def create_go_figure(data_frame, data_processing, component, kwargs):
     if trace_class is None:
         raise ValueError(f"Invalid trace type '{trace_type}' specified.")
 
-    # Map columns from `df_processed` to trace properties using `data_mappings` if specified
+    # Copy the data frame and kwargs
     df_processed = data_frame.copy()
     updated_kwargs = kwargs.copy()
 
-    # If `data_mappings` is present, map columns to their corresponding trace properties
-    data_mappings = data_processing.get("data_mappings", {})
+    # Map columns from `df_processed` to trace properties using `data_mappings` if specified
+    data_mappings = component.get("data_mappings", {})
     for key, column_name in data_mappings.items():
-        # Replace column name strings with actual data from the processed DataFrame
-        if column_name in df_processed.columns:
-            updated_kwargs[key] = df_processed[column_name]
-
-    # For Heatmap or other traces requiring x, y, and z, map those columns directly
-    for axis in ["x", "y", "z"]:
-        if axis in updated_kwargs and isinstance(updated_kwargs[axis], str):
-            column_name = updated_kwargs[axis]
+        # Handle nested keys like 'marker.color'
+        if "." in key:
+            # Split the nested keys
+            keys = key.split(".")
+            # Initialize nested dicts as needed
+            current_level = updated_kwargs
+            for subkey in keys[:-1]:
+                if subkey not in current_level:
+                    current_level[subkey] = {}
+                current_level = current_level[subkey]
+            # Set the value at the deepest level
             if column_name in df_processed.columns:
-                updated_kwargs[axis] = df_processed[column_name]
+                current_level[keys[-1]] = df_processed[column_name]
+        else:
+            # Replace column name strings with actual data from the processed DataFrame
+            if column_name in df_processed.columns:
+                updated_kwargs[key] = df_processed[column_name]
+            else:
+                # If column not found, leave the value as is or handle as needed
+                pass
 
     # Apply any additional trace-specific arguments from `trace_kwargs`
     trace_kwargs = data_processing.get("trace_kwargs", {})
