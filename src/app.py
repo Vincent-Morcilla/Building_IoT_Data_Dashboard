@@ -59,7 +59,9 @@ if __name__ == "__main__":
     #     "schema", help="Path to the schema file", nargs="?", default=None
     # )
     # parser.add_argument("-d", "--debug", help="Enable debug mode", action="store_true")
-    parser.add_argument("-t", "--test", help=argparse.SUPPRESS, action="store_true")
+    parser.add_argument(
+        "-t", "--test-mode", help=argparse.SUPPRESS, action="store_true"
+    )
     args = parser.parse_args()
 
     # Hard-coded version for convenience during development
