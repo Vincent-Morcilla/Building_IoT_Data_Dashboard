@@ -1,5 +1,6 @@
 import os
 import shutil
+import sys
 import time
 import warnings
 import pytest
@@ -48,6 +49,7 @@ def driver():
     setup_download_dir(DOWNLOAD_DIR)
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=DeprecationWarning)
+
         chrome_options = Options()
         prefs = {
             "download.default_directory": DOWNLOAD_DIR,
@@ -56,17 +58,17 @@ def driver():
             "safebrowsing.enabled": True,
         }
         chrome_options.add_experimental_option("prefs", prefs)
-        # driver = webdriver.Chrome(
-        #     service=Service(ChromeDriverManager().install()),
-        #     options=chrome_options,
-        # )
-        # chrome_options.add_argument("--headless")
-        driver = webdriver.Chrome(
-            service=Service(
+
+        if sys.platform == "linux":
+            chrome_options.add_argument("--headless")
+            service = Service(
                 ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install()
-            ),
-            options=chrome_options,
-        )
+            )
+        else:  # Windows and MacOS
+            service = Service(ChromeDriverManager().install())
+
+        driver = webdriver.Chrome(service=service, options=chrome_options)
+
     yield driver
     driver.quit()
 

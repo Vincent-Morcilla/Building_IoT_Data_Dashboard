@@ -15,16 +15,19 @@ def driver():
     """Fixture to initialize and yield a Selenium WebDriver instance for testing."""
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=DeprecationWarning)
-        # service = Service(ChromeDriverManager().install())
-        # driver = webdriver.Chrome(service=service)
+
         chrome_options = Options()
-        # chrome_options.add_argument("--headless")
-        driver = webdriver.Chrome(
-            service=Service(
+
+        if sys.platform == "linux":
+            chrome_options.add_argument("--headless")
+            service = Service(
                 ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install()
-            ),
-            options=chrome_options,
-        )
+            )
+        else:  # Windows and MacOS
+            service = Service(ChromeDriverManager().install())
+
+        driver = webdriver.Chrome(service=service, options=chrome_options)
+
     yield driver
     driver.quit()
 

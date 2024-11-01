@@ -1,12 +1,14 @@
-import pytest
-import warnings
+import sys
 import time
+import warnings
+
+import pytest
 from selenium import webdriver
-from webdriver_manager.chrome import ChromeDriverManager
-from webdriver_manager.core.os_manager import ChromeType
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
+from webdriver_manager.chrome import ChromeDriverManager
+from webdriver_manager.core.os_manager import ChromeType
 
 
 @pytest.fixture(scope="module")
@@ -19,15 +21,19 @@ def driver():
     """
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=DeprecationWarning)
-        # driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+
         chrome_options = Options()
-        # chrome_options.add_argument("--headless")
-        driver = webdriver.Chrome(
-            service=Service(
+
+        if sys.platform == "linux":
+            chrome_options.add_argument("--headless")
+            service = Service(
                 ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install()
-            ),
-            options=chrome_options,
-        )
+            )
+        else:  # Windows and MacOS
+            service = Service(ChromeDriverManager().install())
+
+        driver = webdriver.Chrome(service=service, options=chrome_options)
+
     yield driver
     driver.quit()
 
