@@ -3,11 +3,13 @@ name: formatting
 on: [push, pull_request]
 
 jobs:
-  lint:
+  formatting:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: psf/black@stable
-        with:
-          options: "--check --verbose"
-          jupyter: true
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    - name: Check code with black formatter
+      uses: psf/black@stable
+      with:
+        options: "--check --verbose"
+        jupyter: true

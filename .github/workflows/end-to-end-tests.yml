@@ -3,9 +3,8 @@ name: end-to-end tests
 on: [push, pull_request]
 
 jobs:
-  pytest:
+  tests:
     runs-on: ubuntu-latest
-    # runs-on: windows-latest
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
@@ -14,10 +13,6 @@ jobs:
       with:
           install-chromedriver: true
           install-dependencies: true
-    #   id: setup-chrome
-    # - run: |
-    #       ${{ steps.setup-chrome.outputs.chrome-path }} --version
-    #       ${{ steps.setup-chrome.outputs.chrome-path }} &
     - name: Set up Python
       uses: actions/setup-python@v5
       with:

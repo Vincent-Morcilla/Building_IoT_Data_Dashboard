@@ -3,25 +3,25 @@ name: unit tests
 on: [push, pull_request]
 
 jobs:
-  pytest:
+  tests:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v4
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
           python-version: '3.x'
-    - name: Install dependencies
+    - name: Install app dependencies
       run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-    # - name: Run the app
-    #   run: |
-    #       python frontend/analytics/app.py &
-    - name: Test with pytest
+    - name: Install test dependencies
       run: |
           pip install pytest pytest-cov
-          # pip install selenium webdriver-manager
+    - name: Run tests
+      run: |
+          pytest frontend/analytics/tests/unit_tests
           # pytest tests --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html
           # pytest tests/unit_tests
-          # pytest frontend/analytics/tests/unit_tests
+
