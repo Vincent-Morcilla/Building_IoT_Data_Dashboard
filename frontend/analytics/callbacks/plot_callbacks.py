@@ -8,10 +8,7 @@ from components.plot_generator import (
     create_plot_component,
     find_component_by_id,
 )
-from helpers.data_processing import (
-    apply_generic_filters,
-    apply_transformation
-)
+from helpers.data_processing import apply_generic_filters, apply_transformation
 from data.plot_configs import plot_configs
 
 
@@ -42,7 +39,7 @@ def update_plot_property_action(
 
     # Map input_keys to input_values
     input_mapping = {
-        trigger.get('input_key', f'input_{i}'): value
+        trigger.get("input_key", f"input_{i}"): value
         for i, (trigger, value) in enumerate(zip(triggers, input_values))
     }
 
@@ -52,35 +49,35 @@ def update_plot_property_action(
 
     # Apply data processing
     if data_processing:
-        transformations = data_processing.get('transformations', [])
+        transformations = data_processing.get("transformations", [])
         for transformation in transformations:
             data_frame = apply_transformation(data_frame, transformation, input_mapping)
 
     for output in outputs:
-        component_id = output['component_id']
-        component_property = output['component_property']
+        component_id = output["component_id"]
+        component_property = output["component_property"]
         component_config = find_component_by_id(component_id, plot_configs)
-        component_type = component_config['type']
+        component_type = component_config["type"]
 
-        if component_type == 'plot':
+        if component_type == "plot":
             new_component_config = copy.deepcopy(component_config)
-            plot_kwargs = new_component_config.get('kwargs', {})
+            plot_kwargs = new_component_config.get("kwargs", {})
 
             # Update kwargs with new data frame
             for kwarg_key, input_key in update_kwargs.items():
-                if kwarg_key == 'data_frame':
+                if kwarg_key == "data_frame":
                     plot_kwargs[kwarg_key] = data_frame.copy()
                 else:
                     plot_kwargs[kwarg_key] = input_mapping.get(input_key, input_key)
 
             # Rebuild the plot component
             updated_plot = create_plot_component(new_component_config)
-            if component_property == 'figure':
+            if component_property == "figure":
                 output_results.append(updated_plot.figure)
             else:
                 output_results.append(updated_plot)
-        elif component_type == 'table':
-            data = data_frame.to_dict('records')
+        elif component_type == "table":
+            data = data_frame.to_dict("records")
             output_results.append(data)
         else:
             output_results.append(no_update)
@@ -127,7 +124,7 @@ def update_plot_based_on_table_selection(
         outputs (List[Dict[str, Any]]): List of output configurations for the function.
         interaction (Dict[str, Any]): Contains interaction settings including data sources.
         triggers (List[Dict[str, Any]], optional): Trigger configurations for dynamic inputs.
-    
+
     Returns:
         List[Any]: Updated list of output figures or no updates if data is missing.
     """
@@ -135,18 +132,18 @@ def update_plot_based_on_table_selection(
 
     # Map input values to their corresponding trigger keys
     input_mapping = {
-        trigger.get('input_key', f'input_{i}'): value
+        trigger.get("input_key", f"input_{i}"): value
         for i, (trigger, value) in enumerate(zip(triggers or [], input_values))
     }
 
     # Get selected row index, defaulting to the first row if not specified
-    selected_rows = input_mapping.get('selected_rows', [])
+    selected_rows = input_mapping.get("selected_rows", [])
     row_idx = selected_rows[0] if selected_rows else 0
 
     # Retrieve data sources from interaction dictionary
-    data_source = interaction.get('data_source', {})
-    table_data = data_source.get('table_data')
-    timeseries_data_dict = data_source.get('timeseries_data_dict')
+    data_source = interaction.get("data_source", {})
+    table_data = data_source.get("table_data")
+    timeseries_data_dict = data_source.get("timeseries_data_dict")
 
     # Verify data availability
     if table_data is None or timeseries_data_dict is None:
@@ -154,7 +151,7 @@ def update_plot_based_on_table_selection(
         return [no_update] * len(outputs)
 
     # Retrieve selected row's ID and corresponding timeseries data
-    selected_id = table_data.iloc[row_idx]['ID']
+    selected_id = table_data.iloc[row_idx]["ID"]
     filtered_data = timeseries_data_dict.get(selected_id)
 
     if filtered_data is None:
@@ -164,8 +161,8 @@ def update_plot_based_on_table_selection(
     # Generate the timeseries plot figure
     fig = px.line(
         data_frame=filtered_data,
-        x='Date',
-        y=['Value', 'Variable1', 'Variable2'],
+        x="Date",
+        y=["Value", "Variable1", "Variable2"],
         title=f"Timeseries for {table_data.iloc[row_idx]['Name']}",
     )
     fig.update_layout(
@@ -211,16 +208,16 @@ def process_interaction_action(
 
     # Map input_keys to input_values
     input_mapping = {
-        trigger.get('input_key', f'input_{i}'): value
+        trigger.get("input_key", f"input_{i}"): value
         for i, (trigger, value) in enumerate(zip(triggers, input_values))
     }
 
-    data_processing = interaction.get('data_processing', {})
-    data_mapping = interaction.get('data_mapping', {})
+    data_processing = interaction.get("data_processing", {})
+    data_mapping = interaction.get("data_mapping", {})
 
     # Get source and target component IDs
-    source_id = data_mapping.get('from')
-    target_id = data_mapping.get('to')
+    source_id = data_mapping.get("from")
+    target_id = data_mapping.get("to")
 
     # Retrieve source and target components
     try:
@@ -231,9 +228,9 @@ def process_interaction_action(
         return [no_update] * len(outputs)
 
     # Get data from source component
-    source_data = source_component.get('kwargs', {}).get('data_frame')
+    source_data = source_component.get("kwargs", {}).get("data_frame")
     if source_data is None:
-        source_data = source_component.get('dataframe')
+        source_data = source_component.get("dataframe")
     if source_data is None:
         print(f"Source component '{source_id}' does not contain data.")
         return [no_update] * len(outputs)
@@ -242,28 +239,30 @@ def process_interaction_action(
     processed_data = source_data.copy()
 
     # Apply filters if any
-    filters = data_processing.get('filter')
+    filters = data_processing.get("filter")
     if filters:
         processed_data = apply_generic_filters(processed_data, filters, input_mapping)
 
     # Apply transformations if any
-    transformations = data_processing.get('transformations', [])
+    transformations = data_processing.get("transformations", [])
     for transformation in transformations:
-        processed_data = apply_transformation(processed_data, transformation, input_mapping)
+        processed_data = apply_transformation(
+            processed_data, transformation, input_mapping
+        )
 
     # Prepare the updated component configuration
     updated_component_config = copy.deepcopy(target_component)
-    if 'kwargs' in updated_component_config:
-        updated_component_config['kwargs']['data_frame'] = processed_data
-    elif 'dataframe' in updated_component_config:
-        updated_component_config['dataframe'] = processed_data
+    if "kwargs" in updated_component_config:
+        updated_component_config["kwargs"]["data_frame"] = processed_data
+    elif "dataframe" in updated_component_config:
+        updated_component_config["dataframe"] = processed_data
 
     # Rebuild the component
-    if target_component['type'] == 'plot':
+    if target_component["type"] == "plot":
         updated_component = create_plot_component(updated_component_config)
         output_results.append(updated_component.figure)
-    elif target_component['type'] == 'table':
-        data = processed_data.to_dict('records')
+    elif target_component["type"] == "table":
+        data = processed_data.to_dict("records")
         output_results.append(data)
     else:
         output_results.append(no_update)
@@ -279,27 +278,27 @@ def register_plot_callbacks(app, plot_configs):
         plot_configs (dict): The plot configurations.
     """
     action_functions = {
-        'update_plot_property': update_plot_property_action,
-        'update_table_based_on_plot_click': update_table_based_on_plot_click_action,
-        'process_interaction': process_interaction_action,
-        'update_plot_based_on_table_selection': update_plot_based_on_table_selection,
+        "update_plot_property": update_plot_property_action,
+        "update_table_based_on_plot_click": update_table_based_on_plot_click_action,
+        "process_interaction": process_interaction_action,
+        "update_plot_based_on_table_selection": update_plot_based_on_table_selection,
     }
 
     for category_key, config in plot_configs.items():
-        interactions = config.get('interactions', [])
+        interactions = config.get("interactions", [])
         for interaction in interactions:
-            triggers = interaction.get('triggers', [])
+            triggers = interaction.get("triggers", [])
             if not triggers:
                 continue
 
-            outputs = interaction['outputs']
-            action = interaction.get('action')
+            outputs = interaction["outputs"]
+            action = interaction.get("action")
             inputs = [
-                Input(trigger['component_id'], trigger['component_property'])
+                Input(trigger["component_id"], trigger["component_property"])
                 for trigger in triggers
             ]
             output_objs = [
-                Output(output['component_id'], output['component_property'])
+                Output(output["component_id"], output["component_property"])
                 for output in outputs
             ]
 
@@ -315,33 +314,39 @@ def register_plot_callbacks(app, plot_configs):
                     """The callback function to be registered with Dash."""
                     action_func = action_functions.get(action)
                     if action_func:
-                        if action == 'update_plot_property':
+                        if action == "update_plot_property":
                             # Extract data_frame and update_kwargs from interaction
-                            data_source_id = interaction.get('data_source')
+                            data_source_id = interaction.get("data_source")
                             try:
-                                data_source_component = find_component_by_id(data_source_id, plot_configs)
+                                data_source_component = find_component_by_id(
+                                    data_source_id, plot_configs
+                                )
                             except ValueError as error:
                                 print(error)
                                 return [no_update] * len(outputs)
-                            
+
                             # Retrieve data_frame based on whether component is `px` or `go`
-                            library = data_source_component.get('library')
-                            if library == 'px':
-                                data_frame = data_source_component.get('kwargs', {}).get('data_frame')
-                            elif library == 'go':
-                                data_frame = data_source_component.get('data_frame')
+                            library = data_source_component.get("library")
+                            if library == "px":
+                                data_frame = data_source_component.get(
+                                    "kwargs", {}
+                                ).get("data_frame")
+                            elif library == "go":
+                                data_frame = data_source_component.get("data_frame")
                             else:
                                 data_frame = None
-                            
+
                             # Check if data_frame exists after retrieval
                             if data_frame is None:
-                                print(f"Data source component '{data_source_id}' does not contain data.")
+                                print(
+                                    f"Data source component '{data_source_id}' does not contain data."
+                                )
                                 return [no_update] * len(outputs)
-                            
-                            update_kwargs = interaction.get('update_kwargs', {})
-                            filters = interaction.get('filters', {})
-                            data_processing = interaction.get('data_processing', {})
-                            
+
+                            update_kwargs = interaction.get("update_kwargs", {})
+                            filters = interaction.get("filters", {})
+                            data_processing = interaction.get("data_processing", {})
+
                             return action_func(
                                 data_frame,
                                 update_kwargs,

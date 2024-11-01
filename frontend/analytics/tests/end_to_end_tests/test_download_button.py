@@ -11,7 +11,9 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from webdriver_manager.chrome import ChromeDriverManager
 
-DOWNLOAD_DIR = os.path.join(os.getcwd(), "downloads")  # Directory to save downloaded files
+DOWNLOAD_DIR = os.path.join(
+    os.getcwd(), "downloads"
+)  # Directory to save downloaded files
 
 
 def setup_download_dir(download_dir):
@@ -126,7 +128,9 @@ def test_download_button(driver):
                 break
             time.sleep(1)
 
-        assert file_downloaded, "Test Failed: Download did not complete within the timeout period."
+        assert (
+            file_downloaded
+        ), "Test Failed: Download did not complete within the timeout period."
         print("Test Passed: Download completed successfully.")
 
     except Exception as error:

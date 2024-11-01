@@ -1,6 +1,7 @@
 import pytest
 from helpers.helpers import sanitise_filename
 
+
 def test_sanitise_filename_allows_valid_characters():
     """
     Test that the function leaves valid characters (A-Z, a-z, 0-9, -, _) intact.
@@ -33,7 +34,10 @@ def test_sanitise_filename_mixed_invalid_characters():
     """
     Test that the function replaces a mix of invalid characters correctly.
     """
-    assert sanitise_filename("File*Name:With<>Invalid/Chars") == "File_Name_With__Invalid_Chars"
+    assert (
+        sanitise_filename("File*Name:With<>Invalid/Chars")
+        == "File_Name_With__Invalid_Chars"
+    )
 
 
 def test_sanitise_filename_unicode_characters():

@@ -3,31 +3,28 @@ import pandas as pd
 from components.plot_generator import process_data_frame
 
 # Sample DataFrame for testing
-data_frame = pd.DataFrame({
-    'Category': ['A', 'B', 'C', 'A', 'B', 'C'],
-    'Subcategory': ['X', 'Y', 'Z', 'X', 'Y', 'Z'],
-    'Value': [10, 15, 7, 12, 18, 5]
-})
+data_frame = pd.DataFrame(
+    {
+        "Category": ["A", "B", "C", "A", "B", "C"],
+        "Subcategory": ["X", "Y", "Z", "X", "Y", "Z"],
+        "Value": [10, 15, 7, 12, 18, 5],
+    }
+)
 
 # Configuration dictionary for data processing
 data_processing_config = {
-    'filter': {
-        'Category': 'A'
-    },
-    'groupby': ['Subcategory'],
-    'aggregation': {
-        'TotalValue': ('Value', 'sum')
-    }
+    "filter": {"Category": "A"},
+    "groupby": ["Subcategory"],
+    "aggregation": {"TotalValue": ("Value", "sum")},
 }
 
 # Process the DataFrame
 processed_data_frame = process_data_frame(data_frame, data_processing_config)
 
 # Expected DataFrame should have aggregated values for Category 'A'
-expected_data_frame = pd.DataFrame({
-    'Subcategory': ['X'],
-    'TotalValue': [22]  # 10 + 12
-})
+expected_data_frame = pd.DataFrame(
+    {"Subcategory": ["X"], "TotalValue": [22]}  # 10 + 12
+)
 
 
 def test_process_data_frame():

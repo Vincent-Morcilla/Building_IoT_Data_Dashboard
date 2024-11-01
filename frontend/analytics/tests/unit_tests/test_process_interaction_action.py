@@ -4,6 +4,7 @@ from plotly.graph_objects import Figure
 from callbacks.plot_callbacks import process_interaction_action
 from data.plot_configs import plot_configs
 
+
 def test_process_interaction_action():
     """
     Test the `process_interaction_action` function to ensure it processes interactions
@@ -14,54 +15,51 @@ def test_process_interaction_action():
     the data and returns a figure with the expected categories.
     """
     # Source data
-    source_data = pd.DataFrame({
-        'Measurement': ['Quality A', 'Quality B', 'Quality A', 'Quality C'],
-        'Value': [60, 70, 65, 80]
-    })
+    source_data = pd.DataFrame(
+        {
+            "Measurement": ["Quality A", "Quality B", "Quality A", "Quality C"],
+            "Value": [60, 70, 65, 80],
+        }
+    )
 
     # Input values
-    input_values = [['Quality A', 'Quality C']]
+    input_values = [["Quality A", "Quality C"]]
 
     # Expected outputs
-    outputs = [{
-        'component_id': 'consumption-quality-box-plot',
-        'component_property': 'figure'
-    }]
+    outputs = [
+        {"component_id": "consumption-quality-box-plot", "component_property": "figure"}
+    ]
 
     # Interaction definition
     interaction = {
-        'action': 'process_interaction',
-        'data_mapping': {
-            'from': 'consumption-quality-box-plot',
-            'to': 'consumption-quality-box-plot',
+        "action": "process_interaction",
+        "data_mapping": {
+            "from": "consumption-quality-box-plot",
+            "to": "consumption-quality-box-plot",
         },
-        'data_processing': {
-            'filter': {
-                'Measurement': {
-                    'in': 'selected_measurements'
-                }
-            }
-        }
+        "data_processing": {"filter": {"Measurement": {"in": "selected_measurements"}}},
     }
 
     # Trigger configuration
-    triggers = [{'input_key': 'selected_measurements'}]
+    triggers = [{"input_key": "selected_measurements"}]
 
     # Mock plot_configs for testing
-    plot_configs['test-key'] = {
-        'components': [{
-            'id': 'consumption-quality-box-plot',
-            'type': 'plot',
-            'library': 'px',
-            'function': 'box',
-            'kwargs': {
-                'data_frame': source_data,
-                'x': 'Measurement',
-                'y': 'Value',
-            },
-            'layout_kwargs': {},
-            'css': {},
-        }]
+    plot_configs["test-key"] = {
+        "components": [
+            {
+                "id": "consumption-quality-box-plot",
+                "type": "plot",
+                "library": "px",
+                "function": "box",
+                "kwargs": {
+                    "data_frame": source_data,
+                    "x": "Measurement",
+                    "y": "Value",
+                },
+                "layout_kwargs": {},
+                "css": {},
+            }
+        ]
     }
 
     # Call the function
@@ -74,15 +72,21 @@ def test_process_interaction_action():
 
     # Assertions to validate output
     assert len(output_results) == 1, "Expected one figure output"
-    assert isinstance(output_results[0], Figure), "Output should be a Plotly Figure instance"
+    assert isinstance(
+        output_results[0], Figure
+    ), "Output should be a Plotly Figure instance"
 
     # Expected filtered data
-    expected_df = source_data[source_data['Measurement'].isin(['Quality A', 'Quality C'])]
+    expected_df = source_data[
+        source_data["Measurement"].isin(["Quality A", "Quality C"])
+    ]
 
     # Collect category names from all traces in the figure
     fig = output_results[0]
     categories_in_plot = {trace.name for trace in fig.data}
-    expected_categories = set(expected_df['Measurement'].unique())
+    expected_categories = set(expected_df["Measurement"].unique())
 
     # Verify if the figure contains both expected categories
-    assert categories_in_plot == expected_categories, "Figure categories should match filtered data categories"
+    assert (
+        categories_in_plot == expected_categories
+    ), "Figure categories should match filtered data categories"

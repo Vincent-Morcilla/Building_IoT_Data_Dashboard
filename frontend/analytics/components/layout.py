@@ -2,6 +2,7 @@ from dash import dcc, html
 import dash_bootstrap_components as dbc
 from components.sidebar import generate_sidebar
 
+
 def create_layout(plot_configs, categories_structure):
     """
     Create the main layout for the Dash application.
@@ -36,7 +37,7 @@ def create_layout(plot_configs, categories_structure):
                 color="#3c9639",
                 fullscreen=False,
                 type="border",
-                size="md"
+                size="md",
             ),
         ]
     )
@@ -57,9 +58,14 @@ def home_page_content(categories_structure):
 
     return html.Div(
         [
-            html.Img(src="/assets/title-logo.svg", alt="Title-Logo", className="title-logo"),
-            html.P("Select an option from the sidebar categories" if has_categories 
-                   else "No analyses could be run on the provided dataset")
+            html.Img(
+                src="/assets/title-logo.svg", alt="Title-Logo", className="title-logo"
+            ),
+            html.P(
+                "Select an option from the sidebar categories"
+                if has_categories
+                else "No analyses could be run on the provided dataset"
+            ),
         ],
         className="home-page-content",
     )

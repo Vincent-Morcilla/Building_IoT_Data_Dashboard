@@ -4,6 +4,7 @@ import plotly.graph_objects as go
 from typing import Dict, List
 from components.download_button import create_global_download_button
 
+
 def create_plot_component(component):
     """Create a Plotly-based plot component for the Dash app.
 
@@ -22,21 +23,21 @@ def create_plot_component(component):
     Returns:
         dcc.Graph: A Dash Graph component containing the plot.
     """
-    component_id = component.get('id')
+    component_id = component.get("id")
     if component_id is None:
         raise ValueError("Plot component must have an 'id' field.")
 
-    library = component.get('library', 'px')
-    func_name = component.get('function')
-    kwargs = component.get('kwargs', {}).copy()
-    layout_kwargs = component.get('layout_kwargs', {})
-    css = component.get('css', {})
-    data_processing = component.get('data_processing', {})
+    library = component.get("library", "px")
+    func_name = component.get("function")
+    kwargs = component.get("kwargs", {}).copy()
+    layout_kwargs = component.get("layout_kwargs", {})
+    css = component.get("css", {})
+    data_processing = component.get("data_processing", {})
 
     # Retrieve data_frame based on the `library` type
-    if library == 'px':
+    if library == "px":
         data_frame = kwargs.get("data_frame")
-    elif library == 'go':
+    elif library == "go":
         data_frame = component.get("data_frame")
     else:
         raise ValueError(f"Unsupported library '{library}'. Use 'px' or 'go'.")
@@ -46,9 +47,9 @@ def create_plot_component(component):
         data_frame = process_data_frame(data_frame, data_processing)
 
     # Generate the figure based on library
-    if library == 'px':
+    if library == "px":
         fig = create_px_figure(func_name, data_frame, kwargs)
-    elif library == 'go':
+    elif library == "go":
         fig = create_go_figure(data_frame, data_processing, component, kwargs)
 
     # Update layout and return the figure as a Dash Graph
@@ -69,13 +70,13 @@ def create_px_figure(func_name, data_frame, kwargs):
     """
     plot_func = getattr(px, func_name)
     if data_frame is not None:
-        kwargs['data_frame'] = data_frame
+        kwargs["data_frame"] = data_frame
     return plot_func(**kwargs)
 
 
 def create_go_figure(data_frame, data_processing, component, kwargs):
     """Create a Plotly Graph Objects figure with flexibility for various trace types.
-    
+
     Args:
         data_frame (pd.DataFrame): The data frame to use.
         data_processing (dict): Instructions for processing the data frame.
@@ -89,12 +90,12 @@ def create_go_figure(data_frame, data_processing, component, kwargs):
     trace_type = component.get("trace_type")
     if not trace_type:
         raise ValueError("Trace type is required in 'component' to create the figure.")
-    
+
     # Get the trace class dynamically from `go`
     trace_class = getattr(go, trace_type, None)
     if trace_class is None:
         raise ValueError(f"Invalid trace type '{trace_type}' specified.")
-    
+
     # Map columns from `df_processed` to trace properties using `data_mappings` if specified
     df_processed = data_frame.copy()
     updated_kwargs = kwargs.copy()
@@ -105,14 +106,14 @@ def create_go_figure(data_frame, data_processing, component, kwargs):
         # Replace column name strings with actual data from the processed DataFrame
         if column_name in df_processed.columns:
             updated_kwargs[key] = df_processed[column_name]
-    
+
     # For Heatmap or other traces requiring x, y, and z, map those columns directly
-    for axis in ['x', 'y', 'z']:
+    for axis in ["x", "y", "z"]:
         if axis in updated_kwargs and isinstance(updated_kwargs[axis], str):
             column_name = updated_kwargs[axis]
             if column_name in df_processed.columns:
                 updated_kwargs[axis] = df_processed[column_name]
-    
+
     # Apply any additional trace-specific arguments from `trace_kwargs`
     trace_kwargs = data_processing.get("trace_kwargs", {})
     updated_kwargs.update(trace_kwargs)
@@ -140,7 +141,7 @@ def process_data_frame(data_frame, data_processing):
     df = data_frame.copy()
 
     # Apply filtering
-    filters = data_processing.get('filter', {})
+    filters = data_processing.get("filter", {})
     for column, value in filters.items():
         if column not in df.columns:
             raise KeyError(f"Column '{column}' not found in DataFrame.")
@@ -154,12 +155,14 @@ def process_data_frame(data_frame, data_processing):
         return df  # Return the empty DataFrame
 
     # Apply grouping and aggregation
-    groupby_columns = data_processing.get('groupby', [])
-    aggregations = data_processing.get('aggregation', {})
+    groupby_columns = data_processing.get("groupby", [])
+    aggregations = data_processing.get("aggregation", {})
     if groupby_columns and aggregations:
         missing_groupby_cols = [col for col in groupby_columns if col not in df.columns]
         if missing_groupby_cols:
-            print(f"Warning: Groupby columns {missing_groupby_cols} not found in DataFrame.")
+            print(
+                f"Warning: Groupby columns {missing_groupby_cols} not found in DataFrame."
+            )
             return df
         agg_dict = {}
         for new_col, (col, func) in aggregations.items():
@@ -173,15 +176,17 @@ def process_data_frame(data_frame, data_processing):
         df = df.groupby(groupby_columns).agg(**agg_dict).reset_index()
 
     # Apply explode transformation
-    transformations = data_processing.get('transformations', [])
+    transformations = data_processing.get("transformations", [])
     for transformation in transformations:
-        if transformation['type'] == 'explode':
-            for column in transformation['columns']:
+        if transformation["type"] == "explode":
+            for column in transformation["columns"]:
                 if column in df.columns and isinstance(df[column].iloc[0], list):
                     df = df.explode(column, ignore_index=True)
                 else:
-                    raise ValueError(f"Column '{column}' cannot be exploded. Ensure it contains lists.")
-    
+                    raise ValueError(
+                        f"Column '{column}' cannot be exploded. Ensure it contains lists."
+                    )
+
     return df
 
 
@@ -199,15 +204,15 @@ def create_traces(data_frame, component):
         print("Warning: DataFrame is empty. No traces will be created.")
         return []
 
-    data_processing = component.get('data_processing', {})
-    data_mappings = data_processing.get('data_mappings', {})
-    trace_type = component.get('trace_type')
+    data_processing = component.get("data_processing", {})
+    data_mappings = data_processing.get("data_mappings", {})
+    trace_type = component.get("trace_type")
     if trace_type is None:
         raise ValueError("For 'go' plots, 'trace_type' must be specified.")
 
     trace_class = getattr(go, trace_type)
-    split_by = data_processing.get('split_by')
-    trace_kwargs_base = data_processing.get('trace_kwargs', {})
+    split_by = data_processing.get("split_by")
+    trace_kwargs_base = data_processing.get("trace_kwargs", {})
     traces = []
 
     # Validate data mappings
@@ -226,7 +231,7 @@ def create_traces(data_frame, component):
             df_subset = data_frame[data_frame[split_by] == value]
             trace_kwargs = map_data_to_trace(df_subset, data_mappings)
             trace_kwargs.update(trace_kwargs_base)
-            trace_kwargs['name'] = str(value)
+            trace_kwargs["name"] = str(value)
             trace = trace_class(**trace_kwargs)
             traces.append(trace)
     else:
@@ -280,21 +285,20 @@ def create_table_component(component):
         raise ValueError("Table component requires a 'dataframe'.")
 
     # Prepare columns and data for the table
-    columns = kwargs.get("columns", [{"name": col, "id": col} for col in dataframe.columns])
-    data = dataframe.to_dict('records')
+    columns = kwargs.get(
+        "columns", [{"name": col, "id": col} for col in dataframe.columns]
+    )
+    data = dataframe.to_dict("records")
 
     # Remove specific kwargs to avoid duplication
     kwargs_filtered = kwargs.copy()
-    kwargs_filtered.pop('columns', None)
-    kwargs_filtered.pop('data', None)
-    kwargs_filtered.pop('id', None)
+    kwargs_filtered.pop("columns", None)
+    kwargs_filtered.pop("data", None)
+    kwargs_filtered.pop("id", None)
 
     # Create the DataTable
     table = dash_table.DataTable(
-        data=data,
-        columns=columns,
-        id=component_id,
-        **kwargs_filtered
+        data=data, columns=columns, id=component_id, **kwargs_filtered
     )
 
     # Wrap in a Div if 'css' is provided
@@ -340,9 +344,15 @@ def create_ui_component(component):
     if label_text:
         label_element = html.Label(label_text, htmlFor=component_id)
         if label_position == "next":
-            ui_element = html.Div([label_element, ui_element], style={"display": "flex", "alignItems": "center", **css})
+            ui_element = html.Div(
+                [label_element, ui_element],
+                style={"display": "flex", "alignItems": "center", **css},
+            )
         else:
-            ui_element = html.Div([label_element, ui_element], style={"display": "flex", "flexDirection": "column", **css})
+            ui_element = html.Div(
+                [label_element, ui_element],
+                style={"display": "flex", "flexDirection": "column", **css},
+            )
     else:
         ui_element = html.Div(ui_element, style=css) if css else ui_element
 
@@ -381,7 +391,9 @@ def create_layout_for_category(category_key: str, plot_config: Dict) -> List:
             "marginBottom": "20px",
         },
     )
-    title_component = getattr(html, title_element, html.H2)(title_text, style=title_style)
+    title_component = getattr(html, title_element, html.H2)(
+        title_text, style=title_style
+    )
     components.append(title_component)
 
     # Add components (UI, plots, tables) to the layout

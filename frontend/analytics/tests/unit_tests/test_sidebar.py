@@ -2,14 +2,15 @@ import pytest
 from components.sidebar import generate_sidebar
 import dash_bootstrap_components as dbc
 
+
 def test_generate_sidebar():
     """
-    Test the `generate_sidebar` function to ensure it generates the correct 
+    Test the `generate_sidebar` function to ensure it generates the correct
     sidebar layout based on the provided category structure.
     """
     # Define categories with one main category and no subcategories
     categories = {"Main Category": []}
-    
+
     # Generate the sidebar using the function to be tested
     sidebar = generate_sidebar(categories)
 
@@ -24,5 +25,9 @@ def test_generate_sidebar():
 
     # Assert that 'Main Category' link is present with the correct href
     assert isinstance(nav_links[1], dbc.NavLink), "Second item should be a NavLink"
-    assert nav_links[1].children == "Main Category", "Second NavLink text should be 'Main Category'"
-    assert nav_links[1].href == "/main-category", "Second NavLink href should be '/main-category'"
+    assert (
+        nav_links[1].children == "Main Category"
+    ), "Second NavLink text should be 'Main Category'"
+    assert (
+        nav_links[1].href == "/main-category"
+    ), "Second NavLink href should be '/main-category'"

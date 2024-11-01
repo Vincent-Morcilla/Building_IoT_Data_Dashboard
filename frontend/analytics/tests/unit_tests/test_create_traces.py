@@ -3,21 +3,19 @@ import plotly.graph_objects as go
 from components.plot_generator import process_data_frame, create_traces
 
 # Sample data for the DataFrame
-df = pd.DataFrame({
-    'Category': ['A', 'B', 'C', 'A', 'B', 'C'],
-    'Subcategory': ['X', 'Y', 'Z', 'X', 'Y', 'Z'],
-    'Value': [10, 15, 7, 12, 18, 5]
-})
+df = pd.DataFrame(
+    {
+        "Category": ["A", "B", "C", "A", "B", "C"],
+        "Subcategory": ["X", "Y", "Z", "X", "Y", "Z"],
+        "Value": [10, 15, 7, 12, 18, 5],
+    }
+)
 
 # Define data processing configuration
 data_processing = {
-    'filter': {
-        'Category': 'A'
-    },
-    'groupby': ['Subcategory'],
-    'aggregation': {
-        'TotalValue': ('Value', 'sum')
-    }
+    "filter": {"Category": "A"},
+    "groupby": ["Subcategory"],
+    "aggregation": {"TotalValue": ("Value", "sum")},
 }
 
 # Process the DataFrame
@@ -25,16 +23,16 @@ df_processed = process_data_frame(df, data_processing)
 
 # Component configuration for trace creation
 component = {
-    'trace_type': 'Bar',
-    'data_processing': {
-        'data_mappings': {
-            'x': 'Subcategory',
-            'y': 'TotalValue',
+    "trace_type": "Bar",
+    "data_processing": {
+        "data_mappings": {
+            "x": "Subcategory",
+            "y": "TotalValue",
         },
-        'trace_kwargs': {
-            'name': 'Total Value by Subcategory',
-        }
-    }
+        "trace_kwargs": {
+            "name": "Total Value by Subcategory",
+        },
+    },
 }
 
 # Generate traces

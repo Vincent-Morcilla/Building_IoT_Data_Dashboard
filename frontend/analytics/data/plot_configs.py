@@ -6,22 +6,26 @@ import plotly.express as px
 np.random.seed(42)
 
 # Sample Data for the Table
-table_data = pd.DataFrame({
-    'ID': [1, 2, 3],
-    'Name': ['Room A', 'Room B', 'Room C'],
-    'Description': ['First floor', 'Second floor', 'Third floor'],
-})
+table_data = pd.DataFrame(
+    {
+        "ID": [1, 2, 3],
+        "Name": ["Room A", "Room B", "Room C"],
+        "Description": ["First floor", "Second floor", "Third floor"],
+    }
+)
 
 # Sample Timeseries Data for Each ID
 timeseries_data_dict = {}
 
-for id_val in table_data['ID']:
-    df = pd.DataFrame({
-        'Date': pd.date_range(start='2023-01-01', periods=100),
-        'Value': np.random.rand(100).cumsum(),
-        'Variable1': np.random.rand(100).cumsum(),
-        'Variable2': np.random.rand(100).cumsum(),
-    })
+for id_val in table_data["ID"]:
+    df = pd.DataFrame(
+        {
+            "Date": pd.date_range(start="2023-01-01", periods=100),
+            "Value": np.random.rand(100).cumsum(),
+            "Variable1": np.random.rand(100).cumsum(),
+            "Variable2": np.random.rand(100).cumsum(),
+        }
+    )
     timeseries_data_dict[id_val] = df  # Store each DataFrame with its ID as the key
 
 # Plot Configurations
@@ -36,10 +40,14 @@ plot_configs = {
                 "function": "box",
                 "id": "consumption-quality-box-plot",
                 "kwargs": {
-                    "data_frame": pd.DataFrame({
-                        "Measurement": ["Quality A"] * 50 + ["Quality B"] * 50 + ["Quality C"] * 50,
-                        "Value": np.random.normal(loc=60, scale=15, size=150),
-                    }),
+                    "data_frame": pd.DataFrame(
+                        {
+                            "Measurement": ["Quality A"] * 50
+                            + ["Quality B"] * 50
+                            + ["Quality C"] * 50,
+                            "Value": np.random.normal(loc=60, scale=15, size=150),
+                        }
+                    ),
                     "x": "Measurement",
                     "y": "Value",
                     "color": "Measurement",
@@ -85,10 +93,7 @@ plot_configs = {
                 },
             },
             # Separator
-            {
-                "type": "separator",
-                "style": {"margin": "20px 0"}
-            },
+            {"type": "separator", "style": {"margin": "20px 0"}},
             # UI Component: Dropdown for Measurements
             {
                 "type": "UI",
@@ -141,7 +146,6 @@ plot_configs = {
             },
         ],
     },
-
     # Line Plot for Consumption General Analysis
     ("Consumption", "GeneralAnalysis"): {
         "title": None,
@@ -152,12 +156,18 @@ plot_configs = {
                 "function": "line",
                 "id": "consumption-line-plot",
                 "kwargs": {
-                    "data_frame": pd.DataFrame({
-                        "Timestamp": pd.date_range(start="2023-01-01", periods=365, freq="D"),
-                        "Usage": np.cumsum(np.random.normal(loc=500, scale=50, size=365)),
-                        "Temperature": np.random.normal(loc=20, scale=5, size=365),
-                        "Pressure": np.random.normal(loc=1, scale=0.1, size=365),
-                    }),
+                    "data_frame": pd.DataFrame(
+                        {
+                            "Timestamp": pd.date_range(
+                                start="2023-01-01", periods=365, freq="D"
+                            ),
+                            "Usage": np.cumsum(
+                                np.random.normal(loc=500, scale=50, size=365)
+                            ),
+                            "Temperature": np.random.normal(loc=20, scale=5, size=365),
+                            "Pressure": np.random.normal(loc=1, scale=0.1, size=365),
+                        }
+                    ),
                     "x": "Timestamp",
                     "y": "Usage",
                 },
@@ -176,7 +186,7 @@ plot_configs = {
                         "y": -0.3,
                         "xanchor": "center",
                         "x": 0.5,
-                        "font": {"size": 15}
+                        "font": {"size": 15},
                     },
                     "xaxis": {
                         "title": "Date",
@@ -200,10 +210,7 @@ plot_configs = {
                 },
             },
             # Separator
-            {
-                "type": "separator",
-                "style": {"margin": "20px 0"}
-            },
+            {"type": "separator", "style": {"margin": "20px 0"}},
             # UI Component: Date Range Picker
             {
                 "type": "UI",
@@ -247,7 +254,7 @@ plot_configs = {
                 "action": "update_plot_property",
                 "data_source": "consumption-line-plot",
                 "update_kwargs": {
-                    "data_frame": "data_frame", # Placeholder
+                    "data_frame": "data_frame",  # Placeholder
                 },
                 "filters": {
                     "Timestamp": {
@@ -260,7 +267,6 @@ plot_configs = {
             },
         ],
     },
-
     # Heatmap for Consumption Usage Analysis
     ("Consumption", "UsageAnalysis"): {
         "title": None,
@@ -270,11 +276,28 @@ plot_configs = {
                 "library": "go",
                 "function": "Heatmap",
                 "id": "consumption-heatmap",
-                "data_frame": pd.DataFrame({
-                        "Date": pd.date_range(start="2021-01-01", periods=12, freq="MS").strftime('%b'),
+                "data_frame": pd.DataFrame(
+                    {
+                        "Date": pd.date_range(
+                            start="2021-01-01", periods=12, freq="MS"
+                        ).strftime("%b"),
                         "Sensor": ["Sensor A"] * 6 + ["Sensor B"] * 6,
-                        "Correlation": [-0.5, 0, 0.9, 0.8, 0.3, -0.4, -0.8, 0.5, -0.2, -0.1, 0.95, 0.13],
-                    }),
+                        "Correlation": [
+                            -0.5,
+                            0,
+                            0.9,
+                            0.8,
+                            0.3,
+                            -0.4,
+                            -0.8,
+                            0.5,
+                            -0.2,
+                            -0.1,
+                            0.95,
+                            0.13,
+                        ],
+                    }
+                ),
                 "trace_type": "Heatmap",  # Specify the trace type
                 "kwargs": {
                     "x": "Date",
@@ -292,7 +315,11 @@ plot_configs = {
                     },
                 },
                 "layout_kwargs": {
-                    "title": {"text": "Water Usage Heatmap", "x": 0.5, "xanchor": "center"},
+                    "title": {
+                        "text": "Water Usage Heatmap",
+                        "x": 0.5,
+                        "xanchor": "center",
+                    },
                     "xaxis_title": "Date",
                     "yaxis_title": "Sensor",
                     "font_color": "black",
@@ -318,7 +345,6 @@ plot_configs = {
             },
         ],
     },
-
     # Sunburst Chart for Building Structure
     ("BuildingStructure", "BuildingStructure"): {
         "title": None,
@@ -329,12 +355,24 @@ plot_configs = {
                 "function": "sunburst",
                 "id": "building-structure-sunburst",
                 "kwargs": {
-                    "data_frame": pd.DataFrame({
-                        "BuildingID": ["Building A", "Building A", "Building B", "Building B"],
-                        "ParentID": ["Building A", "Room 1", "Building B", "Room 2"],
-                        "EntityType": ["Room", "Device", "Room", "Device"],
-                        "EntityID": ["Room 1", "Device 1", "Room 2", "Device 2"]
-                    }),
+                    "data_frame": pd.DataFrame(
+                        {
+                            "BuildingID": [
+                                "Building A",
+                                "Building A",
+                                "Building B",
+                                "Building B",
+                            ],
+                            "ParentID": [
+                                "Building A",
+                                "Room 1",
+                                "Building B",
+                                "Room 2",
+                            ],
+                            "EntityType": ["Room", "Device", "Room", "Device"],
+                            "EntityID": ["Room 1", "Device 1", "Room 2", "Device 2"],
+                        }
+                    ),
                     "path": ["BuildingID", "ParentID", "EntityID"],
                     "title": "Building Structure",
                     "height": 1000,
@@ -346,7 +384,12 @@ plot_configs = {
                     },
                 },
                 "layout_kwargs": {
-                    "title": {"text": "Building Structure", "x": 0.5, "xanchor": "center", "font": {"size": 35}},
+                    "title": {
+                        "text": "Building Structure",
+                        "x": 0.5,
+                        "xanchor": "center",
+                        "font": {"size": 35},
+                    },
                     "font_color": "black",
                     "plot_bgcolor": "white",
                     "coloraxis_colorbar": {
@@ -364,7 +407,6 @@ plot_configs = {
             },
         ],
     },
-
     # Pie Charts and Tables for Model Quality - Class Inconsistency
     ("ModelQuality", "ClassInconsistency"): {
         "title": "Class Inconsistency Analysis",
@@ -376,12 +418,19 @@ plot_configs = {
                 "function": "pie",
                 "id": "class-consistency-pie",
                 "kwargs": {
-                    "data_frame": pd.DataFrame({
-                        "entity": ["Entity_1", "Entity_2", "Entity_3", "Entity_4"],
-                        "brick_class": ["Class_A", "Class_B", "Class_C", "Class_D"],
-                        "brick_class_in_mapping": ["Class_A", "Class_E", "Class_C", "Class_F"],
-                        "brick_class_is_consistent": [True, False, True, False],
-                    }),
+                    "data_frame": pd.DataFrame(
+                        {
+                            "entity": ["Entity_1", "Entity_2", "Entity_3", "Entity_4"],
+                            "brick_class": ["Class_A", "Class_B", "Class_C", "Class_D"],
+                            "brick_class_in_mapping": [
+                                "Class_A",
+                                "Class_E",
+                                "Class_C",
+                                "Class_F",
+                            ],
+                            "brick_class_is_consistent": [True, False, True, False],
+                        }
+                    ),
                     "names": "brick_class_is_consistent",
                     "title": "Class Consistency",
                 },
@@ -392,11 +441,7 @@ plot_configs = {
                         "x": 0.5,
                         "xanchor": "center",
                     },
-                    "legend": {
-                        "font": {
-                            "color": "black"
-                        }
-                    },
+                    "legend": {"font": {"color": "black"}},
                 },
                 "css": {
                     "width": "45%",
@@ -410,12 +455,32 @@ plot_configs = {
                 "library": "go",
                 "function": "Figure",
                 "id": "inconsistent-classes-pie",
-                "data_frame": pd.DataFrame({
-                        "entity": ["Entity_3", "Entity_4", "Entity_3", "Entity_4", "Entity_5"],
-                        "brick_class": ["Class_B", "Class_B", "Class_C", "Class_D", "Class_A"],
-                        "brick_class_in_mapping": ["Class_B", "Class_D", "Class_C", "Class_F", "Class_F"],
+                "data_frame": pd.DataFrame(
+                    {
+                        "entity": [
+                            "Entity_3",
+                            "Entity_4",
+                            "Entity_3",
+                            "Entity_4",
+                            "Entity_5",
+                        ],
+                        "brick_class": [
+                            "Class_B",
+                            "Class_B",
+                            "Class_C",
+                            "Class_D",
+                            "Class_A",
+                        ],
+                        "brick_class_in_mapping": [
+                            "Class_B",
+                            "Class_D",
+                            "Class_C",
+                            "Class_F",
+                            "Class_F",
+                        ],
                         "brick_class_is_consistent": [True, False, True, False, False],
-                    }),
+                    }
+                ),
                 "trace_type": "Pie",
                 "data_processing": {
                     "filter": {"brick_class_is_consistent": False},
@@ -446,25 +511,27 @@ plot_configs = {
                 },
             },
             # Separator
-            {
-                "type": "separator",
-                "style": {"margin": "20px 0"}
-            },
+            {"type": "separator", "style": {"margin": "20px 0"}},
             # Table: Details of Inconsistent Classes
             {
                 "type": "table",
-                "dataframe": pd.DataFrame({
-                    "entity": ["Entity_2", "Entity_4"],
-                    "brick_class": ["Class_B", "Class_D"],
-                    "brick_class_in_mapping": ["Class_E", "Class_F"],
-                    "brick_class_is_consistent": [False, False],
-                }),
+                "dataframe": pd.DataFrame(
+                    {
+                        "entity": ["Entity_2", "Entity_4"],
+                        "brick_class": ["Class_B", "Class_D"],
+                        "brick_class_in_mapping": ["Class_E", "Class_F"],
+                        "brick_class_is_consistent": [False, False],
+                    }
+                ),
                 "id": "inconsistent-classes-table",
                 "kwargs": {
                     "columns": [
                         {"name": "Entity", "id": "entity"},
                         {"name": "Brick Class in Model", "id": "brick_class"},
-                        {"name": "Brick Class in Mapping", "id": "brick_class_in_mapping"},
+                        {
+                            "name": "Brick Class in Mapping",
+                            "id": "brick_class_in_mapping",
+                        },
                     ],
                     "page_size": 10,
                     "style_cell": {
@@ -487,7 +554,7 @@ plot_configs = {
                     "style_table": {
                         "overflowX": "auto",
                     },
-                    "export_format":"csv",
+                    "export_format": "csv",
                 },
                 "css": {
                     "padding": "10px",
@@ -495,7 +562,6 @@ plot_configs = {
             },
         ],
     },
-
     ("RoomClimate", "Rooms"): {
         "title": None,
         "components": [
@@ -542,10 +608,8 @@ plot_configs = {
                 "id": "datatable",
                 "label": None,
                 "kwargs": {
-                    "data": table_data.to_dict('records'),
-                    "columns": [
-                        {"name": col, "id": col} for col in table_data.columns
-                    ],
+                    "data": table_data.to_dict("records"),
+                    "columns": [{"name": col, "id": col} for col in table_data.columns],
                     "row_selectable": "single",
                     "selected_rows": [0],  # Default to first row
                     "sort_action": "native",

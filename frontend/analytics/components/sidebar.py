@@ -1,6 +1,7 @@
 from dash import html
 import dash_bootstrap_components as dbc
 
+
 def generate_sidebar(categories):
     """
     Generate a sidebar for a Dash application with navigation links.
@@ -37,7 +38,7 @@ def generate_sidebar(categories):
                 ),
                 id="logo-button",
                 n_clicks=0,
-                className="logo-button"
+                className="logo-button",
             ),
             html.Hr(),
             dbc.Nav(nav_links, vertical=True, pills=True),

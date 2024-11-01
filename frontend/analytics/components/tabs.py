@@ -3,7 +3,10 @@ import dash_bootstrap_components as dbc
 from components.plot_generator import create_layout_for_category
 from data.plot_configs import plot_configs
 
-def create_tab_content(category_name, subcategory, category_key_mapping, subcategory_key_mapping):
+
+def create_tab_content(
+    category_name, subcategory, category_key_mapping, subcategory_key_mapping
+):
     """
     Create the content for an individual tab.
 
@@ -22,9 +25,15 @@ def create_tab_content(category_name, subcategory, category_key_mapping, subcate
 
     # Handle cases where category or subcategory does not exist
     if category_key is None:
-        return html.Div([html.H4(f"No content available for {subcategory} under {category_name}. Please select a different option.")])
+        return html.Div(
+            [
+                html.H4(
+                    f"No content available for {subcategory} under {category_name}. Please select a different option."
+                )
+            ]
+        )
 
-    if sub_cat_key is None: 
+    if sub_cat_key is None:
         sub_cat_key = "Main"
     key = (category_key, sub_cat_key)
 
@@ -33,7 +42,9 @@ def create_tab_content(category_name, subcategory, category_key_mapping, subcate
         config = plot_configs[key]
         content = create_layout_for_category(key, config)
     else:
-        content = html.Div([html.H4(f"No content available for {subcategory} under {category_name}.")])
+        content = html.Div(
+            [html.H4(f"No content available for {subcategory} under {category_name}.")]
+        )
 
     # Return the tab component
     return dbc.Tab(
@@ -43,7 +54,9 @@ def create_tab_content(category_name, subcategory, category_key_mapping, subcate
     )
 
 
-def create_tab_layout(selected_category, categories, category_key_mapping, subcategory_key_mapping):
+def create_tab_layout(
+    selected_category, categories, category_key_mapping, subcategory_key_mapping
+):
     """
     Create a layout containing tabs for the selected category.
 
@@ -57,8 +70,8 @@ def create_tab_layout(selected_category, categories, category_key_mapping, subca
         html.Div: A Dash Div component containing the layout of tabs for the selected category.
     """
     # Convert and standardize category name from the URL
-    selected_category_name = selected_category.replace('-', ' ')
-    
+    selected_category_name = selected_category.replace("-", " ")
+
     # Match the display category name
     matched_category = None
     for cat_display_name in categories.keys():
@@ -68,22 +81,28 @@ def create_tab_layout(selected_category, categories, category_key_mapping, subca
 
     # Handle case where no matching category is found
     if matched_category is None:
-        return html.Div([html.H4(f"No content available for {selected_category_name}.")])
+        return html.Div(
+            [html.H4(f"No content available for {selected_category_name}.")]
+        )
 
     # Get subcategories for the matched category
     subcategories = categories[matched_category]
 
     # Create tabs for each subcategory
     tabs = [
-        create_tab_content(matched_category, subcat, category_key_mapping, subcategory_key_mapping)
+        create_tab_content(
+            matched_category, subcat, category_key_mapping, subcategory_key_mapping
+        )
         for subcat in subcategories
     ]
 
     # Create the Tabs component for the selected category
     tabs_component = dbc.Tabs(
         id=f"tabs-{matched_category.lower().replace(' ', '-').replace('_', '-')}",
-        active_tab=tabs[0].tab_id if tabs else None,  # Default to the first tab if available
-        children=tabs
+        active_tab=(
+            tabs[0].tab_id if tabs else None
+        ),  # Default to the first tab if available
+        children=tabs,
     )
 
     # Return the tab layout wrapped in a Div

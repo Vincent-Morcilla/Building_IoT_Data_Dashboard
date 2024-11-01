@@ -10,6 +10,7 @@ from data.plot_configs import plot_configs
 # Name of the application
 APP_NAME = "Network in Progress"
 
+
 def create_app() -> Dash:
     """
     Initialize and configure the Dash application.
@@ -21,12 +22,14 @@ def create_app() -> Dash:
     app = Dash(
         __name__,
         external_stylesheets=[dbc.themes.BOOTSTRAP],
-        suppress_callback_exceptions=True
+        suppress_callback_exceptions=True,
     )
     app.title = APP_NAME
 
     # Create category structure for tabs and retrieve mappings
-    categories, category_key_mapping, subcategory_key_mapping = create_category_structure(plot_configs.keys())
+    categories, category_key_mapping, subcategory_key_mapping = (
+        create_category_structure(plot_configs.keys())
+    )
     categories_structure = (categories, category_key_mapping, subcategory_key_mapping)
 
     # Set the app layout
@@ -38,6 +41,7 @@ def create_app() -> Dash:
     register_plot_callbacks(app, plot_configs)
 
     return app
+
 
 if __name__ == "__main__":
     # Run the Dash app server with debug mode enabled

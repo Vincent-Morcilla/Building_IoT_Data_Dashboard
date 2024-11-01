@@ -1,6 +1,7 @@
 from dash import dcc, html
 import dash_bootstrap_components as dbc
 
+
 def create_global_download_button():
     """
     Create a global download button along with its Download component and feedback message.

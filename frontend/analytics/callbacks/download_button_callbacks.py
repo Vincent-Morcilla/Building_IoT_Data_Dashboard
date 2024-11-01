@@ -24,7 +24,7 @@ def hash_dataframe(df: pd.DataFrame) -> str:
     Returns:
         str: The MD5 hash of the DataFrame.
     """
-    df_bytes = df.to_csv(index=False).encode('utf-8')
+    df_bytes = df.to_csv(index=False).encode("utf-8")
     return hashlib.md5(df_bytes).hexdigest()
 
 
@@ -35,7 +35,7 @@ def generate_filename(
     title: str,
     comp_type: str,
     file_counters: Dict[str, int],
-    trace_type: Optional[str] = None
+    trace_type: Optional[str] = None,
 ) -> str:
     """
     Generate a unique filename with main_cat and sub_cat.
@@ -72,7 +72,7 @@ def process_dataframe(
     file_counters: Dict[str, int],
     processed_df_hashes: set,
     csv_files: list,
-    trace_type: Optional[str] = None
+    trace_type: Optional[str] = None,
 ):
     """
     Process a single DataFrame or a dictionary of DataFrames.
@@ -99,15 +99,9 @@ def process_dataframe(
         processed_df_hashes.add(df_hash)
 
         filename = generate_filename(
-            main_cat,
-            sub_cat,
-            component_id,
-            title,
-            comp_type,
-            file_counters,
-            trace_type
+            main_cat, sub_cat, component_id, title, comp_type, file_counters, trace_type
         )
-        csv_bytes = source.to_csv(index=False).encode('utf-8')
+        csv_bytes = source.to_csv(index=False).encode("utf-8")
         csv_files.append((filename, csv_bytes))
         logger.info(f"Added DataFrame: {filename}")
 
@@ -130,16 +124,15 @@ def process_dataframe(
                     component_id,  # Use component_id directly
                     title_extended,
                     comp_type,
-                    file_counters
+                    file_counters,
                 )
-                csv_bytes = df.to_csv(index=False).encode('utf-8')
+                csv_bytes = df.to_csv(index=False).encode("utf-8")
                 csv_files.append((filename, csv_bytes))
                 logger.info(f"Added DataFrame from dict: {filename}")
 
 
 def locate_component(
-    plot_configs: Dict[Any, Any],
-    component_id: str
+    plot_configs: Dict[Any, Any], component_id: str
 ) -> Optional[Dict[str, Any]]:
     """
     Locate a component by its ID within plot_configs.
@@ -152,13 +145,15 @@ def locate_component(
         Optional[Dict[str, Any]]: The component dictionary if found, else None.
     """
     for config in plot_configs.values():
-        for component in config.get('components', []):
-            if component.get('id') == component_id:
+        for component in config.get("components", []):
+            if component.get("id") == component_id:
                 return component
     return None
 
 
-def extract_dataframe_from_component(component: Dict[str, Any]) -> Optional[pd.DataFrame]:
+def extract_dataframe_from_component(
+    component: Dict[str, Any]
+) -> Optional[pd.DataFrame]:
     """
     Extract the DataFrame from a given component.
 
@@ -168,24 +163,24 @@ def extract_dataframe_from_component(component: Dict[str, Any]) -> Optional[pd.D
     Returns:
         Optional[pd.DataFrame]: The extracted DataFrame, if any.
     """
-    comp_type = component.get('type')
+    comp_type = component.get("type")
     df = None
 
-    if comp_type == 'plot':
-        df = component.get('kwargs', {}).get('data_frame')
-        if df is None and component.get('library') == 'go':
-            df = component.get('data_frame')
+    if comp_type == "plot":
+        df = component.get("kwargs", {}).get("data_frame")
+        if df is None and component.get("library") == "go":
+            df = component.get("data_frame")
 
-    elif comp_type == 'table':
-        df = component.get('dataframe')
+    elif comp_type == "table":
+        df = component.get("dataframe")
         if df is None:
-            data = component.get('kwargs', {}).get('data')
+            data = component.get("kwargs", {}).get("data")
             if isinstance(data, list):
                 df = pd.DataFrame(data)
 
-    elif comp_type == 'UI':
-        if component.get('element') == 'DataTable':
-            data = component.get('kwargs', {}).get('data')
+    elif comp_type == "UI":
+        if component.get("element") == "DataTable":
+            data = component.get("kwargs", {}).get("data")
             if isinstance(data, list):
                 df = pd.DataFrame(data)
 
@@ -221,7 +216,7 @@ class DownloadManager:
             io.BytesIO: The in-memory ZIP file.
         """
         zip_buffer = io.BytesIO()
-        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+        with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
             for filename, data in self.csv_files:
                 zip_file.writestr(filename, data)
                 logger.info(f"Added {filename} to ZIP.")
@@ -239,6 +234,7 @@ class DownloadManager:
         Returns:
             Dict[str, Any]: The Dash downloadable data.
         """
+
         def write_zip(file_like):
             file_like.write(zip_buffer.read())
 
@@ -256,9 +252,9 @@ def register_download_callbacks(app: Dash, plot_configs: Dict[Any, Any]):
     """
 
     @app.callback(
-        Output('global-download-data', 'data'),
-        Input('global-download-button', 'n_clicks'),
-        prevent_initial_call=True
+        Output("global-download-data", "data"),
+        Input("global-download-button", "n_clicks"),
+        prevent_initial_call=True,
     )
     def download_all_data(n_clicks: int) -> Dict[str, Any]:
         """
@@ -273,7 +269,9 @@ def register_download_callbacks(app: Dash, plot_configs: Dict[Any, Any]):
         if not n_clicks:
             raise PreventUpdate
 
-        logger.info("Global download button clicked. Preparing to download all dataframes.")
+        logger.info(
+            "Global download button clicked. Preparing to download all dataframes."
+        )
 
         download_manager = DownloadManager()
 
@@ -291,61 +289,61 @@ def register_download_callbacks(app: Dash, plot_configs: Dict[Any, Any]):
             sanitized_sub = sanitise_filename(subcategory.lower())
 
             # Process Components
-            for component in config.get('components', []):
-                comp_type = component.get('type')
-                if comp_type not in ['plot', 'table', 'UI']:
+            for component in config.get("components", []):
+                comp_type = component.get("type")
+                if comp_type not in ["plot", "table", "UI"]:
                     continue  # Ignore other component types like 'separator'
 
-                component_id = component.get('id')
+                component_id = component.get("id")
                 if not component_id:
                     logger.warning(
                         f"Component without ID found in {config_key}. Skipping."
                     )
                     continue
 
-                title = ''
+                title = ""
                 trace_type = None
 
-                if comp_type == 'plot':
-                    library = component.get('library')
-                    layout_kwargs = component.get('layout_kwargs', {})
-                    plot_title = layout_kwargs.get('title', {}).get('text', 'Plot')
+                if comp_type == "plot":
+                    library = component.get("library")
+                    layout_kwargs = component.get("layout_kwargs", {})
+                    plot_title = layout_kwargs.get("title", {}).get("text", "Plot")
 
-                    plot_function = component.get('function', 'plot')
+                    plot_function = component.get("function", "plot")
                     plot_type = plot_function.capitalize()
                     trace_type = plot_type
 
-                    data_frame = component.get('kwargs', {}).get('data_frame')
+                    data_frame = component.get("kwargs", {}).get("data_frame")
 
-                    if data_frame is None and library == 'go':
-                        data_frame = component.get('data_frame')
+                    if data_frame is None and library == "go":
+                        data_frame = component.get("data_frame")
 
                     if data_frame is not None and isinstance(data_frame, pd.DataFrame):
-                        title = plot_title.replace(' ', '_').lower()
+                        title = plot_title.replace(" ", "_").lower()
                         process_dataframe(
                             source=data_frame,
                             main_cat=sanitized_main,
                             sub_cat=sanitized_sub,
                             component_id=component_id,
                             title=title,
-                            comp_type='Plot',
+                            comp_type="Plot",
                             file_counters=download_manager.file_counters,
                             processed_df_hashes=download_manager.processed_df_hashes,
                             csv_files=download_manager.csv_files,
-                            trace_type=trace_type
+                            trace_type=trace_type,
                         )
 
-                elif comp_type == 'table':
-                    columns = component.get('kwargs', {}).get('columns', [])
+                elif comp_type == "table":
+                    columns = component.get("kwargs", {}).get("columns", [])
                     if columns:
-                        table_title = columns[0].get('name', 'Table')
+                        table_title = columns[0].get("name", "Table")
                     else:
-                        table_title = 'Table'
-                    title = table_title.replace(' ', '_').lower()
+                        table_title = "Table"
+                    title = table_title.replace(" ", "_").lower()
 
-                    data_frame = component.get('dataframe')
+                    data_frame = component.get("dataframe")
                     if data_frame is None:
-                        data = component.get('kwargs', {}).get('data')
+                        data = component.get("kwargs", {}).get("data")
                         if isinstance(data, list):
                             data_frame = pd.DataFrame(data)
 
@@ -356,37 +354,37 @@ def register_download_callbacks(app: Dash, plot_configs: Dict[Any, Any]):
                             sub_cat=sanitized_sub,
                             component_id=component_id,
                             title=title,
-                            comp_type='Table',
+                            comp_type="Table",
                             file_counters=download_manager.file_counters,
                             processed_df_hashes=download_manager.processed_df_hashes,
-                            csv_files=download_manager.csv_files
+                            csv_files=download_manager.csv_files,
                         )
 
-                elif comp_type == 'UI':
-                    element = component.get('element')
-                    if element != 'DataTable':
+                elif comp_type == "UI":
+                    element = component.get("element")
+                    if element != "DataTable":
                         continue  # Only handle DataTable for DataFrames
 
-                    data = component.get('kwargs', {}).get('data')
+                    data = component.get("kwargs", {}).get("data")
                     if not isinstance(data, list) or not data:
                         continue
                     data_frame = pd.DataFrame(data)
-                    title = element.replace(' ', '_').lower()
+                    title = element.replace(" ", "_").lower()
                     process_dataframe(
                         source=data_frame,
                         main_cat=sanitized_main,
                         sub_cat=sanitized_sub,
                         component_id=component_id,
                         title=title,
-                        comp_type='UI',
+                        comp_type="UI",
                         file_counters=download_manager.file_counters,
                         processed_df_hashes=download_manager.processed_df_hashes,
-                        csv_files=download_manager.csv_files
+                        csv_files=download_manager.csv_files,
                     )
 
             # Process Interactions
-            for interaction in config.get('interactions', []):
-                data_source = interaction.get('data_source', {})
+            for interaction in config.get("interactions", []):
+                data_source = interaction.get("data_source", {})
                 if not data_source:
                     continue
 
@@ -397,10 +395,10 @@ def register_download_callbacks(app: Dash, plot_configs: Dict[Any, Any]):
                         sub_cat=sanitized_sub,
                         component_id="Interaction",
                         title="interaction",
-                        comp_type='Interaction',
+                        comp_type="Interaction",
                         file_counters=download_manager.file_counters,
                         processed_df_hashes=download_manager.processed_df_hashes,
-                        csv_files=download_manager.csv_files
+                        csv_files=download_manager.csv_files,
                     )
                 elif isinstance(data_source, str):
                     component = locate_component(plot_configs, data_source)
@@ -408,21 +406,23 @@ def register_download_callbacks(app: Dash, plot_configs: Dict[Any, Any]):
                         df = extract_dataframe_from_component(component)
                         if df is not None and isinstance(df, pd.DataFrame):
                             title = (
-                                component.get('id')
-                                .replace('-', '_')
-                                .replace(' ', '_')
+                                component.get("id")
+                                .replace("-", "_")
+                                .replace(" ", "_")
                                 .lower()
                             )
                             process_dataframe(
                                 source=df,
                                 main_cat=sanitized_main,
                                 sub_cat=sanitized_sub,
-                                component_id=component.get('id').replace('-', '_').lower(),
+                                component_id=component.get("id")
+                                .replace("-", "_")
+                                .lower(),
                                 title=title,
-                                comp_type=component.get('type'),
+                                comp_type=component.get("type"),
                                 file_counters=download_manager.file_counters,
                                 processed_df_hashes=download_manager.processed_df_hashes,
-                                csv_files=download_manager.csv_files
+                                csv_files=download_manager.csv_files,
                             )
                     else:
                         logger.warning(

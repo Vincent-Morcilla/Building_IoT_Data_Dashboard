@@ -5,6 +5,7 @@ from unittest.mock import patch
 from components.tabs import create_tab_content, create_tab_layout
 from helpers.helpers import create_category_structure
 
+
 @pytest.fixture
 def mock_plot_configs():
     """
@@ -32,7 +33,7 @@ def mock_plot_configs():
                         "color": "Measurement",
                     },
                 },
-            ]
+            ],
         },
         ("Consumption", "GeneralAnalysis"): {
             "title": "General Analysis",
@@ -51,7 +52,7 @@ def mock_plot_configs():
                         "y": "Usage",
                     },
                 },
-            ]
+            ],
         },
     }
 
@@ -68,19 +69,47 @@ def category_mappings(mock_plot_configs):
         tuple: Categories, category_key_mapping, and subcategory_key_mapping.
     """
     analysis_keys = list(mock_plot_configs.keys())
-    categories, category_key_mapping, subcategory_key_mapping = create_category_structure(analysis_keys)
+    categories, category_key_mapping, subcategory_key_mapping = (
+        create_category_structure(analysis_keys)
+    )
     return categories, category_key_mapping, subcategory_key_mapping
 
 
 @pytest.mark.parametrize(
     "category_name, subcategory, expected_label, expected_id, expected_content",
     [
-        ("Data Quality", "Consumption Data Quality", "Consumption Data Quality", "data-quality-consumption-data-quality", "Consumption Data Quality Analysis"),
-        ("Data Quality", "NonExistentSubcategory", "NonExistentSubcategory", "data-quality-nonexistentsubcategory", "No content available for NonExistentSubcategory under Data Quality."),
-        ("Unknown Category", "Unknown Subcategory", "Unknown Subcategory", "unknown-category-unknown-subcategory", "No content available for Unknown Subcategory under Unknown Category. Please select a different option."),
-    ]
+        (
+            "Data Quality",
+            "Consumption Data Quality",
+            "Consumption Data Quality",
+            "data-quality-consumption-data-quality",
+            "Consumption Data Quality Analysis",
+        ),
+        (
+            "Data Quality",
+            "NonExistentSubcategory",
+            "NonExistentSubcategory",
+            "data-quality-nonexistentsubcategory",
+            "No content available for NonExistentSubcategory under Data Quality.",
+        ),
+        (
+            "Unknown Category",
+            "Unknown Subcategory",
+            "Unknown Subcategory",
+            "unknown-category-unknown-subcategory",
+            "No content available for Unknown Subcategory under Unknown Category. Please select a different option.",
+        ),
+    ],
 )
-def test_create_tab_content(category_name, subcategory, expected_label, expected_id, expected_content, mock_plot_configs, category_mappings):
+def test_create_tab_content(
+    category_name,
+    subcategory,
+    expected_label,
+    expected_id,
+    expected_content,
+    mock_plot_configs,
+    category_mappings,
+):
     """
     Test the `create_tab_content` function for various category and subcategory inputs.
 
@@ -95,9 +124,17 @@ def test_create_tab_content(category_name, subcategory, expected_label, expected
     """
     categories, category_key_mapping, subcategory_key_mapping = category_mappings
 
-    with patch('components.tabs.plot_configs', mock_plot_configs):
-        with patch('components.tabs.create_layout_for_category', return_value=[html.Div([html.H4("Mocked Content for Tab")])]):
-            tab_content = create_tab_content(category_name, subcategory, category_key_mapping, subcategory_key_mapping)
+    with patch("components.tabs.plot_configs", mock_plot_configs):
+        with patch(
+            "components.tabs.create_layout_for_category",
+            return_value=[html.Div([html.H4("Mocked Content for Tab")])],
+        ):
+            tab_content = create_tab_content(
+                category_name,
+                subcategory,
+                category_key_mapping,
+                subcategory_key_mapping,
+            )
 
             if category_name not in category_key_mapping:
                 # When the category is unknown, expect an html.Div
@@ -143,10 +180,12 @@ def test_create_tab_content(category_name, subcategory, expected_label, expected
     [
         ("Data Quality", ["data-quality-consumption-data-quality"]),
         ("Consumption", ["consumption-general-analysis"]),
-        ("Unknown Category", [])
-    ]
+        ("Unknown Category", []),
+    ],
 )
-def test_create_tab_layout(selected_category, expected_tab_ids, mock_plot_configs, category_mappings):
+def test_create_tab_layout(
+    selected_category, expected_tab_ids, mock_plot_configs, category_mappings
+):
     """
     Test the `create_tab_layout` function for different categories to check if the correct tab layout is generated.
 
@@ -158,9 +197,17 @@ def test_create_tab_layout(selected_category, expected_tab_ids, mock_plot_config
     """
     categories, category_key_mapping, subcategory_key_mapping = category_mappings
 
-    with patch('components.tabs.plot_configs', mock_plot_configs):
-        with patch('components.tabs.create_layout_for_category', return_value=[html.Div([html.H4("Mocked Content for Tab")])]):
-            tab_layout = create_tab_layout(selected_category, categories, category_key_mapping, subcategory_key_mapping)
+    with patch("components.tabs.plot_configs", mock_plot_configs):
+        with patch(
+            "components.tabs.create_layout_for_category",
+            return_value=[html.Div([html.H4("Mocked Content for Tab")])],
+        ):
+            tab_layout = create_tab_layout(
+                selected_category,
+                categories,
+                category_key_mapping,
+                subcategory_key_mapping,
+            )
 
             if not expected_tab_ids:
                 assert isinstance(tab_layout, html.Div)

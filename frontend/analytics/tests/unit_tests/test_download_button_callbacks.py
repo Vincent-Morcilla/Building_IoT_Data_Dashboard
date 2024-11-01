@@ -8,13 +8,14 @@ from callbacks.download_button_callbacks import (
     process_dataframe,
     locate_component,
     extract_dataframe_from_component,
-    DownloadManager
+    DownloadManager,
 )
+
 
 def test_hash_dataframe():
     """Test hash generation for a DataFrame."""
     df = pd.DataFrame({"col1": [1, 2], "col2": [3, 4]})
-    expected_hash = hashlib.md5(df.to_csv(index=False).encode('utf-8')).hexdigest()
+    expected_hash = hashlib.md5(df.to_csv(index=False).encode("utf-8")).hexdigest()
     assert hash_dataframe(df) == expected_hash
 
 
@@ -39,7 +40,15 @@ def test_process_dataframe_single_df():
     processed_df_hashes = set()
     csv_files = []
     process_dataframe(
-        df, "main", "sub", "comp1", "title", "Plot", file_counters, processed_df_hashes, csv_files
+        df,
+        "main",
+        "sub",
+        "comp1",
+        "title",
+        "Plot",
+        file_counters,
+        processed_df_hashes,
+        csv_files,
     )
     assert len(csv_files) == 1
     filename, data = csv_files[0]
@@ -53,7 +62,15 @@ def test_process_dataframe_dict_of_dfs():
     processed_df_hashes = set()
     csv_files = []
     process_dataframe(
-        dfs, "main", "sub", "comp2", "table_title", "Table", file_counters, processed_df_hashes, csv_files
+        dfs,
+        "main",
+        "sub",
+        "comp2",
+        "table_title",
+        "Table",
+        file_counters,
+        processed_df_hashes,
+        csv_files,
     )
     assert len(csv_files) == 2
     assert csv_files[0][0] == "main_sub_comp2_table_title_df1_Table_1.csv"
@@ -66,7 +83,7 @@ def test_locate_component():
         ("main", "sub"): {
             "components": [
                 {"id": "comp1", "type": "plot"},
-                {"id": "comp2", "type": "table"}
+                {"id": "comp2", "type": "table"},
             ]
         }
     }
@@ -77,13 +94,26 @@ def test_locate_component():
 
 def test_extract_dataframe_from_component():
     """Test extracting a DataFrame from various component types."""
-    plot_component = {"type": "plot", "kwargs": {"data_frame": pd.DataFrame({"col": [1]})}}
+    plot_component = {
+        "type": "plot",
+        "kwargs": {"data_frame": pd.DataFrame({"col": [1]})},
+    }
     table_component = {"type": "table", "kwargs": {"data": [{"col": 2}]}}
-    ui_component = {"type": "UI", "element": "DataTable", "kwargs": {"data": [{"col": 3}]}}
+    ui_component = {
+        "type": "UI",
+        "element": "DataTable",
+        "kwargs": {"data": [{"col": 3}]},
+    }
 
-    assert extract_dataframe_from_component(plot_component).equals(pd.DataFrame({"col": [1]}))
-    assert extract_dataframe_from_component(table_component).equals(pd.DataFrame({"col": [2]}))
-    assert extract_dataframe_from_component(ui_component).equals(pd.DataFrame({"col": [3]}))
+    assert extract_dataframe_from_component(plot_component).equals(
+        pd.DataFrame({"col": [1]})
+    )
+    assert extract_dataframe_from_component(table_component).equals(
+        pd.DataFrame({"col": [2]})
+    )
+    assert extract_dataframe_from_component(ui_component).equals(
+        pd.DataFrame({"col": [3]})
+    )
 
 
 def test_download_manager_add_csv_file():
@@ -101,7 +131,7 @@ def test_download_manager_prepare_zip():
     manager.add_csv_file("test.csv", data)
     zip_buffer = manager.prepare_zip()
 
-    with ZipFile(zip_buffer, 'r') as zip_file:
+    with ZipFile(zip_buffer, "r") as zip_file:
         assert "test.csv" in zip_file.namelist()
         assert zip_file.read("test.csv") == data
 
@@ -114,4 +144,3 @@ def test_download_manager_send_zip():
     zip_buffer = manager.prepare_zip()
     download_data = manager.send_zip(zip_buffer)
     assert download_data is not None
-
