@@ -24,6 +24,7 @@ jobs:
     - name: Run the app
       run: |
           python frontend/analytics/app.py &
+          sleep 3
     - name: Install test dependencies
       run: |
           pip install pytest
