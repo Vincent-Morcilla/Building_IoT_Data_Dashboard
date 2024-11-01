@@ -1755,14 +1755,14 @@ def create_sunburst_chart(
     width=1000,
 ):
 
-    # colour_map = {
-    #     "Location": "LightCoral",
-    #     "Equipment": "#32BF84",
-    #     "Sensor": "Gold",
-    #     "Point": "#90EE90",
-    #     "System": "White",
-    #     "Other": "#FF69B4",
-    # }
+    colour_map = {
+        "Location": "LightCoral",
+        "System": "#FFFDD0",
+        "Equipment": "#32BF84",
+        "Sensor": "Gold",
+        "Point": "#90EE90",
+        "Other": "Black",
+    }
 
     fig = px.sunburst(
         data,
@@ -1771,12 +1771,29 @@ def create_sunburst_chart(
         parents=parents_column,
         branchvalues="total",
         color=type_column,
-        # color_discrete_map=colour_map,
-        color_continuous_scale=color_scale,
+        color_discrete_map=colour_map,
+        # color_continuous_scale=color_scale,
         title=title,
         height=height,
         width=width,
     )
+
+    # custom annotations for the legend
+    legend_y = 1.05  # Initial y position for the legend
+    spacing = 0.03
+
+    for category, color in colour_map.items():
+        fig.add_annotation(
+            x=1.05, y=legend_y, xref="paper", yref="paper",
+            showarrow=False,
+            # text=f"<span style='color:{color};'>■</span> {category}",
+            text=f"<span style='font-size:20px; color:{color};'>■</span> <span style='font-size:12px;'>{category}</span>",
+            font=dict(size=12),
+            # align="left",
+            # xanchor="left",
+            # yanchor="middle"
+        )
+        legend_y -= spacing
 
     fig.update_layout(
         # uniformtext=dict(minsize=12, mode='hide'),
