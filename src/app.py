@@ -67,7 +67,7 @@ if __name__ == "__main__":
     # Hard-coded version for convenience during development
     DEBUG = True
 
-    if not args.test:
+    if not args.test_mode:
         # # Load the data
         # db = dbmgr.DBManager(args.data, args.mapper, args.model, args.schema)
 
