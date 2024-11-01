@@ -14,7 +14,7 @@ returns a dictionary containing the analysis results.
 
 import pandas as pd
 
-from dbmgr import DBManager  # only imported for type hinting
+from analytics.dbmgr import DBManager  # only imported for type hinting
 
 
 def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:

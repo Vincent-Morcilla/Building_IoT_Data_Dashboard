@@ -18,8 +18,8 @@ import plotly.graph_objects as go
 #     os.path.abspath(os.path.join(os.path.dirname(__file__), "../../code_snippets/tim"))
 # )
 # import analytics.modelquality as mq
-import dbmgr
-import analyticsmgr
+import analytics.dbmgr as dbmgr
+import analytics.analyticsmgr as analyticsmgr
 
 # m = mq.ModelQuality()
 

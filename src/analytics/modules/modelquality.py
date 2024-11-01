@@ -12,7 +12,7 @@ quality.  In particular:
 import numpy as np
 import pandas as pd
 
-from dbmgr import DBManager  # only imported for type hinting
+from analytics.dbmgr import DBManager  # only imported for type hinting
 
 
 def _build_master_df(db: DBManager) -> pd.DataFrame:
