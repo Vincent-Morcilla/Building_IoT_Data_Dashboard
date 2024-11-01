@@ -339,6 +339,11 @@ plot_configs = {
                     "title": "Building Structure",
                     "height": 1000,
                     "width": 1000,
+                    "color": "BuildingID",
+                    "color_discrete_map": {
+                        "Building A": "lightgreen",
+                        "Building B": "White",
+                    },
                 },
                 "layout_kwargs": {
                     "title": {"text": "Building Structure", "x": 0.5, "xanchor": "center", "font": {"size": 35}},
