@@ -29,7 +29,7 @@ for id_val in table_data["ID"]:
     timeseries_data_dict[id_val] = df  # Store each DataFrame with its ID as the key
 
 # Plot Configurations
-plot_configs = {
+sample_plot_configs = {
     # Box and Whisker Plot for Data Quality
     ("DataQuality", "ConsumptionDataQuality"): {
         "title": None,
