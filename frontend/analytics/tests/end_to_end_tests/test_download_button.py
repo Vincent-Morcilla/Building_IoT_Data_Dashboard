@@ -3,6 +3,7 @@ import shutil
 import sys
 import time
 import warnings
+
 import pytest
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
