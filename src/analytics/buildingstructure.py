@@ -362,15 +362,11 @@ def run(db: DBManager) -> dict:
     if data_hierarchy.empty:
         return {}
 
-    data_hierarchy["ids"] = (
-        data_hierarchy["child"].str.split("#").str[-1]
-    )
+    data_hierarchy["ids"] = data_hierarchy["child"].str.split("#").str[-1]
     data_hierarchy["labels"] = (
-        data_hierarchy["childLabel"].str.split("#").str[-1].str.replace('_', ' ')
+        data_hierarchy["childLabel"].str.split("#").str[-1].str.replace("_", " ")
     )
-    data_hierarchy["parents"] = (
-        data_hierarchy["parent"].str.split("#").str[-1]
-    )
+    data_hierarchy["parents"] = data_hierarchy["parent"].str.split("#").str[-1]
 
     data_hierarchy = data_hierarchy[["ids", "labels", "parents", "entityType"]]
 
@@ -378,17 +374,12 @@ def run(db: DBManager) -> dict:
 
     if df_area.empty:
         return {}
-    
 
-    df_area["ids"] = (
-        df_area["child"].str.split("#").str[-1]
-    )
+    df_area["ids"] = df_area["child"].str.split("#").str[-1]
     df_area["labels"] = (
-        df_area["childLabel"].str.split("#").str[-1].str.replace('_', ' ')
+        df_area["childLabel"].str.split("#").str[-1].str.replace("_", " ")
     )
-    df_area["parents"] = (
-        df_area["parent"].str.split("#").str[-1]
-    )
+    df_area["parents"] = df_area["parent"].str.split("#").str[-1]
 
     data_area = df_area[["ids", "labels", "parents", "entityType"]]
 

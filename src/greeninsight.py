@@ -1784,7 +1784,10 @@ def create_sunburst_chart(
 
     for category, color in colour_map.items():
         fig.add_annotation(
-            x=1.05, y=legend_y, xref="paper", yref="paper",
+            x=1.05,
+            y=legend_y,
+            xref="paper",
+            yref="paper",
             showarrow=False,
             # text=f"<span style='color:{color};'>■</span> {category}",
             text=f"<span style='font-size:20px; color:{color};'>■</span> <span style='font-size:12px;'>{category}</span>",
