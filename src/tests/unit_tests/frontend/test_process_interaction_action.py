@@ -2,7 +2,7 @@ import pytest
 import pandas as pd
 from plotly.graph_objects import Figure
 from callbacks.plot_callbacks import process_interaction_action
-from sampledata.plot_configs import plot_configs
+from sampledata.plot_configs import sample_plot_configs as plot_configs
 
 
 def test_process_interaction_action():
