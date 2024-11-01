@@ -1,0 +1,19 @@
+# Ignore Python cache files
+
+**pycache**/
+\*.pyc
+
+# Ignore git files
+
+.git
+.gitignore
+
+# Ignore local environment configurations
+
+.env
+\*.env
+
+# Ignore local development files
+
+\*.md
+tests/
