@@ -2,7 +2,8 @@ import pytest
 import pandas as pd
 from plotly.graph_objects import Figure
 from callbacks.plot_callbacks import update_plot_property_action
-from data.plot_configs import plot_configs
+
+from sampledata.plot_configs import plot_configs
 
 
 def test_update_plot_property_action():
@@ -62,6 +63,7 @@ def test_update_plot_property_action():
 
     # Call the function
     output_results = update_plot_property_action(
+        plot_configs,
         data_frame,
         update_kwargs,
         input_values,

@@ -1,11 +1,14 @@
 from dash import html
 import dash_bootstrap_components as dbc
 from components.plot_generator import create_layout_for_category
-from data.plot_configs import plot_configs
 
 
 def create_tab_content(
-    category_name, subcategory, category_key_mapping, subcategory_key_mapping
+    plot_configs,
+    category_name,
+    subcategory,
+    category_key_mapping,
+    subcategory_key_mapping,
 ):
     """
     Create the content for an individual tab.
@@ -55,7 +58,11 @@ def create_tab_content(
 
 
 def create_tab_layout(
-    selected_category, categories, category_key_mapping, subcategory_key_mapping
+    plot_configs,
+    selected_category,
+    categories,
+    category_key_mapping,
+    subcategory_key_mapping,
 ):
     """
     Create a layout containing tabs for the selected category.
@@ -91,7 +98,11 @@ def create_tab_layout(
     # Create tabs for each subcategory
     tabs = [
         create_tab_content(
-            matched_category, subcat, category_key_mapping, subcategory_key_mapping
+            plot_configs,
+            matched_category,
+            subcat,
+            category_key_mapping,
+            subcategory_key_mapping,
         )
         for subcat in subcategories
     ]

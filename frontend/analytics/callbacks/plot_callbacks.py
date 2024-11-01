@@ -9,10 +9,10 @@ from components.plot_generator import (
     find_component_by_id,
 )
 from helpers.data_processing import apply_generic_filters, apply_transformation
-from data.plot_configs import plot_configs
 
 
 def update_plot_property_action(
+    plot_configs,  # FIXME: Add type hint
     data_frame: pd.DataFrame,
     update_kwargs: Dict[str, Any],
     input_values: List[Any],
@@ -86,6 +86,7 @@ def update_plot_property_action(
 
 
 def update_table_based_on_plot_click_action(
+    plot_configs,  # FIXME: Add type hint
     input_values: List[Any],
     outputs: List[Dict[str, Any]],
     interaction: Dict[str, Any],
@@ -103,6 +104,7 @@ def update_table_based_on_plot_click_action(
         The updated table data.
     """
     return process_interaction_action(
+        plot_configs,
         input_values=input_values,
         outputs=outputs,
         interaction=interaction,
@@ -111,6 +113,7 @@ def update_table_based_on_plot_click_action(
 
 
 def update_plot_based_on_table_selection(
+    plot_configs,  # FIXME: Add type hint
     input_values: List[Any],
     outputs: List[Dict[str, Any]],
     interaction: Dict[str, Any],
@@ -188,6 +191,7 @@ def update_plot_based_on_table_selection(
 
 
 def process_interaction_action(
+    plot_configs,  # FIXME: Add type hint
     input_values: List[Any],
     outputs: List[Dict[str, Any]],
     interaction: Dict[str, Any],
@@ -348,6 +352,7 @@ def register_plot_callbacks(app, plot_configs):
                             data_processing = interaction.get("data_processing", {})
 
                             return action_func(
+                                plot_configs,
                                 data_frame,
                                 update_kwargs,
                                 input_values,
@@ -359,6 +364,7 @@ def register_plot_callbacks(app, plot_configs):
                         else:
                             # For other actions, call with input_values, outputs, interaction, triggers
                             return action_func(
+                                plot_configs,
                                 input_values,
                                 outputs,
                                 interaction,

@@ -3,6 +3,8 @@ import pandas as pd
 from plotly.graph_objects import Figure
 from callbacks.plot_callbacks import update_plot_based_on_table_selection
 
+from sampledata.plot_configs import plot_configs
+
 
 def test_update_plot_based_on_table_selection():
     """
@@ -67,6 +69,7 @@ def test_update_plot_based_on_table_selection():
 
     # Call the function
     output_results = update_plot_based_on_table_selection(
+        plot_configs,
         input_values,
         outputs,
         interaction,

@@ -1,7 +1,7 @@
 import pytest
 import pandas as pd
 from callbacks.plot_callbacks import update_table_based_on_plot_click_action
-from data.plot_configs import plot_configs
+from sampledata.plot_configs import plot_configs
 
 
 def test_update_table_based_on_plot_click_action():
@@ -67,6 +67,7 @@ def test_update_table_based_on_plot_click_action():
 
     # Execute the function with test inputs
     output_results = update_table_based_on_plot_click_action(
+        plot_configs,
         input_values,
         outputs,
         interaction,

@@ -1,4 +1,4 @@
-def register_general_callbacks(app, categories_structure):
+def register_general_callbacks(app, plot_configs, categories_structure):
     """
     Registers general callbacks for the Dash application.
 
@@ -53,6 +53,7 @@ def register_general_callbacks(app, categories_structure):
 
         if selected_category:
             return create_tab_layout(
+                plot_configs,
                 selected_category,
                 categories,
                 category_key_mapping,

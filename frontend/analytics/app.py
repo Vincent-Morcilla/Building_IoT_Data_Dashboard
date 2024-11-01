@@ -5,7 +5,7 @@ from callbacks.download_button_callbacks import register_download_callbacks
 from callbacks.general_callbacks import register_general_callbacks
 from callbacks.plot_callbacks import register_plot_callbacks
 from helpers.helpers import create_category_structure
-from data.plot_configs import plot_configs
+from sampledata.plot_configs import plot_configs
 
 # Name of the application
 APP_NAME = "Network in Progress"
@@ -37,7 +37,7 @@ def create_app() -> Dash:
 
     # Register download, general and plot-related callbacks
     register_download_callbacks(app, plot_configs)
-    register_general_callbacks(app, categories_structure)
+    register_general_callbacks(app, plot_configs, categories_structure)
     register_plot_callbacks(app, plot_configs)
 
     return app
