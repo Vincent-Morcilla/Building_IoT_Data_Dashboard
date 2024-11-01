@@ -316,52 +316,6 @@ plot_configs = {
                     "padding": "10px",
                 },
             },
-            # Separator
-            {
-                "type": "separator",
-                "style": {"margin": "20px 0"}
-            },
-            # UI Component: Color Scale Dropdown
-            {
-                "type": "UI",
-                "element": "Dropdown",
-                "id": "heatmap-color-scale-dropdown",
-                "label": "Select Color Scale",
-                "label_position": "above",
-                "kwargs": {
-                    "options": [
-                        {"label": scale, "value": scale}
-                        for scale in px.colors.named_colorscales()
-                    ],
-                    "value": "Viridis",
-                    "clearable": False,
-                },
-                "css": {
-                    "padding": "10px",
-                },
-            },
-        ],
-        "interactions": [
-            {
-                "triggers": [
-                    {
-                        "component_id": "heatmap-color-scale-dropdown",
-                        "component_property": "value",
-                        "input_key": "selected_color_scale",
-                    },
-                ],
-                "outputs": [
-                    {
-                        "component_id": "consumption-heatmap",
-                        "component_property": "figure",
-                    },
-                ],
-                "action": "update_plot_property",
-                "data_source": "consumption-heatmap",
-                "update_kwargs": {
-                    "colorscale": "selected_color_scale",
-                },
-            },
         ],
     },
 
