@@ -51,6 +51,7 @@ def create_app(plot_configs) -> Dash:
 if __name__ == "__main__":
     # Parse command-line arguments
     parser = argparse.ArgumentParser()
+    # @tim: TODO: Make groups, either run in test mode or run in normal mode
     # parser.add_argument("data", help="Path to the data file")
     # parser.add_argument("mapper", help="Path to the mapper file")
     # parser.add_argument("model", help="Path to the model file")
