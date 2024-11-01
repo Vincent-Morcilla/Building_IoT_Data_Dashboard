@@ -837,8 +837,9 @@ def create_plot(plot_type, plot_settings):
         # Create a sunburst chart figure
         return create_sunburst_chart(
             data,
-            label_column="labels",  # Using labels as the entity names
-            parent_column="parents",  # Using parents as the hierarchical structure
+            ids_column="ids",
+            labels_column="labels",  # Using labels as the entity names
+            parents_column="parents",  # Using parents as the hierarchical structure
             type_column="entityType",
             title=title,
             color_scale="Viridis",  # Default color scale
@@ -1744,8 +1745,9 @@ def update_other_graph(selected_rows):
 # Create sunburst function
 def create_sunburst_chart(
     data,
-    label_column,
-    parent_column,
+    ids_column,
+    labels_column,
+    parents_column,
     type_column,
     title,
     color_scale="Viridis",
@@ -1764,8 +1766,9 @@ def create_sunburst_chart(
 
     fig = px.sunburst(
         data,
-        names=label_column,
-        parents=parent_column,
+        ids=ids_column,
+        names=labels_column,
+        parents=parents_column,
         branchvalues="total",
         color=type_column,
         # color_discrete_map=colour_map,
@@ -1780,7 +1783,7 @@ def create_sunburst_chart(
         font_color="black",
         plot_bgcolor="white",
         coloraxis_colorbar=dict(
-            title=label_column,
+            title=labels_column,
             orientation="h",
             yanchor="top",
             y=-0.2,
@@ -1831,8 +1834,9 @@ def update_sunburst(selected_color_scale, input_id):
 
     updated_figure = create_sunburst_chart(
         data=data,
-        label_column="labels",
-        parent_column="parents",
+        ids_column="ids",
+        labels_column="labels",
+        parents_column="parents",
         title=plot_settings["title"],
         color_scale=selected_color_scale,
     )

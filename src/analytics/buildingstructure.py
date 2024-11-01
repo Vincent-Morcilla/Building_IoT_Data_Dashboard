@@ -333,38 +333,38 @@ def run(db: DBManager) -> dict:
         A dictionary containing the analysis results.
     """
 
-    df = _get_building_hierarchy(db)
+    data_hierarchy = _get_building_hierarchy(db)
 
     # print(df.head())
 
-    if df.empty:
+    if data_hierarchy.empty:
         return {}
 
-    df["labels"] = (
-        df["childLabel"].str.split("#").str[-1]
-        + " ("
-        + df["child"].str.split("#").str[-1]
-        + ")"
+    data_hierarchy["ids"] = (
+        data_hierarchy["child"].str.split("#").str[-1]
     )
-    df["parents"] = (
-        df["parentLabel"].str.split("#").str[-1]
-        + " ("
-        + df["parent"].str.split("#").str[-1]
-        + ")"
+    data_hierarchy["labels"] = (
+        data_hierarchy["childLabel"].str.split("#").str[-1].str.replace('_', ' ')
+    )
+    data_hierarchy["parents"] = (
+        data_hierarchy["parent"].str.split("#").str[-1]
     )
 
-    data = df[["labels", "parents", "entityType"]]
+    data_hierarchy = data_hierarchy[["ids", "labels", "parents", "entityType"]]
 
     df_area = _get_building_area(db)
 
     if df_area.empty:
         return {}
 
-    df_area["labels"] = (
+    df_area["ids"] = (
         df_area["childLabel"].str.split("#").str[-1]
         + " ("
         + df_area["child"].str.split("#").str[-1]
         + ")"
+    )
+    df_area["labels"] = (
+        df_area["childLabel"].str.split("#").str[-1].str.replace('_', ' ')
     )
     df_area["parents"] = (
         df_area["parentLabel"].str.split("#").str[-1]
@@ -373,31 +373,25 @@ def run(db: DBManager) -> dict:
         + ")"
     )
 
-    data_area = df_area[["labels", "parents", "entityType"]]
+    data_area = df_area[["ids", "labels", "parents", "entityType"]]
 
-    # df1 = pd.DataFrame(
-    #     {
-    #         "labels": ["Water_Tank dd2a3659_6674_4f80_88b7_be63664ff2e3	", "Basement e8e7705d_b87a_4bf3_b454_202ca27ea7ad", "Floor 6e0854f9_3888_4867_9176_0693de75f841", "Floor ef790dae_bb9b_4cd7_a52c_ea35841f02dd"],
-    #         "parents": ["Building 13211186_beb4_4227_bd2d_0644e860886e", "Building 13211186_beb4_4227_bd2d_0644e860886e", "Building 13211186_beb4_4227_bd2d_0644e860886e", "Building 13211186_beb4_4227_bd2d_0644e860886e"],
-    #     }
-    # )
 
     config = {
         "BuildingStructure_BuildingHierarchy": {
             "SunburstChart": {
-                "title": "Building Hierarchy Sunburst",
+                "title": "Building Hierarchy",
                 "EntityID": "EntityID",
                 "EntityType": "EntityType",
                 "ParentID": "ParentID",
                 "BuildingID": "BuildingID",
                 "z-axis": "Level",
                 "z-axis_label": "Hierarchy Level",
-                "dataframe": data,
+                "dataframe": data_hierarchy,
             }
         },
         "BuildingStructure_BuildingArea": {
             "SunburstChart": {
-                "title": "Building Area Sunburst",
+                "title": "Building Locations",
                 "EntityID": "AreaID",
                 "EntityType": "AreaType",
                 "ParentID": "ParentAreaID",
