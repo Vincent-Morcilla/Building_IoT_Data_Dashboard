@@ -15,6 +15,7 @@ jobs:
       id: setup-chrome
     - run: |
           ${{ steps.setup-chrome.outputs.chrome-path }} --version
+          ${{ steps.setup-chrome.outputs.chrome-path }} &
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
