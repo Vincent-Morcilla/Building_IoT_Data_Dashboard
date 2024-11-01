@@ -1756,11 +1756,11 @@ def create_sunburst_chart(
 ):
 
     # colour_map = {
-    #     "Location": "#FFB6C1",
-    #     "Equipment": "#FFD700",
-    #     "Sensor": "#87CEFA",
+    #     "Location": "LightCoral",
+    #     "Equipment": "#32BF84",
+    #     "Sensor": "Gold",
     #     "Point": "#90EE90",
-    #     "System": "#DDA0DD",
+    #     "System": "White",
     #     "Other": "#FF69B4",
     # }
 
@@ -1779,6 +1779,7 @@ def create_sunburst_chart(
     )
 
     fig.update_layout(
+        # uniformtext=dict(minsize=12, mode='hide'),
         title={"text": title, "x": 0.5, "xanchor": "center"},
         font_color="black",
         plot_bgcolor="white",

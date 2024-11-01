@@ -24,14 +24,25 @@ def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:
             # Define the building
             ?building a brick:Building . 
             ?building a ?buildingLabel .
-            BIND('Location' AS ?entityType)
+            # BIND('Location' AS ?entityType)
             # BIND('' AS ?parentLabel)
             # BIND(?building AS ?child)
             # BIND(?buildingLabel AS ?childLabel)
 
             OPTIONAL {
+                # Match root node: building
+                {
+                    ?building a brick:Building .
+                    ?building a ?buildingLabel .
+                    BIND('Location' AS ?entityType)
+                    BIND('' AS ?parent)
+                    BIND('' AS ?parentLabel)
+                    BIND(?building AS ?child)
+                    BIND(?buildingLabel AS ?childLabel)
+                }
 
                 # Match System entities connected to building
+                UNION
                 {
                     ?sys brick:hasLocation ?building .
                     ?building a ?buildingLabel .
@@ -277,7 +288,18 @@ def _get_building_area(db: DBManager) -> pd.DataFrame:
             BIND('Location' AS ?entityType)
 
             OPTIONAL {
+                # Match root node: building
+                {
+                    ?building a brick:Building .
+                    ?building a ?buildingLabel .
+                    BIND('Location' AS ?entityType)
+                    BIND('' AS ?parent)
+                    BIND('' AS ?parentLabel)
+                    BIND(?building AS ?child)
+                    BIND(?buildingLabel AS ?childLabel)
+                }
                 # Match all levels
+                UNION
                 {
                     ?level brick:isPartOf ?building .
                     ?building a ?buildingLabel .
@@ -356,25 +378,19 @@ def run(db: DBManager) -> dict:
 
     if df_area.empty:
         return {}
+    
 
     df_area["ids"] = (
-        df_area["childLabel"].str.split("#").str[-1]
-        + " ("
-        + df_area["child"].str.split("#").str[-1]
-        + ")"
+        df_area["child"].str.split("#").str[-1]
     )
     df_area["labels"] = (
         df_area["childLabel"].str.split("#").str[-1].str.replace('_', ' ')
     )
     df_area["parents"] = (
-        df_area["parentLabel"].str.split("#").str[-1]
-        + " ("
-        + df_area["parent"].str.split("#").str[-1]
-        + ")"
+        df_area["parent"].str.split("#").str[-1]
     )
 
     data_area = df_area[["ids", "labels", "parents", "entityType"]]
-
 
     config = {
         "BuildingStructure_BuildingHierarchy": {
