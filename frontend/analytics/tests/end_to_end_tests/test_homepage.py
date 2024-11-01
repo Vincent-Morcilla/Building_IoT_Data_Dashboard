@@ -50,11 +50,11 @@ def test_homepage_title(driver):
     """
     driver.get("http://localhost:8050")
 
-    # Verify the page title
-    assert driver.title == "Network in Progress"
-
     # Wait for page to fully load
     time.sleep(2)
+
+    # Verify the page title
+    assert driver.title == "Network in Progress"
 
     # Check if the homepage content (image and paragraph) is rendered
     title_logo = driver.find_element(By.CLASS_NAME, "title-logo")
