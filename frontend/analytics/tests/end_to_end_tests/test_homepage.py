@@ -21,7 +21,7 @@ def driver():
         warnings.simplefilter("ignore", category=DeprecationWarning)
         # driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
         chrome_options = Options()
-        chrome_options.add_argument("--headless")
+        # chrome_options.add_argument("--headless")
         driver = webdriver.Chrome(
             service=Service(
                 ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install()

@@ -18,7 +18,7 @@ def driver():
         # service = Service(ChromeDriverManager().install())
         # driver = webdriver.Chrome(service=service)
         chrome_options = Options()
-        chrome_options.add_argument("--headless")
+        # chrome_options.add_argument("--headless")
         driver = webdriver.Chrome(
             service=Service(
                 ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install()
