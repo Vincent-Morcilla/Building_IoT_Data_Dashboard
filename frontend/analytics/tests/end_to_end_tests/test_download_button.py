@@ -10,6 +10,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from webdriver_manager.chrome import ChromeDriverManager
+from webdriver_manager.core.os_manager import ChromeType
 
 DOWNLOAD_DIR = os.path.join(
     os.getcwd(), "downloads"
@@ -55,8 +56,15 @@ def driver():
             "safebrowsing.enabled": True,
         }
         chrome_options.add_experimental_option("prefs", prefs)
+        # driver = webdriver.Chrome(
+        #     service=Service(ChromeDriverManager().install()),
+        #     options=chrome_options,
+        # )
+        chrome_options.add_argument("--headless")
         driver = webdriver.Chrome(
-            service=Service(ChromeDriverManager().install()),
+            service=Service(
+                ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install()
+            ),
             options=chrome_options,
         )
     yield driver

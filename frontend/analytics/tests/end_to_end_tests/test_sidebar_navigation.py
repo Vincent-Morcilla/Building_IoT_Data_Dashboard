@@ -2,6 +2,8 @@ import warnings
 import pytest
 from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
+from webdriver_manager.core.os_manager import ChromeType
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -13,8 +15,16 @@ def driver():
     """Fixture to initialize and yield a Selenium WebDriver instance for testing."""
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=DeprecationWarning)
-        service = Service(ChromeDriverManager().install())
-        driver = webdriver.Chrome(service=service)
+        # service = Service(ChromeDriverManager().install())
+        # driver = webdriver.Chrome(service=service)
+        chrome_options = Options()
+        chrome_options.add_argument("--headless")
+        driver = webdriver.Chrome(
+            service=Service(
+                ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install()
+            ),
+            options=chrome_options,
+        )
     yield driver
     driver.quit()
 
