@@ -30,4 +30,4 @@ jobs:
           pip install selenium webdriver-manager
     - name: Run tests
       run: |
-          pytest frontend/analytics/tests/end_to_end_tests
+          pytest src/tests/end_to_end_tests

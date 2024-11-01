@@ -21,7 +21,7 @@ jobs:
           pip install pytest pytest-cov
     - name: Run tests
       run: |
-          pytest frontend/analytics/tests/unit_tests
+          pytest src/tests/unit_tests
           # pytest tests --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html
           # pytest tests/unit_tests
 
