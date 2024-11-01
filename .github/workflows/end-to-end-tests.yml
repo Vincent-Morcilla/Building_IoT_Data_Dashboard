@@ -23,8 +23,7 @@ jobs:
           pip install -r requirements.txt
     - name: Run the app
       run: |
-          python frontend/analytics/app.py &
-          sleep 3
+          python src/app.py &
     - name: Install test dependencies
       run: |
           pip install pytest
