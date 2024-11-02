@@ -144,52 +144,164 @@ def _recognised_entity_analysis(master_df):
     unrecognised_df = df[df["class_in_brick_schema"] == "Unrecognised"].copy()
     unrecognised_df.drop(columns=["class_in_brick_schema"], inplace=True)
 
-    config = {
-        "ModelQuality_RecognisedEntities": {
-            "PieChartAndTable": {
-                "title": "Brick Entities in Building Model Recognised by Brick Schema",
-                "pie_charts": [
-                    {
-                        "title": "Proportion of Recognised vs Unrecognised Entities",
+    # Pie Charts and Tables for Model Quality - Recognised Entities
+    plot_config = {
+        ("ModelQuality", "RecognisedEntities"): {
+            "title": "Brick Entities in Building Model Recognised by Brick Schema",
+            "components": [
+                # Pie Chart: Recognised vs Unrecognised Entities
+                {
+                    "type": "plot",
+                    "library": "go",
+                    "function": "Figure",
+                    "id": "model-quality-recognised-entities-pie",
+                    "data_frame": df,
+                    "trace_type": "Pie",
+                    "data_mappings": {
                         "labels": "class_in_brick_schema",
-                        "textinfo": "percent+label",
-                        "dataframe": df,
                     },
-                    {
-                        "title": "Unrecognised Entities by Class",
+                    "kwargs": {
+                        "textinfo": "percent+label",
+                        "textposition": "inside",
+                        "showlegend": False,
+                    },
+                    "layout_kwargs": {
+                        "title": {
+                            "text": "Recognised vs Unrecognised Entities",
+                            "font_color": "black",
+                            "x": 0.5,
+                            "xanchor": "center",
+                        },
+                    },
+                    "css": {
+                        "width": "50%",
+                        "display": "inline-block",
+                        "padding": "10px",
+                    },
+                },
+                # Pie Chart: Unrecognised Entities by Class
+                {
+                    "type": "plot",
+                    "library": "go",
+                    "function": "Figure",
+                    "id": "model-quality-unrecognised-classes-pie",
+                    "data_frame": unrecognised_df,
+                    "trace_type": "Pie",
+                    "data_mappings": {
                         "labels": "brick_class",
-                        "textinfo": "percent+label",
-                        "dataframe": unrecognised_df,
                     },
-                ],
-            },
+                    "kwargs": {
+                        "textinfo": "percent+label",
+                        "textposition": "inside",
+                        "showlegend": False,
+                    },
+                    "layout_kwargs": {
+                        "title": {
+                            "text": "Unrecognised Entities by Class",
+                            "font_color": "black",
+                            "x": 0.5,
+                            "xanchor": "center",
+                        },
+                    },
+                    "css": {
+                        "width": "50%",
+                        "display": "inline-block",
+                        "padding": "10px",
+                    },
+                },
+            ],
         }
     }
 
-    if len(recognised_df) > 0 or len(unrecognised_df) > 0:
-        config["ModelQuality_RecognisedEntities"]["PieChartAndTable"]["tables"] = []
-
     if len(unrecognised_df) > 0:
-        config["ModelQuality_RecognisedEntities"]["PieChartAndTable"]["tables"].append(
-            {
-                "title": "Unrecognised Entities",
-                "columns": ["Brick Class", "Entity ID"],
-                "rows": ["brick_class", "entity_id"],
-                "dataframe": unrecognised_df,
-            }
+        plot_config[("ModelQuality", "RecognisedEntities")]["components"].extend(
+            [
+                # # Separator
+                # {"type": "separator", "style": {"margin": "20px 0"}},
+                # Table: Details of Inconsistent Classes
+                {
+                    "type": "table",
+                    "title": "Unrecognised Entities",
+                    "title_element": "H5",
+                    "dataframe": unrecognised_df,
+                    "id": "model-quality-unrecognised-entities-table",
+                    "kwargs": {
+                        "columns": [
+                            {"name": "Brick Class in Model", "id": "brick_class"},
+                            {"name": "Entity ID", "id": "entity_id"},
+                        ],
+                        "page_size": 10,
+                        "row_selectable": False,
+                        "sort_action": "native",
+                        "sort_mode": "multi",
+                        "style_data_conditional": [
+                            {
+                                "if": {"row_index": "odd"},
+                                "backgroundColor": "#ddf2dc",
+                            }
+                        ],
+                        "style_table": {
+                            "overflowX": "auto",
+                        },
+                        "export_format": "csv",
+                        "tooltip_data": [
+                            {
+                                column: {"value": str(value), "type": "markdown"}
+                                for column, value in row.items()
+                            }
+                            for row in unrecognised_df.to_dict("records")
+                        ],
+                        "tooltip_duration": None,
+                    },
+                },
+            ]
         )
 
     if len(recognised_df) > 0:
-        config["ModelQuality_RecognisedEntities"]["PieChartAndTable"]["tables"].append(
-            {
-                "title": "Recognised Entities",
-                "columns": ["Brick Class", "Entity ID"],
-                "rows": ["brick_class", "entity_id"],
-                "dataframe": recognised_df,
-            }
+        plot_config[("ModelQuality", "RecognisedEntities")]["components"].extend(
+            [
+                # # Separator
+                # {"type": "separator", "style": {"margin": "20px 0"}},
+                # Table: Details of Inconsistent Classes
+                {
+                    "type": "table",
+                    "title": "Recognised Entities",
+                    "title_element": "H5",
+                    "dataframe": recognised_df,
+                    "id": "model-quality-recognised-entities-table",
+                    "kwargs": {
+                        "columns": [
+                            {"name": "Brick Class in Model", "id": "brick_class"},
+                            {"name": "Entity ID", "id": "entity_id"},
+                        ],
+                        "page_size": 10,
+                        "row_selectable": False,
+                        "sort_action": "native",
+                        "sort_mode": "multi",
+                        "style_data_conditional": [
+                            {
+                                "if": {"row_index": "odd"},
+                                "backgroundColor": "#ddf2dc",
+                            }
+                        ],
+                        "style_table": {
+                            "overflowX": "auto",
+                        },
+                        "export_format": "csv",
+                        "tooltip_data": [
+                            {
+                                column: {"value": str(value), "type": "markdown"}
+                                for column, value in row.items()
+                            }
+                            for row in recognised_df.to_dict("records")
+                        ],
+                        "tooltip_duration": None,
+                    },
+                },
+            ]
         )
 
-    return config
+    return plot_config
 
 
 def _associated_units_analysis(master_df):
@@ -453,8 +565,8 @@ def _class_consistency_analysis(master_df):
     if len(inconsistent_df) > 0:
         plot_config[("ModelQuality", "ClassConsistency")]["components"].extend(
             [
-                # Separator
-                {"type": "separator", "style": {"margin": "20px 0"}},
+                # # Separator
+                # {"type": "separator", "style": {"margin": "20px 0"}},
                 # Table: Details of Inconsistent Classes
                 {
                     "type": "table",
@@ -518,7 +630,7 @@ def run(db: DBManager) -> dict:
     df = _build_master_df(db)
 
     analyses = {}
-    # analyses |= _recognised_entity_analysis(df)
+    analyses |= _recognised_entity_analysis(df)
     # analyses |= _associated_units_analysis(df)
     # analyses |= _associated_timeseries_data_analysis(df)
     analyses |= _class_consistency_analysis(df)
