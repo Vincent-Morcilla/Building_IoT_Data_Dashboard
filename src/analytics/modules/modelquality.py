@@ -545,9 +545,9 @@ def _class_consistency_analysis(master_df):
                         #     "xanchor": "center",
                         # },
                     },
-                    "css": {
-                        "padding": "10px",
-                    },
+                    # "css": {
+                    #     "padding": "10px",
+                    # },
                 },
             ]
         )

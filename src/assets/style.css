@@ -273,35 +273,6 @@ input[type="checkbox"] {
 }
 
 /* Table Header Styling */
-/* style attribute {
-  font-size: 14px;
-  text-align: left;
-  padding: 5px;
-  min-width: 100px;
-  width: auto;
-  max-width: 400px;
-  white-space: normal;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-weight: bold;
-  background-color: rgb(60, 150, 57);
-  color: white;
-  border-width: 1px;
-  border-style: solid;
-  border-color: rgb(211, 211, 211);
-} */
-
-/* .dash-table-container .dash-spreadsheet-container th { */
-/* .column-header-name { */
-/* th.dash-header.column-* { */
-/* div[class^="tocolor-"] */
-/* th.dash-header.column-* { */
-  /* dash-header { */
-
-/* .dash-spreadsheet-container .dash-spreadsheet .dash-empty-01 .dash-no-filter .dash-fill-width div {
-  overflow-x: auto;
-} */
-
 .dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner th {
   background-color: rgb(60, 150, 57);
   color: white;
@@ -311,26 +282,7 @@ input[type="checkbox"] {
   text-align: left;
 }
 
-/*
-th[class*="dash-header column-"] {
-    font-weight: bold;
-    background-color: rgb(60, 150, 57);
-    color: white;
-
-} */
-
-/* td[class*="dash-cell column-"] {
-    font-size: 14px;
-    text-align: left;
-    padding: 5px;
-    min-width: 100px;
-    width: auto;
-    max-width: 400px;
-    white-space: normal;
-    overflow: hidden;
-    text-overflow: ellipsis;
-} */
-
+/* Table Cell Styling */
 .dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner td {
   font-size: 14px;
   text-align: left;
