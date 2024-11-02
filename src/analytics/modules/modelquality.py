@@ -218,17 +218,17 @@ def _recognised_entity_analysis(master_df):
             [
                 {
                     "type": "table",
-                    "title": "Unrecognised Entities",
-                    "title_element": "H5",
                     "dataframe": unrecognised_df,
                     "id": "model-quality-unrecognised-entities-table",
+                    "title": "Unrecognised Entities",
+                    "title_element": "H5",
                     "kwargs": {
                         "columns": [
                             {"name": "Brick Class", "id": "brick_class"},
                             {"name": "Entity ID", "id": "entity_id"},
                         ],
-                        "page_size": 10,
-                        "row_selectable": False,
+                        "export_format": "csv",
+                        "fixed_rows": {"headers": True},
                         "sort_action": "native",
                         "sort_mode": "multi",
                         "style_data_conditional": [
@@ -238,9 +238,9 @@ def _recognised_entity_analysis(master_df):
                             }
                         ],
                         "style_table": {
+                            "height": 1000,
                             "overflowX": "auto",
                         },
-                        "export_format": "csv",
                         "tooltip_data": [
                             {
                                 column: {"value": str(value), "type": "markdown"}
@@ -259,17 +259,22 @@ def _recognised_entity_analysis(master_df):
             [
                 {
                     "type": "table",
-                    "title": "Recognised Entities",
-                    "title_element": "H5",
                     "dataframe": recognised_df,
                     "id": "model-quality-recognised-entities-table",
+                    "title": "Recognised Entities",
+                    "title_element": "H5",
+                    "title_kwargs": {  # Adjust the styling as needed
+                        "style": {
+                            "margin-top": 30,
+                        },
+                    },
                     "kwargs": {
                         "columns": [
                             {"name": "Brick Class", "id": "brick_class"},
                             {"name": "Entity ID", "id": "entity_id"},
                         ],
-                        "page_size": 10,
-                        "row_selectable": False,
+                        "export_format": "csv",
+                        "fixed_rows": {"headers": True},
                         "sort_action": "native",
                         "sort_mode": "multi",
                         "style_data_conditional": [
@@ -279,9 +284,9 @@ def _recognised_entity_analysis(master_df):
                             }
                         ],
                         "style_table": {
+                            "height": 1000,
                             "overflowX": "auto",
                         },
-                        "export_format": "csv",
                         "tooltip_data": [
                             {
                                 column: {"value": str(value), "type": "markdown"}
@@ -405,17 +410,17 @@ def _associated_units_analysis(master_df):
                 # Table: Details of Streams without Units
                 {
                     "type": "table",
-                    "title": "Streams without Units",
-                    "title_element": "H5",
                     "dataframe": streams_without_units,
                     "id": "model-quality-associated-units-missing-table",
+                    "title": "Streams without Units",
+                    "title_element": "H5",
                     "kwargs": {
                         "columns": [
                             {"name": "Brick Class", "id": "brick_class"},
                             {"name": "Stream ID", "id": "stream_id"},
                         ],
-                        "page_size": 10,
-                        "row_selectable": False,
+                        "export_format": "csv",
+                        "fixed_rows": {"headers": True},
                         "sort_action": "native",
                         "sort_mode": "multi",
                         "style_data_conditional": [
@@ -425,9 +430,9 @@ def _associated_units_analysis(master_df):
                             }
                         ],
                         "style_table": {
+                            "height": 1000,
                             "overflowX": "auto",
                         },
-                        "export_format": "csv",
                         "tooltip_data": [
                             {
                                 column: {"value": str(value), "type": "markdown"}
@@ -447,17 +452,22 @@ def _associated_units_analysis(master_df):
                 # Table: Details of Streams with Anonymous Units
                 {
                     "type": "table",
-                    "title": "Streams with Non-Machine Readable Units",
-                    "title_element": "H5",
                     "dataframe": streams_with_anonymous_units,
                     "id": "model-quality-associated-units-blank-table",
+                    "title": "Streams with Non-Machine Readable Units",
+                    "title_element": "H5",
+                    "title_kwargs": {  # Adjust the styling as needed
+                        "style": {
+                            "margin-top": 30,
+                        },
+                    },
                     "kwargs": {
                         "columns": [
                             {"name": "Brick Class", "id": "brick_class"},
                             {"name": "Stream ID", "id": "stream_id"},
                         ],
-                        "page_size": 10,
-                        "row_selectable": False,
+                        "export_format": "csv",
+                        "fixed_rows": {"headers": True},
                         "sort_action": "native",
                         "sort_mode": "multi",
                         "style_data_conditional": [
@@ -467,9 +477,9 @@ def _associated_units_analysis(master_df):
                             }
                         ],
                         "style_table": {
+                            "height": 1000,
                             "overflowX": "auto",
                         },
-                        "export_format": "csv",
                         "tooltip_data": [
                             {
                                 column: {"value": str(value), "type": "markdown"}
@@ -588,17 +598,17 @@ def _associated_timeseries_data_analysis(master_df):
                 # Table: Details of Streams without Units
                 {
                     "type": "table",
-                    "title": "Data Sources with Missing Timeseries Data",
-                    "title_element": "H5",
                     "dataframe": missing_data_df,
                     "id": "model-quality-timeseries-data-missing-table",
+                    "title": "Data Sources with Missing Timeseries Data",
+                    "title_element": "H5",
                     "kwargs": {
                         "columns": [
                             {"name": "Brick Class", "id": "brick_class"},
                             {"name": "Stream ID", "id": "stream_id"},
                         ],
-                        "page_size": 10,
-                        "row_selectable": False,
+                        "export_format": "csv",
+                        "fixed_rows": {"headers": True},
                         "sort_action": "native",
                         "sort_mode": "multi",
                         "style_data_conditional": [
@@ -608,9 +618,9 @@ def _associated_timeseries_data_analysis(master_df):
                             }
                         ],
                         "style_table": {
+                            "height": 1000,
                             "overflowX": "auto",
                         },
-                        "export_format": "csv",
                         "tooltip_data": [
                             {
                                 column: {"value": str(value), "type": "markdown"}
@@ -630,17 +640,22 @@ def _associated_timeseries_data_analysis(master_df):
                 # Table: Details of Streams with Anonymous Units
                 {
                     "type": "table",
-                    "title": "Data Sources with Available Timeseries Data",
-                    "title_element": "H5",
                     "dataframe": have_data_df,
                     "id": "model-quality-timeseries-data-available-table",
+                    "title": "Data Sources with Available Timeseries Data",
+                    "title_element": "H5",
+                    "title_kwargs": {  # Adjust the styling as needed
+                        "style": {
+                            "margin-top": 30,
+                        },
+                    },
                     "kwargs": {
                         "columns": [
                             {"name": "Brick Class", "id": "brick_class"},
                             {"name": "Stream ID", "id": "stream_id"},
                         ],
-                        "page_size": 10,
-                        "row_selectable": False,
+                        "fixed_rows": {"headers": True},
+                        "export_format": "csv",
                         "sort_action": "native",
                         "sort_mode": "multi",
                         "style_data_conditional": [
@@ -650,9 +665,9 @@ def _associated_timeseries_data_analysis(master_df):
                             }
                         ],
                         "style_table": {
+                            "height": 1000,
                             "overflowX": "auto",
                         },
-                        "export_format": "csv",
                         "tooltip_data": [
                             {
                                 column: {"value": str(value), "type": "markdown"}
@@ -773,15 +788,13 @@ def _class_consistency_analysis(master_df):
     if len(inconsistent_df) > 0:
         plot_config[("ModelQuality", "ClassConsistency")]["components"].extend(
             [
-                # # Separator
-                # {"type": "separator", "style": {"margin": "20px 0"}},
                 # Table: Details of Inconsistent Classes
                 {
                     "type": "table",
-                    "title": "Data Sources with Inconsistent Brick Class",
-                    "title_element": "H5",
                     "dataframe": inconsistent_df,
                     "id": "model-quality-inconsistent-classes-table",
+                    "title": "Data Sources with Inconsistent Brick Class",
+                    "title_element": "H5",
                     "kwargs": {
                         "columns": [
                             {"name": "Brick Class in Model", "id": "brick_class"},
@@ -791,8 +804,8 @@ def _class_consistency_analysis(master_df):
                             },
                             {"name": "Entity ID", "id": "entity_id"},
                         ],
-                        "page_size": 10,
-                        "row_selectable": False,
+                        "export_format": "csv",
+                        "fixed_rows": {"headers": True},
                         "sort_action": "native",
                         "sort_mode": "multi",
                         "style_data_conditional": [
@@ -802,9 +815,9 @@ def _class_consistency_analysis(master_df):
                             }
                         ],
                         "style_table": {
+                            "height": 1000,
                             "overflowX": "auto",
                         },
-                        "export_format": "csv",
                         "tooltip_data": [
                             {
                                 column: {"value": str(value), "type": "markdown"}
