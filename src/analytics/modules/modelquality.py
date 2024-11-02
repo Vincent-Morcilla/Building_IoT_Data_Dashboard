@@ -184,7 +184,7 @@ def _recognised_entity_analysis(master_df):
                     "type": "plot",
                     "library": "go",
                     "function": "Figure",
-                    "id": "model-quality-unrecognised-classes-pie",
+                    "id": "model-quality-recognised-entities-unrecognised-pie",
                     "data_frame": unrecognised_df,
                     "trace_type": "Pie",
                     "data_mappings": {
@@ -335,7 +335,7 @@ def _associated_units_analysis(master_df):
         ("ModelQuality", "AssociatedUnits"): {
             "title": "Brick Entities in Building Model Recognised by Brick Schema",
             "components": [
-                # Pie Chart: Recognised vs Unrecognised Entities
+                # Pie Chart: Has vs Missing Units
                 {
                     "type": "plot",
                     "library": "go",
@@ -365,12 +365,12 @@ def _associated_units_analysis(master_df):
                         "padding": "10px",
                     },
                 },
-                # Pie Chart: Unrecognised Entities by Class
+                # Pie Chart: Machines vs Non-Machine Readable Units
                 {
                     "type": "plot",
                     "library": "go",
                     "function": "Figure",
-                    "id": "model-quality-unrecognised-classes-pie",
+                    "id": "model-quality-associated-units-readable-pie",
                     "data_frame": stream_with_named_units,
                     "trace_type": "Pie",
                     "data_mappings": {
@@ -408,7 +408,7 @@ def _associated_units_analysis(master_df):
                     "title": "Streams without Units",
                     "title_element": "H5",
                     "dataframe": streams_without_units,
-                    "id": "model-quality-unrecognised-entities-table",
+                    "id": "model-quality-associated-units-missing-table",
                     "kwargs": {
                         "columns": [
                             {"name": "Brick Class", "id": "brick_class"},
@@ -450,7 +450,7 @@ def _associated_units_analysis(master_df):
                     "title": "Streams with Non-Machine Readable Units",
                     "title_element": "H5",
                     "dataframe": streams_with_anonymous_units,
-                    "id": "model-quality-recognised-entities-table",
+                    "id": "model-quality-associated-units-blank-table",
                     "kwargs": {
                         "columns": [
                             {"name": "Brick Class", "id": "brick_class"},
@@ -514,52 +514,159 @@ def _associated_timeseries_data_analysis(master_df):
         ["brick_class", "stream_id"]
     ]
 
-    config = {
-        "ModelQuality_TimeseriesData": {
-            "PieChartAndTable": {
-                "title": "Data Sources in Building Model with Timeseries Data",
-                "pie_charts": [
-                    {
-                        "title": "Proportion of Data Sources with Timeseries Data",
+    plot_config = {
+        ("ModelQuality", "TimeseriesData"): {
+            "title": "Data Sources in Building Model with Timeseries Data",
+            "components": [
+                # Pie Chart: Proportion of Data Sources with Timeseries Data
+                {
+                    "type": "plot",
+                    "library": "go",
+                    "function": "Figure",
+                    "id": "model-quality-timeseries-data-pie",
+                    "data_frame": df,
+                    "trace_type": "Pie",
+                    "data_mappings": {
                         "labels": "has_data",
-                        "textinfo": "percent+label",
-                        "dataframe": df,
                     },
-                    {
-                        "title": "Missing Data by Class",
+                    "kwargs": {
+                        "textinfo": "percent+label",
+                        "textposition": "inside",
+                        "showlegend": False,
+                    },
+                    "layout_kwargs": {
+                        "title": {
+                            "text": "Proportion of Data Sources with Timeseries Data",
+                            "font_color": "black",
+                            "x": 0.5,
+                            "xanchor": "center",
+                        },
+                    },
+                    "css": {
+                        "width": "50%",
+                        "display": "inline-block",
+                        "padding": "10px",
+                    },
+                },
+                # Pie Chart: Missing Data by Class
+                {
+                    "type": "plot",
+                    "library": "go",
+                    "function": "Figure",
+                    "id": "model-quality-timeseries-data-missing-pie",
+                    "data_frame": missing_streams_by_class_pie,
+                    "trace_type": "Pie",
+                    "data_mappings": {
                         "labels": "brick_class",
-                        "textinfo": "percent+label",
-                        "dataframe": missing_streams_by_class_pie,
                     },
-                ],
-            }
+                    "kwargs": {
+                        "textinfo": "percent+label",
+                        "textposition": "inside",
+                        "showlegend": False,
+                    },
+                    "layout_kwargs": {
+                        "title": {
+                            "text": "Missing Data by Class",
+                            "font_color": "black",
+                            "x": 0.5,
+                            "xanchor": "center",
+                        },
+                    },
+                    "css": {
+                        "width": "50%",
+                        "display": "inline-block",
+                        "padding": "10px",
+                    },
+                },
+            ],
         }
     }
 
-    if len(missing_data_df) > 0 or len(have_data_df) > 0:
-        config["ModelQuality_TimeseriesData"]["PieChartAndTable"]["tables"] = []
-
     if len(missing_data_df) > 0:
-        config["ModelQuality_TimeseriesData"]["PieChartAndTable"]["tables"].append(
-            {
-                "title": "Data Sources with Missing Timeseries Data",
-                "columns": ["Brick Class", "Stream ID"],
-                "rows": ["brick_class", "stream_id"],
-                "dataframe": missing_data_df,
-            }
+        plot_config[("ModelQuality", "TimeseriesData")]["components"].extend(
+            [
+                # Table: Details of Streams without Units
+                {
+                    "type": "table",
+                    "title": "Data Sources with Missing Timeseries Data",
+                    "title_element": "H5",
+                    "dataframe": missing_data_df,
+                    "id": "model-quality-timeseries-data-missing-table",
+                    "kwargs": {
+                        "columns": [
+                            {"name": "Brick Class", "id": "brick_class"},
+                            {"name": "Stream ID", "id": "stream_id"},
+                        ],
+                        "page_size": 10,
+                        "row_selectable": False,
+                        "sort_action": "native",
+                        "sort_mode": "multi",
+                        "style_data_conditional": [
+                            {
+                                "if": {"row_index": "odd"},
+                                "backgroundColor": "#ddf2dc",
+                            }
+                        ],
+                        "style_table": {
+                            "overflowX": "auto",
+                        },
+                        "export_format": "csv",
+                        "tooltip_data": [
+                            {
+                                column: {"value": str(value), "type": "markdown"}
+                                for column, value in row.items()
+                            }
+                            for row in missing_data_df.to_dict("records")
+                        ],
+                        "tooltip_duration": None,
+                    },
+                },
+            ]
         )
 
     if len(have_data_df) > 0:
-        config["ModelQuality_TimeseriesData"]["PieChartAndTable"]["tables"].append(
-            {
-                "title": "Data Sources with Available Timeseries Data",
-                "columns": ["Brick Class", "Stream ID"],
-                "rows": ["brick_class", "stream_id"],
-                "dataframe": have_data_df,
-            }
+        plot_config[("ModelQuality", "TimeseriesData")]["components"].extend(
+            [
+                # Table: Details of Streams with Anonymous Units
+                {
+                    "type": "table",
+                    "title": "Data Sources with Available Timeseries Data",
+                    "title_element": "H5",
+                    "dataframe": have_data_df,
+                    "id": "model-quality-timeseries-data-available-table",
+                    "kwargs": {
+                        "columns": [
+                            {"name": "Brick Class", "id": "brick_class"},
+                            {"name": "Stream ID", "id": "stream_id"},
+                        ],
+                        "page_size": 10,
+                        "row_selectable": False,
+                        "sort_action": "native",
+                        "sort_mode": "multi",
+                        "style_data_conditional": [
+                            {
+                                "if": {"row_index": "odd"},
+                                "backgroundColor": "#ddf2dc",
+                            }
+                        ],
+                        "style_table": {
+                            "overflowX": "auto",
+                        },
+                        "export_format": "csv",
+                        "tooltip_data": [
+                            {
+                                column: {"value": str(value), "type": "markdown"}
+                                for column, value in row.items()
+                            }
+                            for row in have_data_df.to_dict("records")
+                        ],
+                        "tooltip_duration": None,
+                    },
+                },
+            ]
         )
 
-    return config
+    return plot_config
 
 
 def _class_consistency_analysis(master_df):
@@ -733,7 +840,7 @@ def run(db: DBManager) -> dict:
     analyses = {}
     analyses |= _recognised_entity_analysis(df)
     analyses |= _associated_units_analysis(df)
-    # analyses |= _associated_timeseries_data_analysis(df)
+    analyses |= _associated_timeseries_data_analysis(df)
     analyses |= _class_consistency_analysis(df)
 
     return analyses
