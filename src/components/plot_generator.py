@@ -274,22 +274,32 @@ def map_data_to_trace(data_frame, data_mappings):
 
 def create_table_component(component):
     """
-    Create a table component using Dash DataTable.
+    Create a table component using Dash DataTable with an optional title.
 
     Args:
-        component (dict): A dictionary containing configuration for the table, including:
-                          - dataframe: the data to display in the table.
-                          - kwargs: keyword arguments for the DataTable.
-                          - css: optional CSS styling for the table.
-                          - id: a unique identifier for the component.
+        component (dict): Configuration for the table, including:
+            - dataframe: The data to display in the table.
+            - kwargs: Keyword arguments for the DataTable.
+            - css: Optional CSS styling for the container Div.
+            - id: A unique identifier for the component.
+            - title: Optional title text for the table.
+            - title_element: Optional HTML element for the title (e.g., 'H1', 'H2').
+            - title_kwargs: Optional keyword arguments for the title component.
 
     Returns:
-        dash_table.DataTable or html.Div: A DataTable wrapped in a Div if CSS is provided.
+        html.Div: A Div containing the title (if any) and the DataTable.
     """
+    from dash import html, dash_table
+
     dataframe = component.get("dataframe")
     kwargs = component.get("kwargs", {})
     css = component.get("css", {})
     component_id = component.get("id")
+
+    # Get title-related configurations
+    title = component.get("title", "")
+    title_element = component.get("title_element", "H5")
+    title_kwargs = component.get("title_kwargs", {})
 
     if dataframe is None:
         raise ValueError("Table component requires a 'dataframe'.")
@@ -311,8 +321,16 @@ def create_table_component(component):
         data=data, columns=columns, id=component_id, **kwargs_filtered
     )
 
-    # Wrap in a Div if 'css' is provided
-    return html.Div(table, style=css) if css else table
+    # Create the title component if title is specified
+    if title:
+        # Get the HTML title element dynamically
+        title_component = getattr(html, title_element, html.H5)(title, **title_kwargs)
+        children = [title_component, table]
+    else:
+        children = [table]
+
+    # Wrap in a Div, including CSS if provided
+    return html.Div(children, style=css)
 
 
 def create_ui_component(component):
