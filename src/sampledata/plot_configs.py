@@ -559,6 +559,13 @@ sample_plot_configs = {
                     }
                 ),
                 "id": "inconsistent-classes-table",
+                "title": "Details of Inconsistent Classes",
+                "title_element": "H2",  # Adjust the HTML heading level as needed
+                "title_kwargs": {
+                    "style": {
+                        "color": "#3c9639",
+                    },
+                },
                 "kwargs": {
                     "columns": [
                         {"name": "Entity", "id": "entity"},
