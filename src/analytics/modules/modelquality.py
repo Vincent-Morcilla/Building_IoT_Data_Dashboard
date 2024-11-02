@@ -216,9 +216,6 @@ def _recognised_entity_analysis(master_df):
     if len(unrecognised_df) > 0:
         plot_config[("ModelQuality", "RecognisedEntities")]["components"].extend(
             [
-                # # Separator
-                # {"type": "separator", "style": {"margin": "20px 0"}},
-                # Table: Details of Inconsistent Classes
                 {
                     "type": "table",
                     "title": "Unrecognised Entities",
@@ -227,7 +224,7 @@ def _recognised_entity_analysis(master_df):
                     "id": "model-quality-unrecognised-entities-table",
                     "kwargs": {
                         "columns": [
-                            {"name": "Brick Class in Model", "id": "brick_class"},
+                            {"name": "Brick Class", "id": "brick_class"},
                             {"name": "Entity ID", "id": "entity_id"},
                         ],
                         "page_size": 10,
@@ -260,9 +257,6 @@ def _recognised_entity_analysis(master_df):
     if len(recognised_df) > 0:
         plot_config[("ModelQuality", "RecognisedEntities")]["components"].extend(
             [
-                # # Separator
-                # {"type": "separator", "style": {"margin": "20px 0"}},
-                # Table: Details of Inconsistent Classes
                 {
                     "type": "table",
                     "title": "Recognised Entities",
@@ -271,7 +265,7 @@ def _recognised_entity_analysis(master_df):
                     "id": "model-quality-recognised-entities-table",
                     "kwargs": {
                         "columns": [
-                            {"name": "Brick Class in Model", "id": "brick_class"},
+                            {"name": "Brick Class", "id": "brick_class"},
                             {"name": "Entity ID", "id": "entity_id"},
                         ],
                         "page_size": 10,
@@ -337,52 +331,159 @@ def _associated_units_analysis(master_df):
         columns=["unit_is_named", "has_unit"], inplace=True
     )
 
-    config = {
-        "ModelQuality_AssociatedUnits": {
-            "PieChartAndTable": {
-                "title": "Brick Entities in Building Model Recognised by Brick Schema",
-                "pie_charts": [
-                    {
-                        "title": "Proportion of Streams with Units",
+    plot_config = {
+        ("ModelQuality", "AssociatedUnits"): {
+            "title": "Brick Entities in Building Model Recognised by Brick Schema",
+            "components": [
+                # Pie Chart: Recognised vs Unrecognised Entities
+                {
+                    "type": "plot",
+                    "library": "go",
+                    "function": "Figure",
+                    "id": "model-quality-associated-units-pie",
+                    "data_frame": df,
+                    "trace_type": "Pie",
+                    "data_mappings": {
                         "labels": "has_unit",
-                        "textinfo": "percent+label",
-                        "dataframe": df,
                     },
-                    {
-                        "title": "Units that are Machine Readable",
+                    "kwargs": {
+                        "textinfo": "percent+label",
+                        "textposition": "inside",
+                        "showlegend": False,
+                    },
+                    "layout_kwargs": {
+                        "title": {
+                            "text": "Proportion of Streams with Units",
+                            "font_color": "black",
+                            "x": 0.5,
+                            "xanchor": "center",
+                        },
+                    },
+                    "css": {
+                        "width": "50%",
+                        "display": "inline-block",
+                        "padding": "10px",
+                    },
+                },
+                # Pie Chart: Unrecognised Entities by Class
+                {
+                    "type": "plot",
+                    "library": "go",
+                    "function": "Figure",
+                    "id": "model-quality-unrecognised-classes-pie",
+                    "data_frame": stream_with_named_units,
+                    "trace_type": "Pie",
+                    "data_mappings": {
                         "labels": "has_named_unit",
-                        "textinfo": "percent+label",
-                        "dataframe": stream_with_named_units,
                     },
-                ],
-            }
+                    "kwargs": {
+                        "textinfo": "percent+label",
+                        "textposition": "inside",
+                        "showlegend": False,
+                    },
+                    "layout_kwargs": {
+                        "title": {
+                            "text": "Units that are Machine Readable",
+                            "font_color": "black",
+                            "x": 0.5,
+                            "xanchor": "center",
+                        },
+                    },
+                    "css": {
+                        "width": "50%",
+                        "display": "inline-block",
+                        "padding": "10px",
+                    },
+                },
+            ],
         }
     }
 
-    if len(streams_without_units) > 0 or len(streams_with_anonymous_units) > 0:
-        config["ModelQuality_AssociatedUnits"]["PieChartAndTable"]["tables"] = []
-
     if len(streams_without_units) > 0:
-        config["ModelQuality_AssociatedUnits"]["PieChartAndTable"]["tables"].append(
-            {
-                "title": "Streams without Units",
-                "columns": ["Brick Class", "Stream ID"],
-                "rows": ["brick_class", "stream_id"],
-                "dataframe": streams_without_units,
-            }
+        plot_config[("ModelQuality", "AssociatedUnits")]["components"].extend(
+            [
+                # Table: Details of Streams without Units
+                {
+                    "type": "table",
+                    "title": "Streams without Units",
+                    "title_element": "H5",
+                    "dataframe": streams_without_units,
+                    "id": "model-quality-unrecognised-entities-table",
+                    "kwargs": {
+                        "columns": [
+                            {"name": "Brick Class", "id": "brick_class"},
+                            {"name": "Stream ID", "id": "stream_id"},
+                        ],
+                        "page_size": 10,
+                        "row_selectable": False,
+                        "sort_action": "native",
+                        "sort_mode": "multi",
+                        "style_data_conditional": [
+                            {
+                                "if": {"row_index": "odd"},
+                                "backgroundColor": "#ddf2dc",
+                            }
+                        ],
+                        "style_table": {
+                            "overflowX": "auto",
+                        },
+                        "export_format": "csv",
+                        "tooltip_data": [
+                            {
+                                column: {"value": str(value), "type": "markdown"}
+                                for column, value in row.items()
+                            }
+                            for row in streams_without_units.to_dict("records")
+                        ],
+                        "tooltip_duration": None,
+                    },
+                },
+            ]
         )
 
     if len(streams_with_anonymous_units) > 0:
-        config["ModelQuality_AssociatedUnits"]["PieChartAndTable"]["tables"].append(
-            {
-                "title": "Streams with Non-Machine Readable Units",
-                "columns": ["Brick Class", "Stream ID", "Unit"],
-                "rows": ["brick_class", "stream_id", "unit"],
-                "dataframe": streams_with_anonymous_units,
-            }
+        plot_config[("ModelQuality", "AssociatedUnits")]["components"].extend(
+            [
+                # Table: Details of Streams with Anonymous Units
+                {
+                    "type": "table",
+                    "title": "Streams with Non-Machine Readable Units",
+                    "title_element": "H5",
+                    "dataframe": streams_with_anonymous_units,
+                    "id": "model-quality-recognised-entities-table",
+                    "kwargs": {
+                        "columns": [
+                            {"name": "Brick Class", "id": "brick_class"},
+                            {"name": "Stream ID", "id": "stream_id"},
+                        ],
+                        "page_size": 10,
+                        "row_selectable": False,
+                        "sort_action": "native",
+                        "sort_mode": "multi",
+                        "style_data_conditional": [
+                            {
+                                "if": {"row_index": "odd"},
+                                "backgroundColor": "#ddf2dc",
+                            }
+                        ],
+                        "style_table": {
+                            "overflowX": "auto",
+                        },
+                        "export_format": "csv",
+                        "tooltip_data": [
+                            {
+                                column: {"value": str(value), "type": "markdown"}
+                                for column, value in row.items()
+                            }
+                            for row in streams_with_anonymous_units.to_dict("records")
+                        ],
+                        "tooltip_duration": None,
+                    },
+                },
+            ]
         )
 
-    return config
+    return plot_config
 
 
 def _associated_timeseries_data_analysis(master_df):
@@ -631,7 +732,7 @@ def run(db: DBManager) -> dict:
 
     analyses = {}
     analyses |= _recognised_entity_analysis(df)
-    # analyses |= _associated_units_analysis(df)
+    analyses |= _associated_units_analysis(df)
     # analyses |= _associated_timeseries_data_analysis(df)
     analyses |= _class_consistency_analysis(df)
 
