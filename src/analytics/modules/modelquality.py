@@ -405,25 +405,174 @@ def _class_consistency_analysis(master_df):
         }
     }
 
-    if len(inconsistent_df) > 0:
-        config["ModelQuality_ClassConsistency"]["PieChartAndTable"]["tables"] = [
-            {
-                "title": "Data Sources with Inconsistent Brick Class",
-                "columns": [
-                    "Brick Class in Model",
-                    "Brick Class in Mapper",
-                    "Entity ID",
-                ],
-                "rows": [
-                    "brick_class",
-                    "brick_class_in_mapper",
-                    "entity_id",
-                ],
-                "dataframe": inconsistent_df,
-            },
-        ]
+    # Pie Charts and Tables for Model Quality - Class Consistency
+    plot_config = {
+        ("ModelQuality", "ClassConsistency"): {
+            "title": "Data Sources in Building Model with Timeseries Data",
+            "components": [
+                # Pie Chart: Consistent vs Inconsistent Classes
+                {
+                    "type": "plot",
+                    "library": "go",
+                    "function": "Figure",
+                    "id": "model-quality-class-consistency-pie",
+                    "data_frame": df,
+                    "trace_type": "Pie",
+                    "data_mappings": {
+                        "labels": "consistency",
+                        # "values": "count",
+                    },
+                    "kwargs": {
+                        "textinfo": "percent+label",
+                        "textposition": "inside",
+                        "showlegend": False,
+                    },
+                    "layout_kwargs": {
+                        "title": {
+                            "text": "Proportion of Data Sources",
+                            "font_color": "black",
+                            "x": 0.5,
+                            "xanchor": "center",
+                        },
+                    },
+                    "css": {
+                        "width": "45%",
+                        "display": "inline-block",
+                        "padding": "10px",
+                    },
+                },
+                # Pie Chart: Inconsistent Classes by Brick Class
+                {
+                    "type": "plot",
+                    "library": "go",
+                    "function": "Figure",
+                    "id": "model-quality-inconsistent-classes-pie",
+                    "data_frame": inconsistent_df,
+                    "trace_type": "Pie",
+                    "data_mappings": {
+                        "labels": "brick_class",
+                        # "values": "count",
+                    },
+                    "kwargs": {
+                        "textinfo": "percent+label",
+                        "textposition": "inside",
+                        "showlegend": False,
+                    },
+                    "layout_kwargs": {
+                        "title": {
+                            "text": "Inconsistent Data Sources by Class",
+                            "font_color": "black",
+                            "x": 0.5,
+                            "xanchor": "center",
+                        },
+                    },
+                    "css": {
+                        "width": "45%",
+                        "display": "inline-block",
+                        "padding": "10px",
+                    },
+                },
+            ],
+        }
+    }
 
-    return config
+    if len(inconsistent_df) > 0:
+        plot_config[("ModelQuality", "ClassConsistency")]["components"].extend(
+            [
+                # Separator
+                {"type": "separator", "style": {"margin": "20px 0"}},
+                # Table: Details of Inconsistent Classes
+                {
+                    "type": "table",
+                    "dataframe": inconsistent_df,
+                    "id": "model-quality-inconsistent-classes-table",
+                    "kwargs": {
+                        # "title": "Data Sources with Inconsistent Brick Class",
+                        "columns": [
+                            {"name": "Brick Class in Model", "id": "brick_class"},
+                            {
+                                "name": "Brick Class in Mapper",
+                                "id": "brick_class_in_mapper",
+                            },
+                            {"name": "Entity ID", "id": "entity_id"},
+                        ],
+                        "page_size": 10,
+                        "row_selectable": False,
+                        # "selected_rows": [],
+                        "sort_action": "native",
+                        "sort_mode": "multi",
+                        # "style_cell": {
+                        #     "fontSize": 14,
+                        #     "textAlign": "left",
+                        #     "padding": "5px",
+                        #     "minWidth": "100px",  # Add minimum width
+                        #     "width": "auto",  # Let column expand to content
+                        #     "maxWidth": "400px",  # Add maximum width
+                        #     "whiteSpace": "normal",  # Allow text wrapping
+                        #     "overflow": "hidden",
+                        #     "textOverflow": "ellipsis",
+                        # },
+                        # "style_header": {
+                        #     "fontWeight": "bold",
+                        #     "backgroundColor": "#3c9639",
+                        #     "color": "white",
+                        # },
+                        "style_data_conditional": [
+                            {
+                                "if": {"row_index": "odd"},
+                                "backgroundColor": "#ddf2dc",
+                            }
+                        ],
+                        "style_table": {
+                            "overflowX": "auto",
+                        },
+                        "export_format": "csv",
+                        "tooltip_data": [
+                            {
+                                column: {"value": str(value), "type": "markdown"}
+                                for column, value in row.items()
+                            }
+                            for row in inconsistent_df.to_dict("records")
+                        ],
+                        "tooltip_duration": None,
+                    },
+                    "layout_kwargs": {
+                        "title": "Data Sources with Inconsistent Brick Class"
+                        # "title": {
+                        #     "text": "Inconsistent Data Sources by Class",
+                        #     "font_color": "black",
+                        #     "x": 0.5,
+                        #     "xanchor": "center",
+                        # },
+                    },
+                    "css": {
+                        "padding": "10px",
+                    },
+                },
+            ]
+        )
+
+    return plot_config
+
+    # if len(inconsistent_df) > 0:
+    #     config["ModelQuality_ClassConsistency"]["PieChartAndTable"]["tables"] = [
+    #         {
+    #             "title": "Data Sources with Inconsistent Brick Class",
+    #             "columns": [
+    #                 "Brick Class in Model",
+    #                 "Brick Class in Mapper",
+    #                 "Entity ID",
+    #             ],
+    #             "rows": [
+    #                 "brick_class",
+    #                 "brick_class_in_mapper",
+    #                 "entity_id",
+    #             ],
+    #             "dataframe": inconsistent_df,
+    #         },
+    #     ]
+
+    # return config
 
 
 def run(db: DBManager) -> dict:
@@ -443,9 +592,9 @@ def run(db: DBManager) -> dict:
     df = _build_master_df(db)
 
     analyses = {}
-    analyses |= _recognised_entity_analysis(df)
-    analyses |= _associated_units_analysis(df)
-    analyses |= _associated_timeseries_data_analysis(df)
+    # analyses |= _recognised_entity_analysis(df)
+    # analyses |= _associated_units_analysis(df)
+    # analyses |= _associated_timeseries_data_analysis(df)
     analyses |= _class_consistency_analysis(df)
 
     return analyses
