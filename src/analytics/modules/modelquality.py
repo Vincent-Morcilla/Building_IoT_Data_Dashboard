@@ -338,7 +338,7 @@ def _associated_units_analysis(master_df):
 
     plot_config = {
         ("ModelQuality", "AssociatedUnits"): {
-            "title": "Brick Entities in Building Model Recognised by Brick Schema",
+            "title": "Brick Entities in Building Model with Associated Units",
             "components": [
                 # Pie Chart: Has vs Missing Units
                 {
