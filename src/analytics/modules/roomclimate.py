@@ -118,14 +118,18 @@ def _build_plot_config(table: pd.DataFrame, timeseries_data_dict: dict) -> dict:
                     "type": "placeholder",
                     "id": "roomclimate-timeseries-placeholder",
                 },
+                # Separator
+                {
+                    "type": "separator",
+                    "style": {"margin": "20px 0"},
+                },
                 # UI Component: DataTable
                 {
                     "type": "UI",
                     "element": "DataTable",
                     "id": "roomclimate-datatable",
-                    "label": "List of Rooms with Air Temperature Sensors and Setpoints",
-                    "title": "List of Rooms with Air Temperature Sensors and Setpoints",
-                    "title_element": "H5",
+                    # "title": "List of Rooms with Air Temperature Sensors and Setpoints",
+                    # "title_element": "H5",
                     "kwargs": {
                         "columns": [
                             {"id": "room_class", "name": "Room Class"},
@@ -269,14 +273,9 @@ def run(db: DBManager) -> dict:
         # title = f"{room_type} Mean Temperature"
         title = f"{room_type} Mean Temperature<br><sup>Room ID: {room_id}</sup>"
 
-        components = _build_components(room_df, room_id, title)
+        timeseries_data_dict[room_id] = _build_components(room_df, room_id, title)
 
-        # Assign the components to the room_id in the dict
-        timeseries_data_dict[room_id] = components
-
-    plot_config = _build_plot_config(table, timeseries_data_dict)
-
-    return plot_config
+    return _build_plot_config(table, timeseries_data_dict)
 
 
 if __name__ == "__main__":
