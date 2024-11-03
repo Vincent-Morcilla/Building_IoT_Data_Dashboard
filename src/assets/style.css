@@ -1,11 +1,14 @@
+/* Importing Google Fonts - Roboto */
 @import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap");
 
+/* Body styling */
 body {
   font-family: "Roboto", sans-serif;
   margin: 0;
   padding: 0;
 }
 
+/* Sidebar Styling */
 .sidebar {
   position: fixed;
   top: 0;
@@ -15,10 +18,11 @@ body {
   padding: 2rem 1rem;
   background-color: rgb(241, 241, 241);
   color: #3c9639;
-  text-align: center;
+  text-align: left;
   overflow-y: auto;
 }
 
+/* Headings in Sidebar */
 .sidebar .display-4 {
   font-size: 1.5rem;
   color: #3c9639;
@@ -29,16 +33,19 @@ body {
   color: #3c9639;
 }
 
+/* Horizontal Rule in Sidebar */
 .sidebar hr {
   border-color: black;
 }
 
+/* Sidebar Logo Container */
 .sidebar-logo-container {
   display: inline-block;
   padding: 0;
   background-color: transparent !important;
 }
 
+/* Sidebar Logo Button */
 .sidebar-logo {
   background: none;
   border: none;
@@ -49,6 +56,7 @@ body {
   transition: transform 0.3s ease-in-out;
 }
 
+/* Sidebar Logo Hover and Active States */
 .sidebar-logo:hover {
   transform: scale(1.1) translateX(10px);
 }
@@ -57,26 +65,34 @@ body {
   transform: scale(0.9) translateX(-10px);
 }
 
+/* Logo Button */
+#logo-button {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+/* Sidebar Navigation Links */
 .sidebar .nav-link {
   text-decoration: none;
   color: black;
   font-size: 1.5rem;
 }
 
-.sidebar .nav-link.active {
-  background-color: #3c9639 !important;
-  color: white !important;
-}
-
+.sidebar .nav-link.active,
 .sidebar .nav-link:hover {
   background-color: #3c9639 !important;
   color: white !important;
 }
 
+/* Active State for Sidebar Nav Link */
 .sidebar .nav-link:active {
   transform: scale(0.95);
 }
 
+/* Logo Link */
 .logo-link {
   text-decoration: none;
 }
@@ -85,6 +101,7 @@ body {
   background-color: transparent !important;
 }
 
+/* Main Content Area */
 .content {
   margin-left: 18rem;
   margin-right: 2rem;
@@ -93,6 +110,7 @@ body {
   color: black;
 }
 
+/* General Styling */
 .p-3.bg-light.rounded-3 {
   padding: 1rem;
   background-color: #f8f9fa;
@@ -120,25 +138,6 @@ body {
   padding: 1rem;
 }
 
-/* Responsive Plot Titles */
-@media (max-width: 576px) {
-  .plotly-graph .title {
-    font-size: 16px !important;
-  }
-}
-
-@media (min-width: 577px) and (max-width: 768px) {
-  .plotly-graph .title {
-    font-size: 20px !important;
-  }
-}
-
-@media (min-width: 769px) {
-  .plotly-graph .title {
-    font-size: 24px !important;
-  }
-}
-
 /* RadioItems and Checkbox Styling */
 input[type="radio"],
 input[type="checkbox"] {
@@ -164,6 +163,12 @@ input[type="checkbox"] {
 }
 
 .Select--multi .Select-value {
+  background-color: #7abb77 !important;
+  border-color: #3c9639 !important;
+  color: #fff !important;
+}
+
+.Select-value-label {
   background-color: #7abb77;
   border-color: #3c9639;
   color: #fff;
@@ -223,47 +228,88 @@ input[type="checkbox"] {
 }
 
 /* Download Button Styling */
-#download-left,
-#download-right {
+#global-download-button {
   background-color: white;
   color: #3c9639;
-  border: 2px solid #3c9639;
+  border: 1px solid #3c9639;
   border-radius: 5px;
   transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out,
     transform 0.1s ease-in-out;
 }
 
-#download-left:hover,
-#download-right:hover {
+#global-download-button:hover {
   background-color: #3c9639;
-  border: 2px solid #3c9639;
+  border: 1px solid #3c9639;
   color: white;
 }
 
-#download-left:active,
-#download-right:active {
+#global-download-button:active {
   transform: scale(0.95);
   background-color: #3c9639;
   color: white;
-  border: 2px solid #3c9639;
+  border: 1px solid #3c9639;
 }
 
-/* Warning Modal Styling */
-#modal-no-button,
-#modal-yes-button {
-  background-color: white;
-  border-color: #3c9639;
-  color: #3c9639;
+/* Homepage Content */
+.home-page-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  text-align: center;
+  padding: 20px;
+  box-sizing: border-box;
 }
 
-#modal-yes-button:hover,
-#modal-no-button:hover,
-#modal-yes-button:active,
-#modal-no-button:active {
-  background-color: #3c9639;
-  border-color: #3c9639;
+.title-logo {
+  width: 50%;
+  max-width: 500px;
+  height: auto;
+}
+
+.home-page-content p {
+  font-size: 1.5vw;
+}
+
+/* Table Header Styling */
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner th {
+  background-color: rgb(60, 150, 57);
   color: white;
+  font-size: 14px;
+  font-weight: bold;
+  padding: 5px;
+  text-align: left;
 }
+
+/* Table Cell Styling */
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner td {
+  font-size: 14px;
+  text-align: left;
+  padding: 5px;
+  min-width: 100px;
+  width: auto;
+  max-width: 400px;
+  white-space: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Table Header Sorting Icon Alignment */
+.column-actions {
+  order: 9;
+}
+
+/* Table Header Sorting Icon Colours */
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner .column-header--select, .dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner .column-header--sort {
+  color: #ffffff;
+  --accent: #ffffff;
+}
+
+.dash-table-container:hover .dash-spreadsheet-container:hover .dash-spreadsheet-inner:hover .column-header--select,:hover .dash-table-container:hover .dash-spreadsheet-container:hover .dash-spreadsheet-inner:hover .column-header--sort:hover {
+  color: #000000;
+}
+
 
 /* Mobile Responsiveness */
 @media (max-width: 992px) {
@@ -275,8 +321,7 @@ input[type="checkbox"] {
   }
 
   .content {
-    margin-left: 0;
-    margin-right: 0;
+    margin: 0;
     padding: 1rem;
   }
 
@@ -289,6 +334,14 @@ input[type="checkbox"] {
   .sidebar .nav-link {
     margin: 0.5rem;
     font-size: 1rem;
+  }
+
+  .title-logo {
+    width: 100%;
+  }
+
+  .home-page-content p {
+    font-size: 4vw;
   }
 }
 
@@ -305,30 +358,21 @@ input[type="checkbox"] {
     transform: none;
     margin-left: 65px;
   }
+
+  .plotly-graph .title {
+    font-size: 16px !important;
+  }
 }
 
-/* Move the sort arrows to the right of the column headers */
-.column-actions {
-  order: 9;
+@media (min-width: 577px) and (max-width: 768px) {
+  .plotly-graph .title {
+    font-size: 20px !important;
+  }
 }
 
-/* Change the sort arrows (src: https://stackoverflow.com/questions/44851964/how-to-change-the-color-of-the-sorting-arrows-in-datatables) */
-/* table.dataTable thead .sorting_asc {
-  background-image: url("/YourImageFolder/sort_asc.png")
+@media (min-width: 769px) {
+  .plotly-graph .title {
+    font-size: 24px !important;
+  }
 }
 
-table.dataTable thead .sorting_desc {
-  background-image: url("/YourImageFolder/sort_desc.png")
-}
-
-table.dataTable thead .sorting {
-  background-image: url("/YourImageFolder/sort_both.png")
-}
-
-table.dataTable thead .sorting_asc_disabled {
-  background-image: url("/YourImageFolder/sort_asc_disabled.png")
-}
-
-table.dataTable thead .sorting_desc_disabled {
-  background-image: url("/YourImageFolder/sort_desc_disabled.png")
-} */

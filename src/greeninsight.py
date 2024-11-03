@@ -18,8 +18,8 @@ import plotly.graph_objects as go
 #     os.path.abspath(os.path.join(os.path.dirname(__file__), "../../code_snippets/tim"))
 # )
 # import analytics.modelquality as mq
-import dbmgr
-import analyticsmgr
+import analytics.dbmgr as dbmgr
+import analytics.analyticsmgr as analyticsmgr
 
 # m = mq.ModelQuality()
 
@@ -1784,7 +1784,10 @@ def create_sunburst_chart(
 
     for category, color in colour_map.items():
         fig.add_annotation(
-            x=1.05, y=legend_y, xref="paper", yref="paper",
+            x=1.05,
+            y=legend_y,
+            xref="paper",
+            yref="paper",
             showarrow=False,
             # text=f"<span style='color:{color};'>■</span> {category}",
             text=f"<span style='font-size:20px; color:{color};'>■</span> <span style='font-size:12px;'>{category}</span>",
@@ -2225,10 +2228,10 @@ if __name__ == "__main__":
     # app.run_server(port=8050, debug=args.debug)
 
     # Hard-coded version for convenience during development
-    DATA = "../datasets/bts_site_b_train/train.zip"
-    MAPPER = "../datasets/bts_site_b_train/mapper_TrainOnly.csv"
-    MODEL = "../datasets/bts_site_b_train/Site_B.ttl"
-    SCHEMA = "../datasets/bts_site_b_train/Brick_v1.2.1.ttl"
+    DATA = "datasets/bts_site_b_train/train.zip"
+    MAPPER = "datasets/bts_site_b_train/mapper_TrainOnly.csv"
+    MODEL = "datasets/bts_site_b_train/Site_B.ttl"
+    SCHEMA = "datasets/bts_site_b_train/Brick_v1.2.1.ttl"
     DEBUG = True
 
     # Load the data
