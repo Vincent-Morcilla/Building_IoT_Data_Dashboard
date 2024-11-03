@@ -323,18 +323,19 @@ def _get_building_area(db: DBManager) -> pd.DataFrame:
                     BIND(?roomLabel AS ?childLabel)
                     BIND('Location' AS ?entityType)
                 }
-                # # match all HVAC
-                # UNION {
-                #     ?level brick:isPartOf ?building .
-                #     ?room brick:isPartOf ?level .
-                #     ?room a ?roomLabel .
-                #     ?hvac brick:hasPart ?room .
-                #     ?hvac a ?hvacLabel .
-                #     BIND(?room AS ?parent) 
-                #     BIND(?roomLabel AS ?parentLabel)
-                #     BIND(?hvac AS ?child)
-                #     BIND(?hvacLabel AS ?childLabel)
-                # }
+                # match all HVAC
+                UNION {
+                    ?level brick:isPartOf ?building .
+                    ?room brick:isPartOf ?level .
+                    ?room a ?roomLabel .
+                    ?hvac brick:hasPart ?room .
+                    ?hvac a ?hvacLabel .
+                    BIND(?room AS ?parent) 
+                    BIND(?roomLabel AS ?parentLabel)
+                    BIND(?hvac AS ?child)
+                    BIND(?hvacLabel AS ?childLabel)
+                    BIND('Location' AS ?entityType)
+                }
             }    
         }
     """
@@ -389,6 +390,34 @@ def run(db: DBManager) -> dict:
 
     data_area = df_area[["ids", "labels", "parents", "entityType"]]
 
+    color_map = {
+        # "(?)":"black",
+        "Location": "LightCoral",
+        "System": "GhostWhite",
+        "Equipment": "#32BF84",
+        "Sensor": "Gold",
+        # "Point": "#90EE90",
+        # "Other": "Black",
+    }
+
+    # Custom annotations for the legend
+    annotations = []
+    legend_y = 1.05  # Initial y position for the legend
+    spacing = 0.03
+
+    for category, color in color_map.items():
+        annotation = {
+            "x": 1.05,
+            "y": legend_y,
+            "xref": "paper",
+            "yref": "paper",
+            "showarrow": False,
+            "text": f"<span style='font-size:30px; color:{color};'>■</span> <span style='font-size:12px;'>{category}</span>",
+            "font": {"size": 12},
+        }
+        legend_y -= spacing
+        annotations.append(annotation)
+
     config = {
         ("BuildingStructure", "BuildingStructure"): {
             "title": None,
@@ -407,15 +436,7 @@ def run(db: DBManager) -> dict:
                         "height": 1000,
                         "width": 1000,
                         "color": "entityType",
-                        "color_discrete_map": {
-                            "(?)":"black",
-                            "Location": "lightcoral",
-                            "System": "white",
-                            "Equipment": "#32BF84",
-                            "Sensor": "gold",
-                            # "Point": "#90EE90",
-                            # "Other": "Black",
-                        },
+                        "color_discrete_map": color_map,
                     },
                     "layout_kwargs": {
                         "title": {
@@ -434,6 +455,7 @@ def run(db: DBManager) -> dict:
                             "xanchor": "center",
                             "x": 0.5,
                         },
+                        "annotations": annotations,
                     },
                     "css": {
                         "padding": "10px",
@@ -458,14 +480,7 @@ def run(db: DBManager) -> dict:
                         "height": 1000,
                         "width": 1000,
                         "color": "entityType",
-                        "color_discrete_map": {
-                            "Location": "LightCoral",
-                            "System": "#FFFDD0",
-                            "Equipment": "#32BF84",
-                            "Sensor": "Gold",
-                            "Point": "#90EE90",
-                            "Other": "Black",
-                        },
+                        "color_discrete_map": color_map,
                     },
                     "layout_kwargs": {
                         "title": {
@@ -484,6 +499,7 @@ def run(db: DBManager) -> dict:
                             "xanchor": "center",
                             "x": 0.5,
                         },
+                        "annotations": annotations,
                     },
                     "css": {
                         "padding": "10px",
