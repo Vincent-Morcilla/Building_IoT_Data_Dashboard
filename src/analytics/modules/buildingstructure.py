@@ -393,7 +393,7 @@ def run(db: DBManager) -> dict:
     color_map = {
         # "(?)":"black",
         "Location": "LightCoral",
-        "System": "GhostWhite",
+        "System": "Lavender",
         "Equipment": "#32BF84",
         "Sensor": "Gold",
         # "Point": "#90EE90",
