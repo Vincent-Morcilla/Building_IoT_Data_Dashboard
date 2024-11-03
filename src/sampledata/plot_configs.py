@@ -8,23 +8,23 @@ np.random.seed(42)
 # Create a DataFrame for the DataTable
 table_data_frame = pd.DataFrame(
     {
-        "StreamIDs": ["streamID1", "streamID2", "streamID3"],
+        "Stream_IDs": ["streamID1", "streamID2", "streamID3"],
         "Description": ["First stream", "Second stream", "Third stream"],
-        "SomeMetric": [42, 37, 58],
-        "SomeMetric2": [52, 47, 38],
-        "SomeMetric3": [22, 17, 88],
-        "SomeMetric4": [12, 27, 38],
-        "SomeMetric5": [32, 67, 48],
-        "SomeMetric6": [62, 57, 18],
-        "SomeMetric7": [72, 77, 78],
-        "SomeMetric8": [82, 87, 68],
+        "Some_Metric": [42, 37, 58],
+        "Some_Metric2": [52, 47, 38],
+        "Some_Metric3": [22, 17, 88],
+        "Some_Metric4": [12, 27, 38],
+        "Some_Metric5": [32, 67, 48],
+        "Some_Metric6": [62, 57, 18],
+        "Some_Metric7": [72, 77, 78],
+        "Some_Metric8": [82, 87, 68],
     }
 )
 
 # Create a timeseries_data_dict with components
 timeseries_data_dict = {}
 
-for stream_id in table_data_frame["StreamIDs"]:
+for stream_id in table_data_frame["Stream_IDs"]:
     # Create sample data for plotting
     df_plot = pd.DataFrame(
         {
@@ -193,11 +193,13 @@ sample_plot_configs = {
                 "kwargs": {
                     "data": table_data_frame.to_dict("records"),
                     "columns": [
-                        {"name": col, "id": col} for col in table_data_frame.columns
+                        {"name": " ".join(col.split("_")), "id": col}
+                        for col in table_data_frame.columns
                     ],
                     "row_selectable": "single",
                     "selected_rows": [0],  # Default to first row
                     "sort_action": "native",
+                    "filter_action": "native",
                     "fixed_columns": {
                         "headers": True,
                         "data": 1,
@@ -251,7 +253,7 @@ sample_plot_configs = {
                     "table_data": table_data_frame,
                     "data_dict": timeseries_data_dict,  # Pass the dictionary of components
                 },
-                "index_column": "StreamIDs",  # The column used as index
+                "index_column": "Stream_IDs",  # The column used as index as it's known in the dataframe not as it's known in the datatable
             },
         ],
     },
