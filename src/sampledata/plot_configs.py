@@ -1,32 +1,140 @@
 import numpy as np
 import pandas as pd
-import plotly.express as px
+import string
 
 # Set seed for reproducibility
 np.random.seed(42)
 
-# Sample Data for the Table
-table_data = pd.DataFrame(
+# Create a DataFrame for the DataTable
+table_data_frame = pd.DataFrame(
     {
-        "ID": [1, 2, 3],
-        "Name": ["Room A", "Room B", "Room C"],
-        "Description": ["First floor", "Second floor", "Third floor"],
+        "StreamIDs": ["streamID1", "streamID2", "streamID3"],
+        "Description": ["First stream", "Second stream", "Third stream"],
+        "SomeMetric": [42, 37, 58],
+        "SomeMetric2": [52, 47, 38],
+        "SomeMetric3": [22, 17, 88],
+        "SomeMetric4": [12, 27, 38],
+        "SomeMetric5": [32, 67, 48],
+        "SomeMetric6": [62, 57, 18],
+        "SomeMetric7": [72, 77, 78],
+        "SomeMetric8": [82, 87, 68],
     }
 )
 
-# Sample Timeseries Data for Each ID
+# Create a timeseries_data_dict with components
 timeseries_data_dict = {}
 
-for id_val in table_data["ID"]:
-    df = pd.DataFrame(
+for stream_id in table_data_frame["StreamIDs"]:
+    # Create sample data for plotting
+    df_plot = pd.DataFrame(
         {
-            "Date": pd.date_range(start="2023-01-01", periods=100),
-            "Value": np.random.rand(100).cumsum(),
-            "Variable1": np.random.rand(100).cumsum(),
-            "Variable2": np.random.rand(100).cumsum(),
+            "Timestamp": pd.date_range(start="2023-01-01", periods=100, freq="D"),
+            "Value": np.random.randn(100).cumsum(),
         }
     )
-    timeseries_data_dict[id_val] = df  # Store each DataFrame with its ID as the key
+
+    # Create sample data for table
+    df_table = pd.DataFrame(
+        {
+            "Metric": np.random.choice(list(string.ascii_uppercase), 3),
+            "Value": np.random.rand(3),
+        }
+    )
+
+    # Components for this streamID
+    components = [
+        {
+            "type": "plot",
+            "library": "px",
+            "function": "line",
+            "id": f"line-plot-{stream_id}",
+            "kwargs": {
+                "data_frame": df_plot,
+                "x": "Timestamp",
+                "y": "Value",
+                "title": f"Timeseries Plot for {stream_id}",
+            },
+            "layout_kwargs": {
+                "title": {
+                    "text": f"Timeseries Plot for {stream_id}",
+                    "x": 0.5,
+                    "xanchor": "center",
+                },
+                "font_color": "black",
+                "plot_bgcolor": "white",
+                "autosize": True,
+                "legend": {
+                    "orientation": "h",
+                    "yanchor": "top",
+                    "y": -0.2,
+                    "xanchor": "center",
+                    "x": 0.5,
+                    "font": {"size": 15},
+                },
+                "xaxis": {
+                    "mirror": True,
+                    "ticks": "outside",
+                    "showline": True,
+                    "linecolor": "black",
+                    "gridcolor": "lightgrey",
+                },
+                "yaxis": {
+                    "mirror": True,
+                    "ticks": "outside",
+                    "showline": True,
+                    "linecolor": "black",
+                    "gridcolor": "lightgrey",
+                },
+            },
+            "css": {
+                "padding": "10px",
+            },
+        },
+        # Separator
+        {
+            "type": "separator",
+            "style": {"margin": "20px 0"},
+        },
+        # Table component
+        {
+            "type": "table",
+            "dataframe": df_table,
+            "id": f"table-{stream_id}",
+            "title": f"Metrics for {stream_id}",
+            "title_element": "H4",
+            "kwargs": {
+                "columns": [{"name": col, "id": col} for col in df_table.columns],
+                "page_size": 5,
+                "style_cell": {
+                    "fontSize": 14,
+                    "textAlign": "left",
+                    "padding": "5px",
+                    "maxWidth": 0,
+                },
+                "style_header": {
+                    "fontWeight": "bold",
+                    "backgroundColor": "#3c9639",
+                    "color": "white",
+                },
+                "style_data_conditional": [
+                    {
+                        "if": {"row_index": "odd"},
+                        "backgroundColor": "#ddf2dc",
+                    }
+                ],
+                "style_table": {
+                    "overflowX": "auto",
+                },
+                "export_format": "csv",
+            },
+            "css": {
+                "padding": "10px",
+            },
+        },
+    ]
+    # Assign the components to the streamID in the dict
+    timeseries_data_dict[stream_id] = components
+
 
 # Mock Data for Timeline Plot
 timeline_data = pd.DataFrame(
@@ -63,6 +171,90 @@ histogram_data = pd.DataFrame(
 
 # Plot Configurations
 sample_plot_configs = {
+    ("RoomClimate", "Rooms"): {
+        "title": "Room Climate Rooms Data",
+        "components": [
+            # Placeholder Div for dynamic components
+            {
+                "type": "placeholder",
+                "id": "dynamic-components-placeholder",
+            },
+            # Separator
+            {
+                "type": "separator",
+                "style": {"margin": "20px 0"},
+            },
+            # UI Component: DataTable
+            {
+                "type": "UI",
+                "element": "DataTable",
+                "id": "datatable",
+                "label": None,
+                "kwargs": {
+                    "data": table_data_frame.to_dict("records"),
+                    "columns": [
+                        {"name": col, "id": col} for col in table_data_frame.columns
+                    ],
+                    "row_selectable": "single",
+                    "selected_rows": [0],  # Default to first row
+                    "sort_action": "native",
+                    "fixed_columns": {
+                        "headers": True,
+                        "data": 1,
+                    },  # Freeze first column
+                    "style_cell": {
+                        "fontSize": 14,
+                        "textAlign": "left",
+                        "padding": "5px",
+                        "minWidth": "150px",
+                    },
+                    "style_header": {
+                        "fontWeight": "bold",
+                        "backgroundColor": "#3c9639",
+                        "color": "white",
+                    },
+                    "style_data_conditional": [
+                        {
+                            "if": {"row_index": "odd"},
+                            "backgroundColor": "#ddf2dc",
+                        }
+                    ],
+                    "style_table": {
+                        "overflowX": "auto",
+                        "width": "100%",
+                        "minWidth": "100%",
+                    },
+                },
+                "css": {
+                    "padding": "10px",
+                    "width": "100%",
+                },
+            },
+        ],
+        "interactions": [
+            {
+                "triggers": [
+                    {
+                        "component_id": "datatable",
+                        "component_property": "selected_rows",
+                        "input_key": "selected_rows",
+                    },
+                ],
+                "outputs": [
+                    {
+                        "component_id": "dynamic-components-placeholder",
+                        "component_property": "children",
+                    },
+                ],
+                "action": "update_components_based_on_table_selection",
+                "data_source": {
+                    "table_data": table_data_frame,
+                    "data_dict": timeseries_data_dict,  # Pass the dictionary of components
+                },
+                "index_column": "StreamIDs",  # The column used as index
+            },
+        ],
+    },
     # Box and Whisker Plot for Data Quality
     ("DataQuality", "ConsumptionDataQuality"): {
         "title": None,
@@ -284,16 +476,18 @@ sample_plot_configs = {
                         "component_property": "figure",
                     },
                 ],
-                "action": "update_plot_property",
-                "data_source": "consumption-line-plot",
-                "update_kwargs": {
-                    "data_frame": "data_frame",  # Placeholder
+                "action": "process_interaction",
+                "data_mapping": {
+                    "from": "consumption-line-plot",
+                    "to": "consumption-line-plot",
                 },
-                "filters": {
-                    "Timestamp": {
-                        "between": {
-                            "start_date": "start_date",
-                            "end_date": "end_date",
+                "data_processing": {
+                    "filter": {
+                        "Timestamp": {
+                            "between": {
+                                "start_date": "start_date",
+                                "end_date": "end_date",
+                            }
                         },
                     },
                 },
@@ -600,107 +794,6 @@ sample_plot_configs = {
                 },
                 "css": {
                     "padding": "10px",
-                },
-            },
-        ],
-    },
-    ("RoomClimate", "Rooms"): {
-        "title": None,
-        "components": [
-            {
-                "type": "plot",
-                "library": "px",
-                "function": "line",
-                "id": "updateable-line-chart",
-                "kwargs": {
-                    "data_frame": timeseries_data_dict[1],  # Default to ID 1
-                    "x": "Date",
-                    "y": "Value",
-                    "title": "Timeseries for Selected Room",
-                },
-                "layout_kwargs": {
-                    "font_color": "black",
-                    "plot_bgcolor": "white",
-                    "title": {
-                        "text": "Timeseries for Selected Room",
-                        "x": 0.5,
-                        "xanchor": "center",
-                    },
-                    "legend": {
-                        "orientation": "h",
-                        "yanchor": "bottom",
-                        "y": -0.3,
-                        "xanchor": "center",
-                        "x": 0.5,
-                    },
-                },
-                "css": {
-                    "padding": "10px",
-                },
-            },
-            # Separator
-            {
-                "type": "separator",
-                "style": {"margin": "20px 0"},
-            },
-            # UI Component: DataTable
-            {
-                "type": "UI",
-                "element": "DataTable",
-                "id": "datatable",
-                "label": None,
-                "kwargs": {
-                    "data": table_data.to_dict("records"),
-                    "columns": [{"name": col, "id": col} for col in table_data.columns],
-                    "row_selectable": "single",
-                    "selected_rows": [0],  # Default to first row
-                    "sort_action": "native",
-                    "style_cell": {
-                        "fontSize": 14,
-                        "textAlign": "left",
-                        "padding": "5px",
-                        "maxWidth": 0,
-                    },
-                    "style_header": {
-                        "fontWeight": "bold",
-                        "backgroundColor": "#3c9639",
-                        "color": "white",
-                    },
-                    "style_data_conditional": [
-                        {
-                            "if": {"row_index": "odd"},
-                            "backgroundColor": "#ddf2dc",
-                        }
-                    ],
-                    "style_table": {
-                        "overflowX": "auto",
-                    },
-                },
-                "css": {
-                    "margin": "0 auto",
-                    "padding": "10px",
-                },
-            },
-        ],
-        "interactions": [
-            {
-                "triggers": [
-                    {
-                        "component_id": "datatable",
-                        "component_property": "selected_rows",
-                        "input_key": "selected_rows",
-                    },
-                ],
-                "outputs": [
-                    {
-                        "component_id": "updateable-line-chart",
-                        "component_property": "figure",
-                    },
-                ],
-                "action": "update_plot_based_on_table_selection",
-                "data_source": {
-                    "table_data": table_data,
-                    "timeseries_data_dict": timeseries_data_dict,  # Pass the dictionary of DataFrames
                 },
             },
         ],

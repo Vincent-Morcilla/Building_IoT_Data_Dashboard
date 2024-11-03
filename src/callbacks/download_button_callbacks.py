@@ -1,17 +1,14 @@
 import hashlib
 import io
-import logging
 import zipfile
 from typing import Any, Dict, Optional
+
 import pandas as pd
 from dash import Dash, dcc
 from dash.dependencies import Input, Output
 from dash.exceptions import PreventUpdate
-from helpers.helpers import sanitise_filename
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+from helpers.helpers import sanitise_filename
 
 
 def hash_dataframe(df: pd.DataFrame) -> str:
@@ -19,10 +16,10 @@ def hash_dataframe(df: pd.DataFrame) -> str:
     Compute a unique MD5 hash for a DataFrame.
 
     Args:
-        df (pd.DataFrame): The DataFrame to hash.
+        df: The DataFrame to hash.
 
     Returns:
-        str: The MD5 hash of the DataFrame.
+        The MD5 hash of the DataFrame.
     """
     df_bytes = df.to_csv(index=False).encode("utf-8")
     return hashlib.md5(df_bytes).hexdigest()
@@ -38,19 +35,19 @@ def generate_filename(
     trace_type: Optional[str] = None,
 ) -> str:
     """
-    Generate a unique filename with main_cat and sub_cat.
+    Generate a unique filename using the provided parameters.
 
     Args:
-        main_cat (str): Main category.
-        sub_cat (str): Subcategory.
-        component_id (str): Component ID.
-        title (str): Title of the plot/table.
-        comp_type (str): Type of the component ('Plot', 'Table', 'UI', etc.).
-        file_counters (Dict[str, int]): Counter to ensure unique filenames.
-        trace_type (str, optional): Type of trace (e.g., 'Box', 'Line').
+        main_cat: Main category.
+        sub_cat: Subcategory.
+        component_id: Component ID.
+        title: Title of the plot/table.
+        comp_type: Type of the component ('Plot', 'Table', 'UI', etc.).
+        file_counters: Counter to ensure unique filenames.
+        trace_type: Type of trace (e.g., 'Box', 'Line').
 
     Returns:
-        str: A unique filename.
+        A unique filename string.
     """
     base = f"{main_cat}_{sub_cat}_{component_id}_{title}_{comp_type}"
     if trace_type:
@@ -73,28 +70,26 @@ def process_dataframe(
     processed_df_hashes: set,
     csv_files: list,
     trace_type: Optional[str] = None,
-):
+) -> None:
     """
-    Process a single DataFrame or a dictionary of DataFrames.
+    Process a DataFrame or a dictionary of DataFrames for inclusion in the ZIP file.
 
     Args:
-        source (pd.DataFrame or dict): The DataFrame or dict of DataFrames to process.
-        main_cat (str): Main category from plot_configs key.
-        sub_cat (str): Subcategory from plot_configs key.
-        component_id (str): ID of the component.
-        title (str): Title of the plot/table.
-        comp_type (str): Type of the component ('Plot', 'Table', 'UI', etc.).
-        file_counters (Dict[str, int]): Counter for unique filenames.
-        processed_df_hashes (set): Set to track processed DataFrame hashes.
-        csv_files (list): List to collect (filename, csv_bytes) tuples.
-        trace_type (str, optional): Type of trace.
+        source: The DataFrame or dict of DataFrames to process.
+        main_cat: Main category from plot_configs key.
+        sub_cat: Subcategory from plot_configs key.
+        component_id: ID of the component.
+        title: Title of the plot/table.
+        comp_type: Type of the component ('Plot', 'Table', 'UI', etc.).
+        file_counters: Counter for unique filenames.
+        processed_df_hashes: Set to track processed DataFrame hashes.
+        csv_files: List to collect (filename, csv_bytes) tuples.
+        trace_type: Type of trace.
+
     """
     if isinstance(source, pd.DataFrame):
         df_hash = hash_dataframe(source)
         if df_hash in processed_df_hashes:
-            logger.info(
-                f"Duplicate DataFrame detected for component '{component_id}'. Skipping."
-            )
             return
         processed_df_hashes.add(df_hash)
 
@@ -103,32 +98,26 @@ def process_dataframe(
         )
         csv_bytes = source.to_csv(index=False).encode("utf-8")
         csv_files.append((filename, csv_bytes))
-        logger.info(f"Added DataFrame: {filename}")
 
     elif isinstance(source, dict):
         for key, df in source.items():
             if isinstance(df, pd.DataFrame):
                 df_hash = hash_dataframe(df)
                 if df_hash in processed_df_hashes:
-                    logger.info(
-                        f"Duplicate DataFrame detected for component '{component_id}_{key}'. Skipping."
-                    )
                     continue
                 processed_df_hashes.add(df_hash)
 
-                # Use 'component_id' directly without modifying it with 'key'
                 title_extended = f"{title}_{key}"
                 filename = generate_filename(
                     main_cat,
                     sub_cat,
-                    component_id,  # Use component_id directly
+                    component_id,
                     title_extended,
                     comp_type,
                     file_counters,
                 )
                 csv_bytes = df.to_csv(index=False).encode("utf-8")
                 csv_files.append((filename, csv_bytes))
-                logger.info(f"Added DataFrame from dict: {filename}")
 
 
 def locate_component(
@@ -138,11 +127,11 @@ def locate_component(
     Locate a component by its ID within plot_configs.
 
     Args:
-        plot_configs (Dict[Any, Any]): The plot configurations dictionary.
-        component_id (str): The ID of the component to locate.
+        plot_configs: The plot configurations dictionary.
+        component_id: The ID of the component to locate.
 
     Returns:
-        Optional[Dict[str, Any]]: The component dictionary if found, else None.
+        The component dictionary if found, else None.
     """
     for config in plot_configs.values():
         for component in config.get("components", []):
@@ -158,10 +147,10 @@ def extract_dataframe_from_component(
     Extract the DataFrame from a given component.
 
     Args:
-        component (Dict[str, Any]): The component dictionary.
+        component: The component dictionary.
 
     Returns:
-        Optional[pd.DataFrame]: The extracted DataFrame, if any.
+        The extracted DataFrame, if any.
     """
     comp_type = component.get("type")
     df = None
@@ -193,35 +182,33 @@ class DownloadManager:
     """
 
     def __init__(self):
+        """Initialize the DownloadManager with empty attributes."""
         self.csv_files: list = []
         self.file_counters: Dict[str, int] = {}
         self.processed_df_hashes: set = set()
 
-    def add_csv_file(self, filename: str, data: bytes):
+    def add_csv_file(self, filename: str, data: bytes) -> None:
         """
         Add a CSV file to the list of files to be zipped.
 
         Args:
-            filename (str): The name of the CSV file.
-            data (bytes): The CSV data in bytes.
+            filename: The name of the CSV file.
+            data: The CSV data in bytes.
         """
         self.csv_files.append((filename, data))
-        logger.info(f"Added CSV file: {filename}")
 
     def prepare_zip(self) -> io.BytesIO:
         """
         Create a ZIP file in memory containing all added CSV files.
 
         Returns:
-            io.BytesIO: The in-memory ZIP file.
+            The in-memory ZIP file.
         """
         zip_buffer = io.BytesIO()
         with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
             for filename, data in self.csv_files:
                 zip_file.writestr(filename, data)
-                logger.info(f"Added {filename} to ZIP.")
         zip_buffer.seek(0)
-        logger.info("ZIP file prepared successfully.")
         return zip_buffer
 
     def send_zip(self, zip_buffer: io.BytesIO) -> Dict[str, Any]:
@@ -229,26 +216,25 @@ class DownloadManager:
         Create a downloadable response for the ZIP file.
 
         Args:
-            zip_buffer (io.BytesIO): The in-memory ZIP file.
+            zip_buffer: The in-memory ZIP file.
 
         Returns:
-            Dict[str, Any]: The Dash downloadable data.
+            The Dash downloadable data.
         """
 
         def write_zip(file_like):
             file_like.write(zip_buffer.read())
 
-        logger.info("Initiating download of ZIP file.")
         return dcc.send_bytes(write_zip, "All_Dataframes.zip")
 
 
-def register_download_callbacks(app: Dash, plot_configs: Dict[Any, Any]):
+def register_download_callbacks(app: Dash, plot_configs: Dict[Any, Any]) -> None:
     """
     Register callbacks to handle global download functionality.
 
     Args:
-        app (Dash): The Dash app instance.
-        plot_configs (Dict[Any, Any]): The plot configurations dictionary.
+        app: The Dash app instance.
+        plot_configs: The plot configurations dictionary.
     """
 
     @app.callback(
@@ -261,27 +247,19 @@ def register_download_callbacks(app: Dash, plot_configs: Dict[Any, Any]):
         Handle downloading all DataFrames in plot_configs as CSVs within a ZIP file.
 
         Args:
-            n_clicks (int): Number of times the download button has been clicked.
+            n_clicks: Number of times the download button has been clicked.
 
         Returns:
-            Dict[str, Any]: The data to be downloaded.
+            The data to be downloaded.
         """
         if not n_clicks:
             raise PreventUpdate
-
-        logger.info(
-            "Global download button clicked. Preparing to download all dataframes."
-        )
 
         download_manager = DownloadManager()
 
         # Traverse plot_configs to find all DataFrames
         for config_key, config in plot_configs.items():
             if not isinstance(config_key, tuple) or len(config_key) != 2:
-                logger.warning(
-                    f"Invalid config_key format: {config_key}. "
-                    "Expected a tuple of (MainCategory, SubCategory). Skipping."
-                )
                 continue
 
             main_category, subcategory = config_key
@@ -296,9 +274,6 @@ def register_download_callbacks(app: Dash, plot_configs: Dict[Any, Any]):
 
                 component_id = component.get("id")
                 if not component_id:
-                    logger.warning(
-                        f"Component without ID found in {config_key}. Skipping."
-                    )
                     continue
 
                 title = ""
@@ -388,7 +363,52 @@ def register_download_callbacks(app: Dash, plot_configs: Dict[Any, Any]):
                 if not data_source:
                     continue
 
-                if isinstance(data_source, dict):
+                data_dict = data_source.get("data_dict")
+                if data_dict:
+                    # Loop through each item in data_dict
+                    for index_value, components in data_dict.items():
+                        index_value_sanitized = sanitise_filename(str(index_value))
+                        for component in components:
+                            comp_type = component.get("type")
+                            component_id = component.get("id")
+                            if not component_id:
+                                continue
+
+                            title = ""
+                            df = None
+                            if comp_type == "plot":
+                                library = component.get("library")
+                                if library == "px":
+                                    df = component.get("kwargs", {}).get("data_frame")
+                                elif library == "go":
+                                    df = component.get("data_frame")
+                                title = component.get("kwargs", {}).get(
+                                    "title", component_id
+                                )
+                            elif comp_type == "table":
+                                df = component.get("dataframe")
+                                title = component.get("title", component_id)
+                            elif comp_type == "UI":
+                                if component.get("element") == "DataTable":
+                                    data = component.get("kwargs", {}).get("data")
+                                    if isinstance(data, list):
+                                        df = pd.DataFrame(data)
+                                    title = component.get("label", component_id)
+
+                            if df is not None and isinstance(df, pd.DataFrame):
+                                # Generate filename
+                                filename = generate_filename(
+                                    sanitized_main,
+                                    sanitized_sub,
+                                    f"{component_id}_{index_value_sanitized}",
+                                    title or component_id,
+                                    comp_type.capitalize(),
+                                    download_manager.file_counters,
+                                )
+                                csv_bytes = df.to_csv(index=False).encode("utf-8")
+                                download_manager.add_csv_file(filename, csv_bytes)
+
+                elif isinstance(data_source, dict):
                     process_dataframe(
                         source=data_source,
                         main_cat=sanitized_main,
@@ -424,17 +444,10 @@ def register_download_callbacks(app: Dash, plot_configs: Dict[Any, Any]):
                                 processed_df_hashes=download_manager.processed_df_hashes,
                                 csv_files=download_manager.csv_files,
                             )
-                    else:
-                        logger.warning(
-                            f"Component with ID '{data_source}' not found in plot_configs."
-                        )
                 else:
-                    logger.warning(
-                        f"Unknown data_source type: {type(data_source)}. Skipping."
-                    )
+                    continue
 
         if not download_manager.csv_files:
-            logger.warning("No DataFrames found in plot_configs to download.")
             raise PreventUpdate
 
         zip_buffer = download_manager.prepare_zip()

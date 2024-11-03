@@ -1,193 +1,15 @@
 import copy
 from typing import List, Dict, Any
-from dash import no_update
+from dash import html, no_update
 from dash.dependencies import Input, Output
 import pandas as pd
-import plotly.express as px
 from components.plot_generator import (
     create_plot_component,
     find_component_by_id,
+    create_ui_component,
+    create_table_component,
 )
 from helpers.data_processing import apply_generic_filters, apply_transformation
-
-
-def update_plot_property_action(
-    plot_configs,  # FIXME: Add type hint
-    data_frame: pd.DataFrame,
-    update_kwargs: Dict[str, Any],
-    input_values: List[Any],
-    outputs: List[Dict[str, Any]],
-    filters: Dict[str, Any] = None,
-    triggers: List[Dict[str, Any]] = None,
-    data_processing: Dict[str, Any] = None,
-) -> List[Any]:
-    """Update plot properties, including data filtering and processing.
-
-    Args:
-        data_frame: The original DataFrame.
-        update_kwargs: Mapping of plot kwargs to input keys.
-        input_values: The input values from the triggers.
-        outputs: The output configurations.
-        filters: Filters to apply to the data.
-        triggers: List of triggers from the interaction.
-        data_processing: Instructions for processing the data, such as resampling.
-
-    Returns:
-        The updated figures or components.
-    """
-    output_results = []
-
-    # Map input_keys to input_values
-    input_mapping = {
-        trigger.get("input_key", f"input_{i}"): value
-        for i, (trigger, value) in enumerate(zip(triggers, input_values))
-    }
-
-    # Apply filters
-    if filters:
-        data_frame = apply_generic_filters(data_frame, filters, input_mapping)
-
-    # Apply data processing
-    if data_processing:
-        transformations = data_processing.get("transformations", [])
-        for transformation in transformations:
-            data_frame = apply_transformation(data_frame, transformation, input_mapping)
-
-    for output in outputs:
-        component_id = output["component_id"]
-        component_property = output["component_property"]
-        component_config = find_component_by_id(component_id, plot_configs)
-        component_type = component_config["type"]
-
-        if component_type == "plot":
-            new_component_config = copy.deepcopy(component_config)
-            plot_kwargs = new_component_config.get("kwargs", {})
-
-            # Update kwargs with new data frame
-            for kwarg_key, input_key in update_kwargs.items():
-                if kwarg_key == "data_frame":
-                    plot_kwargs[kwarg_key] = data_frame.copy()
-                else:
-                    plot_kwargs[kwarg_key] = input_mapping.get(input_key, input_key)
-
-            # Rebuild the plot component
-            updated_plot = create_plot_component(new_component_config)
-            if component_property == "figure":
-                output_results.append(updated_plot.figure)
-            else:
-                output_results.append(updated_plot)
-        elif component_type == "table":
-            data = data_frame.to_dict("records")
-            output_results.append(data)
-        else:
-            output_results.append(no_update)
-
-    return output_results
-
-
-def update_table_based_on_plot_click_action(
-    plot_configs,  # FIXME: Add type hint
-    input_values: List[Any],
-    outputs: List[Dict[str, Any]],
-    interaction: Dict[str, Any],
-    triggers: List[Dict[str, Any]],
-) -> List[Any]:
-    """Update the table based on a click event on a plot.
-
-    Args:
-        input_values: The input values from the triggers.
-        outputs: The output configurations.
-        interaction: The interaction configuration from plot_configs.
-        triggers: List of triggers from the interaction.
-
-    Returns:
-        The updated table data.
-    """
-    return process_interaction_action(
-        plot_configs,
-        input_values=input_values,
-        outputs=outputs,
-        interaction=interaction,
-        triggers=triggers,
-    )
-
-
-def update_plot_based_on_table_selection(
-    plot_configs,  # FIXME: Add type hint
-    input_values: List[Any],
-    outputs: List[Dict[str, Any]],
-    interaction: Dict[str, Any],
-    triggers: List[Dict[str, Any]] = None,
-) -> List[Any]:
-    """
-    Update the plot based on the selected row in the table.
-
-    Parameters:
-        input_values (List[Any]): Values provided as inputs to the function.
-        outputs (List[Dict[str, Any]]): List of output configurations for the function.
-        interaction (Dict[str, Any]): Contains interaction settings including data sources.
-        triggers (List[Dict[str, Any]], optional): Trigger configurations for dynamic inputs.
-
-    Returns:
-        List[Any]: Updated list of output figures or no updates if data is missing.
-    """
-    output_results = []
-
-    # Map input values to their corresponding trigger keys
-    input_mapping = {
-        trigger.get("input_key", f"input_{i}"): value
-        for i, (trigger, value) in enumerate(zip(triggers or [], input_values))
-    }
-
-    # Get selected row index, defaulting to the first row if not specified
-    selected_rows = input_mapping.get("selected_rows", [])
-    row_idx = selected_rows[0] if selected_rows else 0
-
-    # Retrieve data sources from interaction dictionary
-    data_source = interaction.get("data_source", {})
-    table_data = data_source.get("table_data")
-    timeseries_data_dict = data_source.get("timeseries_data_dict")
-
-    # Verify data availability
-    if table_data is None or timeseries_data_dict is None:
-        print("Data source not found in interaction configuration.")
-        return [no_update] * len(outputs)
-
-    # Retrieve selected row's ID and corresponding timeseries data
-    selected_id = table_data.iloc[row_idx]["ID"]
-    filtered_data = timeseries_data_dict.get(selected_id)
-
-    if filtered_data is None:
-        print(f"No timeseries data found for ID {selected_id}.")
-        return [no_update] * len(outputs)
-
-    # Generate the timeseries plot figure
-    fig = px.line(
-        data_frame=filtered_data,
-        x="Date",
-        y=["Value", "Variable1", "Variable2"],
-        title=f"Timeseries for {table_data.iloc[row_idx]['Name']}",
-    )
-    fig.update_layout(
-        font=dict(color="black"),
-        title=dict(
-            text=f"Timeseries for {table_data.iloc[row_idx]['Name']}",
-            xanchor="center",
-            x=0.5,
-        ),
-        legend=dict(
-            orientation="h",
-            yanchor="bottom",
-            y=-0.3,
-            xanchor="center",
-            x=0.5,
-        ),
-    )
-
-    # Add the updated figure to the output results
-    output_results.append(fig)
-
-    return output_results
 
 
 def process_interaction_action(
@@ -274,6 +96,126 @@ def process_interaction_action(
     return output_results
 
 
+def update_components_based_on_table_selection_action(
+    plot_configs,
+    input_values,
+    outputs,
+    interaction,
+    triggers=None,
+):
+    """
+    Update components based on the selected row in the table.
+
+    Args:
+        plot_configs: The plot configurations.
+        input_values (List[Any]): The input values from the triggers.
+        outputs (List[Dict[str, Any]]): The outputs to update.
+        interaction (Dict[str, Any]): Interaction configuration.
+        triggers (List[Dict[str, Any]], optional): Trigger configurations.
+
+    Returns:
+        List[Any]: Updated outputs for the Dash components.
+    """
+    output_results = []
+
+    # Map input values to their corresponding trigger keys
+    input_mapping = {
+        trigger.get("input_key", f"input_{i}"): value
+        for i, (trigger, value) in enumerate(zip(triggers or [], input_values))
+    }
+
+    # Get selected row index
+    selected_rows = input_mapping.get("selected_rows", [])
+    if not selected_rows:
+        error_message = "No row selected in the DataTable. Please select a row."
+        print(f"Error: {error_message}")
+        raise ValueError(error_message)
+
+    row_idx = selected_rows[0]
+
+    # Retrieve data sources from interaction dictionary
+    data_source = interaction.get("data_source")
+    if data_source is None or not isinstance(data_source, dict):
+        error_message = (
+            "Data source is missing or invalid in interaction configuration."
+        )
+        print(f"Error: {error_message}")
+        raise ValueError(error_message)
+
+    table_data = data_source.get("table_data")
+    data_dict = data_source.get("data_dict")
+    index_column = interaction.get("index_column")
+
+    # Verify data availability
+    if table_data is None or data_dict is None or index_column is None:
+        error_message = (
+            "Data source or index column not found in interaction configuration."
+        )
+        print(f"Error: {error_message}")
+        raise ValueError(error_message)
+
+    # Convert table_data to DataFrame if it's not already
+    if not isinstance(table_data, pd.DataFrame):
+        try:
+            table_data = pd.DataFrame(table_data)
+        except Exception as e:
+            error_message = f"Failed to convert table_data to DataFrame: {e}"
+            print(f"Error: {error_message}")
+            raise ValueError(error_message)
+
+    # Check if index_column exists in table_data
+    if index_column not in table_data.columns:
+        error_message = f"Index column '{index_column}' not found in table_data."
+        print(f"Error: {error_message}")
+        raise ValueError(error_message)
+
+    # Check if the selected row index is within the range of the table data
+    if row_idx < 0 or row_idx >= len(table_data):
+        error_message = f"Selected row index {row_idx} is out of bounds."
+        print(f"Error: {error_message}")
+        raise IndexError(error_message)
+
+    # Retrieve selected index value
+    selected_index_value = table_data.iloc[row_idx][index_column]
+
+    # Check if the selected index value exists in data_dict
+    if selected_index_value not in data_dict:
+        error_message = f"No components found for index value '{selected_index_value}'. Ensure that this value exists in the data_dict."
+        print(f"Error: {error_message}")
+        raise KeyError(error_message)
+
+    # Get components associated with the selected index
+    selected_components = data_dict.get(selected_index_value)
+
+    # Verify that selected_components is a list
+    if not isinstance(selected_components, list):
+        error_message = f"The components for index value '{selected_index_value}' are not in a list."
+        print(f"Error: {error_message}")
+        raise TypeError(error_message)
+
+    # Generate the components
+    dynamic_components = []
+    for component in selected_components:
+        comp_type = component.get("type")
+        if comp_type == "plot":
+            dynamic_components.append(create_plot_component(component))
+        elif comp_type == "table":
+            dynamic_components.append(create_table_component(component))
+        elif comp_type == "UI":
+            dynamic_components.append(create_ui_component(component))
+        elif comp_type == "separator":
+            separator_style = component.get("style", {})
+            dynamic_components.append(html.Hr(style=separator_style))
+        else:
+            error_message = f"Unsupported component type '{comp_type}' in data_dict."
+            print(f"Error: {error_message}")
+            raise ValueError(error_message)
+
+    output_results.append(dynamic_components)
+
+    return output_results
+
+
 def register_plot_callbacks(app, plot_configs):
     """Register callbacks for the plot configurations.
 
@@ -282,10 +224,8 @@ def register_plot_callbacks(app, plot_configs):
         plot_configs (dict): The plot configurations.
     """
     action_functions = {
-        "update_plot_property": update_plot_property_action,
-        "update_table_based_on_plot_click": update_table_based_on_plot_click_action,
         "process_interaction": process_interaction_action,
-        "update_plot_based_on_table_selection": update_plot_based_on_table_selection,
+        "update_components_based_on_table_selection": update_components_based_on_table_selection_action,
     }
 
     for category_key, config in plot_configs.items():

@@ -402,7 +402,7 @@ def create_layout_for_category(category_key: str, plot_config: Dict) -> List:
     Returns:
         list: A list of Dash components representing the category's layout, including:
             - Section title component.
-            - Specified UI, plot, table, and separator components.
+            - Specified UI, plot, table, separator and placeholder components.
             - A global download button for downloading data.
     """
     components = []
@@ -436,6 +436,11 @@ def create_layout_for_category(category_key: str, plot_config: Dict) -> List:
         elif comp_type == "separator":
             separator_style = component.get("style", {})
             components.append(html.Hr(style=separator_style))
+        elif comp_type == "placeholder":
+            # Create an empty Div with the specified ID
+            placeholder_id = component.get("id")
+            placeholder_css = component.get("css", {})
+            components.append(html.Div(id=placeholder_id, style=placeholder_css))
         else:
             raise ValueError(f"Unsupported component type '{comp_type}'")
 
