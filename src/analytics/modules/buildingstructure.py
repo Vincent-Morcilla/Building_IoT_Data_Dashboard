@@ -19,15 +19,16 @@ from analytics.dbmgr import DBManager  # only imported for type hinting
 
 def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:
     query = """
-        SELECT DISTINCT ?parent ?parentLabel ?child ?childLabel ?building ?buildingLabel ?entityType
+        SELECT DISTINCT ?parent ?parentLabel ?child ?childLabel ?building ?buildingLabel ?system ?systemLabel ?entityType
         WHERE {
             # Define the building
             ?building a brick:Building . 
             ?building a ?buildingLabel .
-            # BIND('Location' AS ?entityType)
-            # BIND('' AS ?parentLabel)
-            # BIND(?building AS ?child)
-            # BIND(?buildingLabel AS ?childLabel)
+            BIND('' AS ?parent)
+            BIND('' AS ?parentLabel)
+            BIND(?building AS ?child)
+            BIND(?buildingLabel AS ?childLabel)
+            BIND('Location' AS ?entityType)
 
             OPTIONAL {
                 # Match root node: building
@@ -39,22 +40,22 @@ def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:
                     BIND('' AS ?parentLabel)
                     BIND(?building AS ?child)
                     BIND(?buildingLabel AS ?childLabel)
+                    BIND('Location' AS ?entityType)
                 }
 
                 # Match System entities connected to building
                 UNION
                 {
-                    ?sys brick:hasLocation ?building .
+                    ?building a brick:Building . 
                     ?building a ?buildingLabel .
-                    ?sys a ?sysLabel .
-                    ?sysLabel brick:hasAssociatedTag tag:System . 
+                    ?system brick:hasLocation ?building .
+                    ?system a ?systemLabel .
+                    ?systemLabel brick:hasAssociatedTag tag:System . 
                     BIND(?building AS ?parent)
                     BIND(?buildingLabel AS ?parentLabel)
-                    BIND(?sys AS ?child)
-                    BIND(?sysLabel AS ?childLabel)
+                    BIND(?system AS ?child)
+                    BIND(?systemLabel AS ?childLabel)
                     BIND('System' AS ?entityType)
-                    # BIND(?sys AS ?system)
-                    # BIND(?sysLabel AS ?systemLabel)
                 }
 
                 # match equipments connected to building
@@ -273,7 +274,7 @@ def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:
             }    
         }
     """
-    return db.query(query, return_df=True, defrag=True)
+    return db.query(query, graph='schema+model', return_df=True, defrag=True)
 
 
 def _get_building_area(db: DBManager) -> pd.DataFrame:
@@ -337,7 +338,7 @@ def _get_building_area(db: DBManager) -> pd.DataFrame:
             }    
         }
     """
-    return db.query(query, return_df=True, defrag=True)
+    return db.query(query, graph='schema+model', return_df=True, defrag=True)
 
 
 def run(db: DBManager) -> dict:
@@ -367,8 +368,11 @@ def run(db: DBManager) -> dict:
         data_hierarchy["childLabel"].str.split("#").str[-1].str.replace("_", " ")
     )
     data_hierarchy["parents"] = data_hierarchy["parent"].str.split("#").str[-1]
+    data_hierarchy["entityType"] = data_hierarchy["entityType"].apply(str)
 
     data_hierarchy = data_hierarchy[["ids", "labels", "parents", "entityType"]]
+
+    # print(data_hierarchy["entityType"].drop_duplicates())
 
     df_area = _get_building_area(db)
 
@@ -380,33 +384,112 @@ def run(db: DBManager) -> dict:
         df_area["childLabel"].str.split("#").str[-1].str.replace("_", " ")
     )
     df_area["parents"] = df_area["parent"].str.split("#").str[-1]
+    df_area["entityType"] = df_area["entityType"].apply(str)
+
 
     data_area = df_area[["ids", "labels", "parents", "entityType"]]
 
     config = {
-        "BuildingStructure_BuildingHierarchy": {
-            "SunburstChart": {
-                "title": "Building Hierarchy",
-                "EntityID": "EntityID",
-                "EntityType": "EntityType",
-                "ParentID": "ParentID",
-                "BuildingID": "BuildingID",
-                "z-axis": "Level",
-                "z-axis_label": "Hierarchy Level",
-                "dataframe": data_hierarchy,
-            }
+        ("BuildingStructure", "BuildingStructure"): {
+            "title": None,
+            "components": [
+                {
+                    "type": "plot",
+                    "library": "px",
+                    "function": "sunburst",
+                    "id": "building-hierarchy-sunburst",
+                    "kwargs": {
+                        "data_frame": data_hierarchy,
+                        "parents": "parents",
+                        "names": "labels",
+                        "ids": "ids",
+                        "title": "Building Hierarchy",
+                        "height": 1000,
+                        "width": 1000,
+                        "color": "entityType",
+                        "color_discrete_map": {
+                            "(?)":"black",
+                            "Location": "lightcoral",
+                            "System": "white",
+                            "Equipment": "#32BF84",
+                            "Sensor": "gold",
+                            # "Point": "#90EE90",
+                            # "Other": "Black",
+                        },
+                    },
+                    "layout_kwargs": {
+                        "title": {
+                            "text": "Building Hierarchy",
+                            "x": 0.5,
+                            "xanchor": "center",
+                            "font": {"size": 35},
+                        },
+                        "font_color": "black",
+                        "plot_bgcolor": "white",
+                        "coloraxis_colorbar": {
+                            "title": "Level",
+                            "orientation": "h",
+                            "yanchor": "top",
+                            "y": -0.2,
+                            "xanchor": "center",
+                            "x": 0.5,
+                        },
+                    },
+                    "css": {
+                        "padding": "10px",
+                    },
+                },
+            ],
         },
-        "BuildingStructure_BuildingArea": {
-            "SunburstChart": {
-                "title": "Building Locations",
-                "EntityID": "AreaID",
-                "EntityType": "AreaType",
-                "ParentID": "ParentAreaID",
-                "BuildingID": "BuildingAreaID",
-                "z-axis": "AreaLevel",
-                "z-axis_label": "Area Level",
-                "dataframe": data_area,
-            }
+        ("BuildingStructure", "BuildingLocations"): {
+            "title": None,
+            "components": [
+                {
+                    "type": "plot",
+                    "library": "px",
+                    "function": "sunburst",
+                    "id": "building-locations-sunburst",
+                    "kwargs": {
+                        "data_frame": data_area,
+                        "parents": "parents",
+                        "names": "labels",
+                        "ids": "ids",
+                        "title": "Building Locations",
+                        "height": 1000,
+                        "width": 1000,
+                        "color": "entityType",
+                        "color_discrete_map": {
+                            "Location": "LightCoral",
+                            "System": "#FFFDD0",
+                            "Equipment": "#32BF84",
+                            "Sensor": "Gold",
+                            "Point": "#90EE90",
+                            "Other": "Black",
+                        },
+                    },
+                    "layout_kwargs": {
+                        "title": {
+                            "text": "Building Locations",
+                            "x": 0.5,
+                            "xanchor": "center",
+                            "font": {"size": 35},
+                        },
+                        "font_color": "black",
+                        "plot_bgcolor": "white",
+                        "coloraxis_colorbar": {
+                            "title": "Level",
+                            "orientation": "h",
+                            "yanchor": "top",
+                            "y": -0.2,
+                            "xanchor": "center",
+                            "x": 0.5,
+                        },
+                    },
+                    "css": {
+                        "padding": "10px",
+                    },
+                },
+            ],
         },
     }
 
