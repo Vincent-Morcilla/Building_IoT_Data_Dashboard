@@ -9,7 +9,6 @@ returns a dictionary containing the analysis results.
     - consider error conditions (e.g. missing stream data)
     - incorporate units (if available)
     - write tests
-    - fix front-end code to be less hacky
 """
 
 import pandas as pd
@@ -204,7 +203,7 @@ def _build_plot_config(table: pd.DataFrame, timeseries_data_dict: dict) -> dict:
         },
     }
 
-    # If there are more than 10 rooms, enable filtering
+    # If there are more than 20 rooms, enable filtering
     if len(table) > 20:
         plot_config[("RoomClimate", "RoomClimate")]["components"][1]["kwargs"][
             "filter_action"
@@ -270,7 +269,6 @@ def run(db: DBManager) -> dict:
         room_type = row["room_class"].replace("_", " ")
 
         room_id = row["room_id"]
-        # title = f"{room_type} Mean Temperature"
         title = f"{room_type} Mean Temperature<br><sup>Room ID: {room_id}</sup>"
 
         timeseries_data_dict[room_id] = _build_components(room_df, room_id, title)
