@@ -636,9 +636,9 @@ sample_plot_configs = {
             },
         ],
     },
-    # Pie Charts and Tables for Model Quality - Class Inconsistency
-    ("ModelQuality", "ClassInconsistency"): {
-        "title": "Class Inconsistency Analysis",
+    # Pie Charts and Tables for Model Quality - Class Consistency
+    ("ModelQuality", "ClassConsistency"): {
+        "title": "Class Consistency Analysis",
         "components": [
             # Pie Chart: Consistent vs Inconsistent Classes
             {

@@ -272,6 +272,45 @@ input[type="checkbox"] {
   font-size: 1.5vw;
 }
 
+/* Table Header Styling */
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner th {
+  background-color: rgb(60, 150, 57);
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+  padding: 5px;
+  text-align: left;
+}
+
+/* Table Cell Styling */
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner td {
+  font-size: 14px;
+  text-align: left;
+  padding: 5px;
+  min-width: 100px;
+  width: auto;
+  max-width: 400px;
+  white-space: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Table Header Sorting Icon Alignment */
+.column-actions {
+  order: 9;
+}
+
+/* Table Header Sorting Icon Colours */
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner .column-header--select, .dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner .column-header--sort {
+  color: #ffffff;
+  --accent: #ffffff;
+}
+
+.dash-table-container:hover .dash-spreadsheet-container:hover .dash-spreadsheet-inner:hover .column-header--select,:hover .dash-table-container:hover .dash-spreadsheet-container:hover .dash-spreadsheet-inner:hover .column-header--sort:hover {
+  color: #000000;
+}
+
+
 /* Mobile Responsiveness */
 @media (max-width: 992px) {
   .sidebar {
@@ -337,28 +376,3 @@ input[type="checkbox"] {
   }
 }
 
-/* Table Header Sorting Icon Alignment */
-.column-actions {
-  order: 9;
-}
-
-/* Change the sort arrows (src: https://stackoverflow.com/questions/44851964/how-to-change-the-color-of-the-sorting-arrows-in-datatables) */
-/* table.dataTable thead .sorting_asc {
-  background-image: url("/YourImageFolder/sort_asc.png")
-}
-
-table.dataTable thead .sorting_desc {
-  background-image: url("/YourImageFolder/sort_desc.png")
-}
-
-table.dataTable thead .sorting {
-  background-image: url("/YourImageFolder/sort_both.png")
-}
-
-table.dataTable thead .sorting_asc_disabled {
-  background-image: url("/YourImageFolder/sort_asc_disabled.png")
-}
-
-table.dataTable thead .sorting_desc_disabled {
-  background-image: url("/YourImageFolder/sort_desc_disabled.png")
-} */

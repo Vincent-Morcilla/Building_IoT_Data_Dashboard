@@ -2228,10 +2228,10 @@ if __name__ == "__main__":
     # app.run_server(port=8050, debug=args.debug)
 
     # Hard-coded version for convenience during development
-    DATA = "../datasets/bts_site_b_train/train.zip"
-    MAPPER = "../datasets/bts_site_b_train/mapper_TrainOnly.csv"
-    MODEL = "../datasets/bts_site_b_train/Site_B.ttl"
-    SCHEMA = "../datasets/bts_site_b_train/Brick_v1.2.1.ttl"
+    DATA = "datasets/bts_site_b_train/train.zip"
+    MAPPER = "datasets/bts_site_b_train/mapper_TrainOnly.csv"
+    MODEL = "datasets/bts_site_b_train/Site_B.ttl"
+    SCHEMA = "datasets/bts_site_b_train/Brick_v1.2.1.ttl"
     DEBUG = True
 
     # Load the data

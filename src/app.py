@@ -85,7 +85,11 @@ if __name__ == "__main__":
 
         # @tim: FIXME: Remove sample_plot_configs before submission?
         plot_configs = sample_plot_configs
-        plot_configs |= am.run_analytics()
+        real_plot_configs = am.run_analytics()
+        for k in real_plot_configs:
+            if k in plot_configs:
+                del plot_configs[k]
+        plot_configs.update(real_plot_configs)
     else:
         plot_configs = sample_plot_configs
 
