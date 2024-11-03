@@ -190,6 +190,8 @@ sample_plot_configs = {
                 "element": "DataTable",
                 "id": "datatable",
                 "label": None,
+                "title": "DataTable",  # UI's can now have the same kind of titles as Tables
+                "title_element": "H4",
                 "kwargs": {
                     "data": table_data_frame.to_dict("records"),
                     "columns": [
@@ -228,7 +230,7 @@ sample_plot_configs = {
                     },
                 },
                 "css": {
-                    "padding": "10px",
+                    "padding": "5px",  # Changed the padding to match other table
                     "width": "100%",
                 },
             },

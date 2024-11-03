@@ -1,7 +1,7 @@
 import re
 
 
-def pascal_to_words(text):
+def pascal_to_words(text: str) -> str:
     """
     Convert a PascalCase string into a space-separated string.
 
@@ -14,7 +14,7 @@ def pascal_to_words(text):
     return " ".join(re.findall(r"[A-Za-z][^A-Z]*", text))
 
 
-def sanitise_filename(text):
+def sanitise_filename(text: str) -> str:
     """
     Sanitise a string to be used as a filename by replacing invalid characters with underscores.
 
@@ -27,7 +27,7 @@ def sanitise_filename(text):
     return re.sub(r"[^A-Za-z0-9_\-]", "_", text)
 
 
-def create_category_structure(analysis_list):
+def create_category_structure(analysis_list: list) -> tuple:
     """
     Create a dictionary structure for categories and subcategories from a list of analysis tuples.
 
