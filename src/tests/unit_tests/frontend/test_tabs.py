@@ -90,14 +90,14 @@ def category_mappings(mock_plot_configs):
             "NonExistentSubcategory",
             "NonExistentSubcategory",
             "data-quality-nonexistentsubcategory",
-            "No content available for NonExistentSubcategory under Data Quality.",
+            "No content available for NonExistentSubcategory under Data Quality. Please select an option from the sidebar.",
         ),
         (
             "Unknown Category",
             "Unknown Subcategory",
             "Unknown Subcategory",
             "unknown-category-unknown-subcategory",
-            "No content available for Unknown Subcategory under Unknown Category. Please select a different option.",
+            "No content available for Unknown Subcategory under Unknown Category. Please select an option from the sidebar.",
         ),
     ],
 )
