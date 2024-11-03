@@ -171,7 +171,7 @@ histogram_data = pd.DataFrame(
 
 # Plot Configurations
 sample_plot_configs = {
-    ("RoomClimate", "Rooms"): {
+    ("RoomClimate", "RoomClimate"): {
         "title": "Room Climate Rooms Data",
         "components": [
             # Placeholder Div for dynamic components
