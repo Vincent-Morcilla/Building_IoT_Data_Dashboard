@@ -10,14 +10,14 @@ table_data_frame = pd.DataFrame(
     {
         "Stream_IDs": ["streamID1", "streamID2", "streamID3"],
         "Description": ["First stream", "Second stream", "Third stream"],
-        "Some_Metric": [42, 37, 58],
-        "Some_Metric2": [52, 47, 38],
-        "Some_Metric3": [22, 17, 88],
-        "Some_Metric4": [12, 27, 38],
-        "Some_Metric5": [32, 67, 48],
-        "Some_Metric6": [62, 57, 18],
-        "Some_Metric7": [72, 77, 78],
-        "Some_Metric8": [82, 87, 68],
+        "Some_Metric_1": [42, 37, 58],
+        "Some_Metric_2": [52, 47, 38],
+        "Some_Metric_3": [22, 17, 88],
+        "Some_Metric_4": [12, 27, 38],
+        "Some_Metric_5": [32, 67, 48],
+        "Some_Metric_6": [62, 57, 18],
+        "Some_Metric_7": [72, 77, 78],
+        "Some_Metric_8": [82, 87, 68],
     }
 )
 
@@ -193,29 +193,28 @@ sample_plot_configs = {
                 "title": "DataTable",  # UI's can now have the same kind of titles as Tables
                 "title_element": "H4",
                 "kwargs": {
-                    "data": table_data_frame.to_dict("records"),
                     "columns": [
-                        {"name": " ".join(col.split("_")), "id": col}
+                        {
+                            "name": " ".join(col.split("_")),
+                            "id": col,
+                            "type": "numeric" if "Metric" in col else "text",
+                        }
                         for col in table_data_frame.columns
                     ],
-                    "row_selectable": "single",
-                    "selected_rows": [0],  # Default to first row
-                    "sort_action": "native",
+                    "data": table_data_frame.to_dict("records"),
                     "filter_action": "native",
                     "fixed_columns": {
                         "headers": True,
                         "data": 1,
                     },  # Freeze first column
+                    "row_selectable": "single",
+                    "selected_rows": [0],  # Default to first row
+                    "sort_action": "native",
                     "style_cell": {
                         "fontSize": 14,
                         "textAlign": "left",
                         "padding": "5px",
                         "minWidth": "150px",
-                    },
-                    "style_header": {
-                        "fontWeight": "bold",
-                        "backgroundColor": "#3c9639",
-                        "color": "white",
                     },
                     "style_data_conditional": [
                         {
@@ -223,6 +222,11 @@ sample_plot_configs = {
                             "backgroundColor": "#ddf2dc",
                         }
                     ],
+                    "style_header": {
+                        "fontWeight": "bold",
+                        "backgroundColor": "#3c9639",
+                        "color": "white",
+                    },
                     "style_table": {
                         "overflowX": "auto",
                         "width": "100%",
