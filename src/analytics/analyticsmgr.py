@@ -41,6 +41,7 @@ class AnalyticsManager:
         for filename in sorted(os.listdir(analytics_dir)):
             # Check for .py files, excluding __init__.py
             # if filename.endswith(".py") and filename != "__init__.py":
+            # @tim: FIXME: this is just for during development
             if filename.endswith(".py") and not filename.startswith("_"):
                 module_name = filename[:-3]  # Strip the .py extension
 
@@ -56,11 +57,12 @@ class AnalyticsManager:
         """Run the analytics modules."""
         plot_configs = {}
 
-        for module in tqdm(self._modules):
+        for module in tqdm(self._modules, desc="Running analytics modules"):
             try:
                 module_results = module.run(self._db)
                 plot_configs |= module_results
-            except Exception:
+            except Exception as e:
+                print(f"Error running {module.__name__}.py: {e}", file=sys.stderr)
                 continue
 
         return plot_configs
