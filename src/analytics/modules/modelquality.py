@@ -9,6 +9,13 @@ quality.  In particular:
   data.
 """
 
+# @tim: TODO: Make tables filterable, where appropriate
+# @tim: TODO: Refactor plot config code to make it more readable
+# @tim: TODO: Add more detailed docstrings to the functions
+# @tim: TODO: Add type hints to the functions
+# @tim: TODO: Add inline comments to the functions
+# @tim: TODO: Whatever revisions were discussed in the meeting
+
 import numpy as np
 import pandas as pd
 
