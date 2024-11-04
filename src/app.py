@@ -49,54 +49,65 @@ def create_app(plot_configs) -> Dash:
 
 
 if __name__ == "__main__":
-    # Parse command-line arguments
-    parser = argparse.ArgumentParser()
-    # @tim: TODO: Make groups, either run in test mode or run in normal mode
-    # parser.add_argument("data", help="Path to the data file")
-    # parser.add_argument("mapper", help="Path to the mapper file")
-    # parser.add_argument("model", help="Path to the model file")
-    # parser.add_argument(
-    #     "schema", help="Path to the schema file", nargs="?", default=None
-    # )
-    parser.add_argument("-d", "--debug", help="Enable debug mode", action="store_true")
-    parser.add_argument(
-        "-t", "--test-mode", help=argparse.SUPPRESS, action="store_true"
+    parser = argparse.ArgumentParser(
+        description="Building Time Series Visualization",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
+    # By enabling debug mode, the server will automatically reload if code changes,
+    # and will show an interactive debugger in the browser if an error occurs
+    # during a request.
+    parser.add_argument(
+        "-d", "--debug", help="Enable Flask debug mode", action="store_true"
+    )
+    parser.add_argument(
+        "-a",
+        "--host",
+        help="Host address used to serve the application",
+        default="0.0.0.0",
+    )
+    parser.add_argument(
+        "-p", "--port", help="Port used to serve the application", default=8050
+    )
+
+    # Optional test mode argument, will load sample data and visualisations if enabled
+    parser.add_argument(
+        "-t",
+        "--test-mode",
+        help="Enable test mode (no file paths required)",
+        action="store_true",
+    )
+
+    # Positional arguments for file paths, not required if test mode is enabled
+    parser.add_argument("data", help="Path to the timeseries zip file", nargs="?")
+    parser.add_argument("mapper", help="Path to the mapper csv file", nargs="?")
+    parser.add_argument("model", help="Path to the model ttl file", nargs="?")
+    parser.add_argument(
+        "schema",
+        help="Path to the schema ttl file",
+        nargs="?",
+        default=None,  # Will load the latest Brick schema if not provided
+    )
+
     args = parser.parse_args()
 
-    # # Hard-coded version for convenience during development
-    # DEBUG = True
-
-    if not args.test_mode:
-        # # Load the data
-        # db = dbmgr.DBManager(args.data, args.mapper, args.model, args.schema)
-
-        # Hard-coded version for convenience during development
-        DATA = "train.zip"
-        MAPPER = "mapper_TrainOnly.csv"
-        MODEL = "Site_B.ttl"
-        SCHEMA = "Brick_v1.2.1.ttl"
-        # DATA = "datasets/bts_site_b_train/train.zip"
-        # MAPPER = "datasets/bts_site_b_train/mapper_TrainOnly.csv"
-        # MODEL = "datasets/bts_site_b_train/Site_B.ttl"
-        # SCHEMA = "datasets/bts_site_b_train/Brick_v1.2.1.ttl"
-
-        # Load the data
-        db = DBManager(DATA, MAPPER, MODEL, SCHEMA)
-
-        # Load the analytics manager
-        am = AnalyticsManager(db)
-
-        # @tim: FIXME: Remove sample_plot_configs before submission?
-        plot_configs = sample_plot_configs
-        real_plot_configs = am.run_analytics()
-        for k in real_plot_configs:
-            if k in plot_configs:
-                del plot_configs[k]
-        plot_configs.update(real_plot_configs)
+    # Custom validation logic for mutual exclusivity
+    if args.test_mode:
+        # If test mode is enabled, ensure no file paths are provided
+        if any([args.data, args.mapper, args.model, args.schema]):
+            parser.error("Cannot specify file paths when --test-mode is enabled.")
     else:
-        plot_configs = sample_plot_configs
+        # If test mode is not enabled, ensure all required file paths are provided
+        required_files = [args.data, args.mapper, args.model]
+        if any(arg is None for arg in required_files):
+            parser.error(
+                "Data, mapper, and model file paths are required if --test-mode is not enabled."
+            )
 
-    # Run the Dash app server with debug mode enabled
-    # create_app(plot_configs).run(debug=DEBUG, host="0.0.0.0")
-    create_app(plot_configs).run(debug=args.debug, host="0.0.0.0")
+    if args.test_mode:
+        plot_configs = sample_plot_configs
+    else:
+        db = DBManager(args.data, args.mapper, args.model, args.schema)
+        am = AnalyticsManager(db)
+        plot_configs = am.run_analytics()
+
+    create_app(plot_configs).run(debug=args.debug, host=args.host, port=args.port)
