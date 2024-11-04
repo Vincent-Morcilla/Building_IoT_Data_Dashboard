@@ -51,29 +51,35 @@ def create_app(plot_configs) -> Dash:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Building Time Series Visualization",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        # formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     # By enabling debug mode, the server will automatically reload if code changes,
     # and will show an interactive debugger in the browser if an error occurs
     # during a request.
     parser.add_argument(
-        "-d", "--debug", help="Enable Flask debug mode", action="store_true"
+        "-d",
+        "--debug",
+        help="Enable Flask debug mode (default: %(default)s)",
+        action="store_true",
     )
     parser.add_argument(
         "-a",
         "--host",
-        help="Host address used to serve the application",
+        help="Host address used to serve the application (default: %(default)s)",
         default="0.0.0.0",
     )
     parser.add_argument(
-        "-p", "--port", help="Port used to serve the application", default=8050
+        "-p",
+        "--port",
+        help="Port used to serve the application (default: %(default)s)",
+        default=8050,
     )
 
     # Optional test mode argument, will load sample data and visualisations if enabled
     parser.add_argument(
         "-t",
         "--test-mode",
-        help="Enable test mode (no file paths required)",
+        help="Enable test mode using built-in sample data (default: %(default)s)",
         action="store_true",
     )
 
@@ -83,7 +89,7 @@ if __name__ == "__main__":
     parser.add_argument("model", help="Path to the model ttl file", nargs="?")
     parser.add_argument(
         "schema",
-        help="Path to the schema ttl file",
+        help="Path to the schema ttl file (default: %(default)s, load latest Brick schema)",
         nargs="?",
         default=None,  # Will load the latest Brick schema if not provided
     )
