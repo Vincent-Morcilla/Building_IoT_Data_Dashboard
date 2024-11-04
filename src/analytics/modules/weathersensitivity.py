@@ -236,7 +236,6 @@ class WeatherSensitivity:
             else:
                 sensor_columns[f"sensor{i}"] = f"sensor{i}"
 
-        # Dictionary to store results
         monthly_correlations = {}
 
         for sensor in sensor_columns.keys():
@@ -409,5 +408,3 @@ def run(db):
     data = ws.get_weather_sensitivity_data()
     return data
 
-
-# data['ElecticEnergy_WeatherSensitivity']['HeatMap'][ 'dataframe']
