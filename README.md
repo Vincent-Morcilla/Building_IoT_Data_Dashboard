@@ -14,13 +14,8 @@ git lfs install
 
 ### Clone the Repository
 
-Run:
-
-```sh
-git@github.com:unsw-cse-comp99-3900/capstone-project-2024-t3-9900h19athecapstoners.git
-```
-
-Then to retrieve the datasets, in the root directory of the repository run:
+Clone the repository, then to retrieve the datasets, in the root directory of 
+the repository run:
 
 ```sh
 git lfs pull
