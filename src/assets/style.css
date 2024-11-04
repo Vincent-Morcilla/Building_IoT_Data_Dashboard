@@ -274,40 +274,40 @@ input[type="checkbox"] {
 
 /* Table Cell Styling */
 .dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner td {
-  font-size: 14px;
-  text-align: left;
-  padding: 5px;
-  min-width: 100px;
-  width: auto;
-  max-width: 400px;
-  white-space: normal;
+  font-size: 14px !important;
+  /* max-width: 400px; */
+  /* min-width: 100px; */
   overflow: hidden;
+  padding: 5px;
+  text-align: left !important;
   text-overflow: ellipsis;
+  white-space: normal;
+  width: auto;
 }
 
 /* Table Header Styling */
 .dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner th {
-  background-color: rgb(60, 150, 57);
-  color: white;
-  font-size: 14px;
-  font-weight: bold;
+  background-color: rgb(60, 150, 57) !important;
+  color: white !important;
+  font-size: 14px !important;
+  font-weight: bold !important;
   padding: 5px;
-  text-align: left;
+  text-align: left !important;
 }
 
 /* Table Header Sorting Icon Alignment */
 .column-actions {
-  order: 9;
+  order: 9 !important;
 }
 
 /* Table Header Sorting Icon Colours */
 .dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner .column-header--select, .dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner .column-header--sort {
-  color: #ffffff;
-  --accent: #ffffff;
+  color: #ffffff !important;
+  --accent: #ffffff !important;
 }
 
 .dash-table-container:hover .dash-spreadsheet-container:hover .dash-spreadsheet-inner:hover .column-header--select,:hover .dash-table-container:hover .dash-spreadsheet-container:hover .dash-spreadsheet-inner:hover .column-header--sort:hover {
-  color: #000000;
+  color: #000000 !important;
 }
 
 
