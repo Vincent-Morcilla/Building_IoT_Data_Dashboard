@@ -78,7 +78,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-t",
         "--test-mode",
-        help="Enable test mode using built-in sample data (default: %(default)s)",
+        help="Run the app using built-in sample data (default: %(default)s)",
         action="store_true",
     )
 
