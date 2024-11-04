@@ -11,6 +11,7 @@ import zipfile
 import brickschema
 import pandas as pd
 import rdflib
+from tqdm import tqdm
 
 
 class DBManager:
@@ -280,7 +281,7 @@ class DBManager:
         ]
 
         with zipfile.ZipFile(self._data_zip_path, "r") as db_zip:
-            for path in db_zip.namelist():
+            for path in tqdm(db_zip.namelist(), desc="Reading stream data      "):
                 if not path.endswith(".pkl"):
                     continue
 
