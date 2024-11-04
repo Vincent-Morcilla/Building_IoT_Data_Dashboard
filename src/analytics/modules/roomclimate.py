@@ -143,25 +143,12 @@ def _build_plot_config(table: pd.DataFrame, timeseries_data_dict: dict) -> dict:
                         "row_selectable": "single",
                         "selected_rows": [0],  # Default to first row
                         "sort_action": "native",
-                        # @tim: FIXME: this should be handled automatically by CSS
-                        "style_cell": {
-                            "fontSize": 14,
-                            "textAlign": "left",
-                            "padding": "5px",
-                            "minWidth": "150px",
-                        },
                         "style_data_conditional": [
                             {
                                 "if": {"row_index": "odd"},
                                 "backgroundColor": "#ddf2dc",
                             }
                         ],
-                        # @tim: FIXME: this should be handled automatically by CSS
-                        "style_header": {
-                            "fontWeight": "bold",
-                            "backgroundColor": "#3c9639",
-                            "color": "white",
-                        },
                         "style_table": {
                             "height": 1000,
                             "overflowX": "auto",
