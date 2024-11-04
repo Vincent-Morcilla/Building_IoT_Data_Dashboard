@@ -89,30 +89,6 @@ WHERE {
 }
 ORDER BY ?stream_id
 """
-# from weather_sensitivity_query import (electric_energy_query_str ,
-#                                                  electric_power_query_str,
-#                                                  outside_air_temperature_query_str,
-#                                                  gas_query_str,
-#                                                  water_query_str,
-#                                                  chiller_query_str,
-#                                                  boiler_query_str
-
-# )
-
-
-# import sys
-# sys.path.append("..")
-# # sys.path.append("../..")
-# sys.path.append("../src")
-
-# path_to_datasets ='../datasets/'
-# data = path_to_datasets + 'bts_site_b_train/train.zip'
-# mapper = path_to_datasets + 'bts_site_b_train/mapper_TrainOnly.csv'
-# model = path_to_datasets + 'bts_site_b_train/Site_B.ttl'
-# schema = path_to_datasets + 'bts_site_b_train/Brick_v1.2.1.ttl'
-
-# from dbmgr import DBManager
-# db = DBManager(data, mapper, model, schema)
 
 warnings.filterwarnings("ignore")
 
