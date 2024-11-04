@@ -58,24 +58,28 @@ if __name__ == "__main__":
     # parser.add_argument(
     #     "schema", help="Path to the schema file", nargs="?", default=None
     # )
-    # parser.add_argument("-d", "--debug", help="Enable debug mode", action="store_true")
+    parser.add_argument("-d", "--debug", help="Enable debug mode", action="store_true")
     parser.add_argument(
         "-t", "--test-mode", help=argparse.SUPPRESS, action="store_true"
     )
     args = parser.parse_args()
 
-    # Hard-coded version for convenience during development
-    DEBUG = True
+    # # Hard-coded version for convenience during development
+    # DEBUG = True
 
     if not args.test_mode:
         # # Load the data
         # db = dbmgr.DBManager(args.data, args.mapper, args.model, args.schema)
 
         # Hard-coded version for convenience during development
-        DATA = "datasets/bts_site_b_train/train.zip"
-        MAPPER = "datasets/bts_site_b_train/mapper_TrainOnly.csv"
-        MODEL = "datasets/bts_site_b_train/Site_B.ttl"
-        SCHEMA = "datasets/bts_site_b_train/Brick_v1.2.1.ttl"
+        DATA = "train.zip"
+        MAPPER = "mapper_TrainOnly.csv"
+        MODEL = "Site_B.ttl"
+        SCHEMA = "Brick_v1.2.1.ttl"
+        # DATA = "datasets/bts_site_b_train/train.zip"
+        # MAPPER = "datasets/bts_site_b_train/mapper_TrainOnly.csv"
+        # MODEL = "datasets/bts_site_b_train/Site_B.ttl"
+        # SCHEMA = "datasets/bts_site_b_train/Brick_v1.2.1.ttl"
 
         # Load the data
         db = DBManager(DATA, MAPPER, MODEL, SCHEMA)
@@ -94,4 +98,5 @@ if __name__ == "__main__":
         plot_configs = sample_plot_configs
 
     # Run the Dash app server with debug mode enabled
-    create_app(plot_configs).run_server(debug=DEBUG)
+    # create_app(plot_configs).run(debug=DEBUG, host="0.0.0.0")
+    create_app(plot_configs).run(debug=args.debug, host="0.0.0.0")

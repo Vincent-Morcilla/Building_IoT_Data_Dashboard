@@ -1,0 +1,18 @@
+services:
+  greeninsight:
+    image: greeninsight
+    build:
+      # context: ./docker
+      dockerfile: ./docker/Dockerfile
+    ports:
+      - "127.0.0.1:8050:8050"
+    # environment:
+    #   - FLASK_APP=greeninsight
+    #   - FLASK_ENV=development
+    #   - FLASK_DEBUG=1
+    # volumes:
+    #   - .:/app
+    # depends_on:
+    #   - db
+    # networks:
+    #   - greeninsight
