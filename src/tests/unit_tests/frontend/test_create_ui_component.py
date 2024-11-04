@@ -17,12 +17,24 @@ ui_component_input = create_ui_component(component_input)
 
 def test_create_ui_component_input():
     """Test if create_ui_component returns an html.Div containing dcc.Input for input component."""
+    # Ensure the outermost component is an html.Div
     assert isinstance(
         ui_component_input, html.Div
     ), "Expected html.Div for input component"
+
+    # Access the inner html.Div (the first child)
+    inner_div = ui_component_input.children[0]
+    assert isinstance(inner_div, html.Div), "Expected inner component to be html.Div"
+
+    # Access the list of children in the inner html.Div
+    inner_children = inner_div.children
+    assert len(inner_children) == 2, "Expected two children in inner html.Div"
+
+    # The second child should be the dcc.Input
+    input_component = inner_children[1]
     assert isinstance(
-        ui_component_input.children[1], dcc.Input
-    ), "Expected dcc.Input as child of input component"
+        input_component, dcc.Input
+    ), "Expected dcc.Input as the second child of inner html.Div"
 
 
 # Define the dropdown component
@@ -50,6 +62,14 @@ def test_create_ui_component_dropdown():
     assert isinstance(
         ui_component_dropdown, html.Div
     ), "Expected html.Div for dropdown component"
+
+    inner_div = ui_component_dropdown.children[0]
+    assert isinstance(inner_div, html.Div), "Expected inner component to be html.Div"
+
+    inner_children = inner_div.children
+    assert len(inner_children) == 2, "Expected two children in inner html.Div"
+
+    dropdown_component = inner_children[1]
     assert isinstance(
-        ui_component_dropdown.children[1], dcc.Dropdown
-    ), "Expected dcc.Dropdown as child of dropdown component"
+        dropdown_component, dcc.Dropdown
+    ), "Expected dcc.Dropdown as the second child of inner html.Div"

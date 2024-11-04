@@ -289,8 +289,6 @@ def create_table_component(component):
     Returns:
         html.Div: A Div containing the title (if any) and the DataTable.
     """
-    from dash import html, dash_table
-
     dataframe = component.get("dataframe")
     kwargs = component.get("kwargs", {})
     css = component.get("css", {})
@@ -341,24 +339,34 @@ def create_ui_component(component):
         component (dict): A dictionary containing configuration for the UI element, including:
                           - element: the type of UI component (e.g., Input, Dropdown).
                           - kwargs: keyword arguments for the UI component.
-                          - css: optional CSS styling for the component.
+                          - css: optional CSS styling for the outer component wrapper.
                           - id: a unique identifier for the component.
                           - label: optional label text for the component.
                           - label_position: where to place the label ('above' or 'next').
 
     Returns:
-        html.Div or dcc component: A Dash component, optionally wrapped in a Div with CSS and label.
+        html.Div: A Dash component, optionally wrapped in a Div with CSS and label.
     """
+    # Extract required attributes from the component configuration
     element_type = component.get("element")
     kwargs = component.get("kwargs", {}).copy()
     css = component.get("css", {})
     component_id = component.get("id")
+
+    # Assign component ID to kwargs if available
     if component_id:
         kwargs["id"] = component_id
+
+    # Get label and positioning settings
     label_text = component.get("label", "")
     label_position = component.get("label_position", "above")
 
-    # Get the Dash component (from dcc, html, or dash_table)
+    # Get title-related configurations
+    title = component.get("title", "")
+    title_element = component.get("title_element", "H5")
+    title_kwargs = component.get("title_kwargs", {})
+
+    # Locate the Dash component (from dcc, html, or dash_table)
     dash_component = (
         getattr(dcc, element_type, None)
         or getattr(html, element_type, None)
@@ -366,11 +374,15 @@ def create_ui_component(component):
     )
     if not dash_component:
         raise ValueError(f"Unsupported UI element type '{element_type}'")
+
+    # Initialize the UI element
     ui_element = dash_component(**kwargs)
 
-    # Add label if provided
+    # Create a label if specified
     if label_text:
-        label_element = html.Label(label_text, htmlFor=component_id)
+        label_element = html.Label(
+            label_text, htmlFor=component_id if component_id else None
+        )
         if label_position == "next":
             ui_element = html.Div(
                 [label_element, ui_element],
@@ -384,7 +396,16 @@ def create_ui_component(component):
     else:
         ui_element = html.Div(ui_element, style=css) if css else ui_element
 
-    return ui_element
+    # Create the title component if title is specified
+    if title:
+        # Validate title element
+        title_component = getattr(html, title_element, html.H5)(title, **title_kwargs)
+        children = [title_component, ui_element]
+    else:
+        children = [ui_element]
+
+    # Wrap in a Div, including CSS if provided
+    return html.Div(children, style=css)
 
 
 def create_layout_for_category(category_key: str, plot_config: Dict) -> List:

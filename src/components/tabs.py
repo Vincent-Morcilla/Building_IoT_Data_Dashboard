@@ -31,7 +31,7 @@ def create_tab_content(
         return html.Div(
             [
                 html.H4(
-                    f"No content available for {subcategory} under {category_name}. Please select a different option."
+                    f"No content available for {subcategory} under {category_name}. Please select an option from the sidebar."
                 )
             ]
         )
@@ -46,7 +46,11 @@ def create_tab_content(
         content = create_layout_for_category(key, config)
     else:
         content = html.Div(
-            [html.H4(f"No content available for {subcategory} under {category_name}.")]
+            [
+                html.H4(
+                    f"No content available for {subcategory} under {category_name}. Please select an option from the sidebar."
+                )
+            ]
         )
 
     # Return the tab component
@@ -89,7 +93,11 @@ def create_tab_layout(
     # Handle case where no matching category is found
     if matched_category is None:
         return html.Div(
-            [html.H4(f"No content available for {selected_category_name}.")]
+            [
+                html.H4(
+                    f"No content available for {selected_category_name}. Please select an option from the sidebar."
+                )
+            ]
         )
 
     # Get subcategories for the matched category
