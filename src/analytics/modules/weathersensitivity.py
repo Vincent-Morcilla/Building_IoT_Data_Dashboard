@@ -336,18 +336,66 @@ class WeatherSensitivity:
         return df_vis
 
     def prepare_data_for_vis(df, meter, title):
-        return {
-            "HeatMap": {
-                "title": title,
-                "x-axis": "Date",
-                "y-axis": "Sensor ID",
-                "z-axis": "Correlation",
-                "x-axis_label": "Date",
-                "y-axis_label": "Sensors",
-                "z-axis_label": "Correlation",
-                "dataframe": df,
+       df['Sensor ID'] = df['Sensor ID'].str.replace(r'sensor(\d+)', r'\1', regex=True)
+       print(f"ku2 : {df.head()}")
+       return {
+                "title": None,
+                "components": [
+                    {
+                        "type": "plot",
+                        "library": "go",
+                        "function": "Heatmap",
+                        "id": "consumption-heatmap",
+                        "data_frame": df,
+                        "trace_type": "Heatmap",  
+                        "data_mappings": {
+                            "x": "Date",
+                            "y": "Sensor ID",
+                            "z": "Correlation",
+                        },
+                        "kwargs": {  
+                            "colorscale": "Viridis",
+                            "colorbar": {
+                                "title": "Usage",
+                                "orientation": "h",
+                                "yanchor": "bottom",
+                                "y": -0.7,
+                                "xanchor": "center",
+                                "x": 0.5,
+                                "title_side": "bottom",
+                            },
+                        },
+                        "layout_kwargs": {
+                            "title": {
+                                "text": title,
+                                "x": 0.5,
+                                "xanchor": "center",
+                            },
+                            "xaxis_title": "Date",
+                            "yaxis_title": f"{meter.title().replace('_',' ')} Sensor",
+                            "font_color": "black",
+                            "plot_bgcolor": "white",
+                            "xaxis": {
+                                "mirror": True,
+                                "ticks": "outside",
+                                "showline": True,
+                                "linecolor": "black",
+                                "gridcolor": "lightgrey",
+                            },
+                            "yaxis": {
+                                "mirror": True,
+                                "ticks": "outside",
+                                "showline": True,
+                                "linecolor": "black",
+                                "gridcolor": "lightgrey",
+                            },
+                        },
+                        "css": {
+                            "padding": "10px",
+                        },
+                    },
+                ],
             }
-        }
 
     def get_data_for_dash(weather_sensitivity_results):
         data_for_vis = {}
@@ -358,9 +406,9 @@ class WeatherSensitivity:
             df_vis = WeatherSensitivity.prepare_data_for_vis(
                 transpose_df,
                 meter,
-                f"{meter.title().replace('_',' ')} Usage Correlations with Outside Temperature",
+                f"Correlation between {meter.title().replace('_',' ')} Usage and Outside Temperature",
             )
-            data_for_vis[f"WeatherSensitivity_{meter.title().replace('_','')}"] = df_vis
+            data_for_vis[("WeatherSensitivity", meter.title().replace('_',''))] = df_vis
         return data_for_vis
 
     def get_weather_sensitivity_data(self):
@@ -383,7 +431,13 @@ class WeatherSensitivity:
 def run(db):
     ws = WeatherSensitivity(db)
     data = ws.get_weather_sensitivity_data()
-    # print(data.keys())
+    print(data.keys())
+    print("kripa 1")
+    # for k in data.keys():
+    #     print(f'hello {k} :{data[k]["components"]} ')
+        # print(f'hello {k} :{data[k]} ')
+    # with open("ws_data.json", "w+") as file:
+    #     json.dump(data, file, indent=4) 
     return data
 
 
