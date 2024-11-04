@@ -337,15 +337,11 @@ class WeatherSensitivity:
 
     def prepare_data_for_vis(df, meter, title):
        df['Sensor ID'] = df['Sensor ID'].str.replace(r'sensor(\d+)', r'\1', regex=True)
-       print(f"ku2 : {df.head()}")
-       return {
-                "title": None,
-                "components": [
-                    {
+       return  {
                         "type": "plot",
                         "library": "go",
                         "function": "Heatmap",
-                        "id": "consumption-heatmap",
+                        "id": f"ws-heatmap-{meter}",
                         "data_frame": df,
                         "trace_type": "Heatmap",  
                         "data_mappings": {
@@ -356,7 +352,7 @@ class WeatherSensitivity:
                         "kwargs": {  
                             "colorscale": "Viridis",
                             "colorbar": {
-                                "title": "Usage",
+                                "title": "Weather Sensitivity",
                                 "orientation": "h",
                                 "yanchor": "bottom",
                                 "y": -0.7,
@@ -393,12 +389,12 @@ class WeatherSensitivity:
                         "css": {
                             "padding": "10px",
                         },
-                    },
-                ],
-            }
+                    }
+                
 
     def get_data_for_dash(weather_sensitivity_results):
         data_for_vis = {}
+        result = []
         for meter in weather_sensitivity_results.keys():
             transpose_df = WeatherSensitivity.transpose_dataframe_for_vis(
                 weather_sensitivity_results[meter]
@@ -408,7 +404,11 @@ class WeatherSensitivity:
                 meter,
                 f"Correlation between {meter.title().replace('_',' ')} Usage and Outside Temperature",
             )
-            data_for_vis[("WeatherSensitivity", meter.title().replace('_',''))] = df_vis
+            result.append(df_vis)
+        data_for_vis[("WeatherSensitivity", "Correlation Analysis")] = {
+            "title": None,
+            "components": result
+        }           
         return data_for_vis
 
     def get_weather_sensitivity_data(self):
@@ -431,13 +431,6 @@ class WeatherSensitivity:
 def run(db):
     ws = WeatherSensitivity(db)
     data = ws.get_weather_sensitivity_data()
-    print(data.keys())
-    print("kripa 1")
-    # for k in data.keys():
-    #     print(f'hello {k} :{data[k]["components"]} ')
-        # print(f'hello {k} :{data[k]} ')
-    # with open("ws_data.json", "w+") as file:
-    #     json.dump(data, file, indent=4) 
     return data
 
 
