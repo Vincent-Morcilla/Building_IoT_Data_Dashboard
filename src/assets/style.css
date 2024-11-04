@@ -272,16 +272,6 @@ input[type="checkbox"] {
   font-size: 1.5vw;
 }
 
-/* Table Header Styling */
-.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner th {
-  background-color: rgb(60, 150, 57);
-  color: white;
-  font-size: 14px;
-  font-weight: bold;
-  padding: 5px;
-  text-align: left;
-}
-
 /* Table Cell Styling */
 .dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner td {
   font-size: 14px;
@@ -293,6 +283,16 @@ input[type="checkbox"] {
   white-space: normal;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* Table Header Styling */
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner th {
+  background-color: rgb(60, 150, 57);
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+  padding: 5px;
+  text-align: left;
 }
 
 /* Table Header Sorting Icon Alignment */
