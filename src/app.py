@@ -51,7 +51,6 @@ def create_app(plot_configs) -> Dash:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Building Time Series Visualization",
-        # formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     # By enabling debug mode, the server will automatically reload if code changes,
     # and will show an interactive debugger in the browser if an error occurs
