@@ -10,14 +10,14 @@ table_data_frame = pd.DataFrame(
     {
         "Stream_IDs": ["streamID1", "streamID2", "streamID3"],
         "Description": ["First stream", "Second stream", "Third stream"],
-        "Some_Metric": [42, 37, 58],
-        "Some_Metric2": [52, 47, 38],
-        "Some_Metric3": [22, 17, 88],
-        "Some_Metric4": [12, 27, 38],
-        "Some_Metric5": [32, 67, 48],
-        "Some_Metric6": [62, 57, 18],
-        "Some_Metric7": [72, 77, 78],
-        "Some_Metric8": [82, 87, 68],
+        "Some_Metric_1": [42, 37, 58],
+        "Some_Metric_2": [52, 47, 38],
+        "Some_Metric_3": [22, 17, 88],
+        "Some_Metric_4": [12, 27, 38],
+        "Some_Metric_5": [32, 67, 48],
+        "Some_Metric_6": [62, 57, 18],
+        "Some_Metric_7": [72, 77, 78],
+        "Some_Metric_8": [82, 87, 68],
     }
 )
 
@@ -171,7 +171,7 @@ histogram_data = pd.DataFrame(
 
 # Plot Configurations
 sample_plot_configs = {
-    ("RoomClimate", "Rooms"): {
+    ("RoomClimate", "RoomClimate"): {
         "title": "Room Climate Rooms Data",
         "components": [
             # Placeholder Div for dynamic components
@@ -190,30 +190,31 @@ sample_plot_configs = {
                 "element": "DataTable",
                 "id": "datatable",
                 "label": None,
+                "title": "DataTable",  # UI's can now have the same kind of titles as Tables
+                "title_element": "H4",
                 "kwargs": {
-                    "data": table_data_frame.to_dict("records"),
                     "columns": [
-                        {"name": " ".join(col.split("_")), "id": col}
+                        {
+                            "name": " ".join(col.split("_")),
+                            "id": col,
+                            "type": "numeric" if "Metric" in col else "text",
+                        }
                         for col in table_data_frame.columns
                     ],
-                    "row_selectable": "single",
-                    "selected_rows": [0],  # Default to first row
-                    "sort_action": "native",
+                    "data": table_data_frame.to_dict("records"),
                     "filter_action": "native",
                     "fixed_columns": {
                         "headers": True,
                         "data": 1,
                     },  # Freeze first column
+                    "row_selectable": "single",
+                    "selected_rows": [0],  # Default to first row
+                    "sort_action": "native",
                     "style_cell": {
                         "fontSize": 14,
                         "textAlign": "left",
                         "padding": "5px",
                         "minWidth": "150px",
-                    },
-                    "style_header": {
-                        "fontWeight": "bold",
-                        "backgroundColor": "#3c9639",
-                        "color": "white",
                     },
                     "style_data_conditional": [
                         {
@@ -221,6 +222,11 @@ sample_plot_configs = {
                             "backgroundColor": "#ddf2dc",
                         }
                     ],
+                    "style_header": {
+                        "fontWeight": "bold",
+                        "backgroundColor": "#3c9639",
+                        "color": "white",
+                    },
                     "style_table": {
                         "overflowX": "auto",
                         "width": "100%",
@@ -228,7 +234,7 @@ sample_plot_configs = {
                     },
                 },
                 "css": {
-                    "padding": "10px",
+                    "padding": "5px",  # Changed the padding to match other table
                     "width": "100%",
                 },
             },
@@ -374,270 +380,270 @@ sample_plot_configs = {
         ],
     },
     # Line Plot for Consumption General Analysis
-    # ("Consumption", "GeneralAnalysis"): {
-    #     "title": None,
-    #     "components": [
-    #         {
-    #             "type": "plot",
-    #             "library": "px",
-    #             "function": "line",
-    #             "id": "consumption-line-plot",
-    #             "kwargs": {
-    #                 "data_frame": pd.DataFrame(
-    #                     {
-    #                         "Timestamp": pd.date_range(
-    #                             start="2023-01-01", periods=365, freq="D"
-    #                         ),
-    #                         "Usage": np.cumsum(
-    #                             np.random.normal(loc=500, scale=50, size=365)
-    #                         ),
-    #                         "Temperature": np.random.normal(loc=20, scale=5, size=365),
-    #                         "Pressure": np.random.normal(loc=1, scale=0.1, size=365),
-    #                     }
-    #                 ),
-    #                 "x": "Timestamp",
-    #                 "y": "Usage",
-    #             },
-    #             "layout_kwargs": {
-    #                 "title": {
-    #                     "text": "Water Usage Over Time",
-    #                     "x": 0.5,
-    #                     "xanchor": "center",
-    #                 },
-    #                 "font_color": "black",
-    #                 "plot_bgcolor": "white",
-    #                 "font": {"size": 15},
-    #                 "legend": {
-    #                     "orientation": "h",
-    #                     "yanchor": "top",
-    #                     "y": -0.3,
-    #                     "xanchor": "center",
-    #                     "x": 0.5,
-    #                     "font": {"size": 15},
-    #                 },
-    #                 "xaxis": {
-    #                     "title": "Date",
-    #                     "mirror": True,
-    #                     "ticks": "outside",
-    #                     "showline": True,
-    #                     "linecolor": "black",
-    #                     "gridcolor": "lightgrey",
-    #                 },
-    #                 "yaxis": {
-    #                     "title": "Usage",
-    #                     "mirror": True,
-    #                     "ticks": "outside",
-    #                     "showline": True,
-    #                     "linecolor": "black",
-    #                     "gridcolor": "lightgrey",
-    #                 },
-    #             },
-    #             "css": {
-    #                 "padding": "10px",
-    #             },
-    #         },
-    #         # Separator
-    #         {"type": "separator", "style": {"margin": "20px 0"}},
-    #         # UI Component: Date Range Picker
-    #         {
-    #             "type": "UI",
-    #             "element": "DatePickerRange",
-    #             "id": "consumption-date-picker",
-    #             "label": "Pick a Date Range:",
-    #             "label_position": "next",  # or "above"
-    #             "kwargs": {
-    #                 "min_date_allowed": pd.to_datetime("2023-01-01"),
-    #                 "max_date_allowed": pd.to_datetime("2023-12-31"),
-    #                 "start_date": pd.to_datetime("2023-01-01"),
-    #                 "end_date": pd.to_datetime("2023-12-31"),
-    #             },
-    #             "css": {
-    #                 "width": "80%",
-    #                 "margin": "0 auto",
-    #                 "padding": "10px",
-    #             },
-    #         },
-    #     ],
-    #     "interactions": [
-    #         {
-    #             "triggers": [
-    #                 {
-    #                     "component_id": "consumption-date-picker",
-    #                     "component_property": "start_date",
-    #                     "input_key": "start_date",
-    #                 },
-    #                 {
-    #                     "component_id": "consumption-date-picker",
-    #                     "component_property": "end_date",
-    #                     "input_key": "end_date",
-    #                 },
-    #             ],
-    #             "outputs": [
-    #                 {
-    #                     "component_id": "consumption-line-plot",
-    #                     "component_property": "figure",
-    #                 },
-    #             ],
-    #             "action": "process_interaction",
-    #             "data_mapping": {
-    #                 "from": "consumption-line-plot",
-    #                 "to": "consumption-line-plot",
-    #             },
-    #             "data_processing": {
-    #                 "filter": {
-    #                     "Timestamp": {
-    #                         "between": {
-    #                             "start_date": "start_date",
-    #                             "end_date": "end_date",
-    #                         }
-    #                     },
-    #                 },
-    #             },
-    #         },
-    #     ],
-    # },
+    ("Consumption", "GeneralAnalysis"): {
+        "title": None,
+        "components": [
+            {
+                "type": "plot",
+                "library": "px",
+                "function": "line",
+                "id": "consumption-line-plot",
+                "kwargs": {
+                    "data_frame": pd.DataFrame(
+                        {
+                            "Timestamp": pd.date_range(
+                                start="2023-01-01", periods=365, freq="D"
+                            ),
+                            "Usage": np.cumsum(
+                                np.random.normal(loc=500, scale=50, size=365)
+                            ),
+                            "Temperature": np.random.normal(loc=20, scale=5, size=365),
+                            "Pressure": np.random.normal(loc=1, scale=0.1, size=365),
+                        }
+                    ),
+                    "x": "Timestamp",
+                    "y": "Usage",
+                },
+                "layout_kwargs": {
+                    "title": {
+                        "text": "Water Usage Over Time",
+                        "x": 0.5,
+                        "xanchor": "center",
+                    },
+                    "font_color": "black",
+                    "plot_bgcolor": "white",
+                    "font": {"size": 15},
+                    "legend": {
+                        "orientation": "h",
+                        "yanchor": "top",
+                        "y": -0.3,
+                        "xanchor": "center",
+                        "x": 0.5,
+                        "font": {"size": 15},
+                    },
+                    "xaxis": {
+                        "title": "Date",
+                        "mirror": True,
+                        "ticks": "outside",
+                        "showline": True,
+                        "linecolor": "black",
+                        "gridcolor": "lightgrey",
+                    },
+                    "yaxis": {
+                        "title": "Usage",
+                        "mirror": True,
+                        "ticks": "outside",
+                        "showline": True,
+                        "linecolor": "black",
+                        "gridcolor": "lightgrey",
+                    },
+                },
+                "css": {
+                    "padding": "10px",
+                },
+            },
+            # Separator
+            {"type": "separator", "style": {"margin": "20px 0"}},
+            # UI Component: Date Range Picker
+            {
+                "type": "UI",
+                "element": "DatePickerRange",
+                "id": "consumption-date-picker",
+                "label": "Pick a Date Range:",
+                "label_position": "next",  # or "above"
+                "kwargs": {
+                    "min_date_allowed": pd.to_datetime("2023-01-01"),
+                    "max_date_allowed": pd.to_datetime("2023-12-31"),
+                    "start_date": pd.to_datetime("2023-01-01"),
+                    "end_date": pd.to_datetime("2023-12-31"),
+                },
+                "css": {
+                    "width": "80%",
+                    "margin": "0 auto",
+                    "padding": "10px",
+                },
+            },
+        ],
+        "interactions": [
+            {
+                "triggers": [
+                    {
+                        "component_id": "consumption-date-picker",
+                        "component_property": "start_date",
+                        "input_key": "start_date",
+                    },
+                    {
+                        "component_id": "consumption-date-picker",
+                        "component_property": "end_date",
+                        "input_key": "end_date",
+                    },
+                ],
+                "outputs": [
+                    {
+                        "component_id": "consumption-line-plot",
+                        "component_property": "figure",
+                    },
+                ],
+                "action": "process_interaction",
+                "data_mapping": {
+                    "from": "consumption-line-plot",
+                    "to": "consumption-line-plot",
+                },
+                "data_processing": {
+                    "filter": {
+                        "Timestamp": {
+                            "between": {
+                                "start_date": "start_date",
+                                "end_date": "end_date",
+                            }
+                        },
+                    },
+                },
+            },
+        ],
+    },
     # Heatmap for Consumption Usage Analysis
-    # ("Consumption", "UsageAnalysis"): {
-    #     "title": None,
-    #     "components": [
-    #         {
-    #             "type": "plot",
-    #             "library": "go",
-    #             "function": "Heatmap",
-    #             "id": "consumption-heatmap",
-    #             "data_frame": pd.DataFrame(
-    #                 {
-    #                     "Date": pd.date_range(
-    #                         start="2021-01-01", periods=12, freq="MS"
-    #                     ).strftime("%b"),
-    #                     "Sensor": ["Sensor A"] * 6 + ["Sensor B"] * 6,
-    #                     "Correlation": [
-    #                         -0.5,
-    #                         0,
-    #                         0.9,
-    #                         0.8,
-    #                         0.3,
-    #                         -0.4,
-    #                         -0.8,
-    #                         0.5,
-    #                         -0.2,
-    #                         -0.1,
-    #                         0.95,
-    #                         0.13,
-    #                     ],
-    #                 }
-    #             ),
-    #             "trace_type": "Heatmap",  # Specify the trace type
-    #             "data_mappings": {
-    #                 "x": "Date",
-    #                 "y": "Sensor",
-    #                 "z": "Correlation",
-    #             },
-    #             "kwargs": {
-    #                 "colorscale": "Viridis",
-    #                 "colorbar": {
-    #                     "title": "Usage",
-    #                     "orientation": "h",
-    #                     "yanchor": "bottom",
-    #                     "y": -0.7,
-    #                     "xanchor": "center",
-    #                     "x": 0.5,
-    #                     "title_side": "bottom",
-    #                 },
-    #             },
-    #             "layout_kwargs": {
-    #                 "title": {
-    #                     "text": "Water Usage Heatmap",
-    #                     "x": 0.5,
-    #                     "xanchor": "center",
-    #                 },
-    #                 "xaxis_title": "Date",
-    #                 "yaxis_title": "Sensor",
-    #                 "font_color": "black",
-    #                 "plot_bgcolor": "white",
-    #                 "xaxis": {
-    #                     "mirror": True,
-    #                     "ticks": "outside",
-    #                     "showline": True,
-    #                     "linecolor": "black",
-    #                     "gridcolor": "lightgrey",
-    #                 },
-    #                 "yaxis": {
-    #                     "mirror": True,
-    #                     "ticks": "outside",
-    #                     "showline": True,
-    #                     "linecolor": "black",
-    #                     "gridcolor": "lightgrey",
-    #                 },
-    #             },
-    #             "css": {
-    #                 "padding": "10px",
-    #             },
-    #         },
-    #     ],
-    # },
+    ("Consumption", "UsageAnalysis"): {
+        "title": None,
+        "components": [
+            {
+                "type": "plot",
+                "library": "go",
+                "function": "Heatmap",
+                "id": "consumption-heatmap",
+                "data_frame": pd.DataFrame(
+                    {
+                        "Date": pd.date_range(
+                            start="2021-01-01", periods=12, freq="MS"
+                        ).strftime("%b"),
+                        "Sensor": ["Sensor A"] * 6 + ["Sensor B"] * 6,
+                        "Correlation": [
+                            -0.5,
+                            0,
+                            0.9,
+                            0.8,
+                            0.3,
+                            -0.4,
+                            -0.8,
+                            0.5,
+                            -0.2,
+                            -0.1,
+                            0.95,
+                            0.13,
+                        ],
+                    }
+                ),
+                "trace_type": "Heatmap",  # Specify the trace type
+                "data_mappings": {
+                    "x": "Date",
+                    "y": "Sensor",
+                    "z": "Correlation",
+                },
+                "kwargs": {
+                    "colorscale": "Viridis",
+                    "colorbar": {
+                        "title": "Usage",
+                        "orientation": "h",
+                        "yanchor": "bottom",
+                        "y": -0.7,
+                        "xanchor": "center",
+                        "x": 0.5,
+                        "title_side": "bottom",
+                    },
+                },
+                "layout_kwargs": {
+                    "title": {
+                        "text": "Water Usage Heatmap",
+                        "x": 0.5,
+                        "xanchor": "center",
+                    },
+                    "xaxis_title": "Date",
+                    "yaxis_title": "Sensor",
+                    "font_color": "black",
+                    "plot_bgcolor": "white",
+                    "xaxis": {
+                        "mirror": True,
+                        "ticks": "outside",
+                        "showline": True,
+                        "linecolor": "black",
+                        "gridcolor": "lightgrey",
+                    },
+                    "yaxis": {
+                        "mirror": True,
+                        "ticks": "outside",
+                        "showline": True,
+                        "linecolor": "black",
+                        "gridcolor": "lightgrey",
+                    },
+                },
+                "css": {
+                    "padding": "10px",
+                },
+            },
+        ],
+    },
     # Sunburst Chart for Building Structure
-    # ("BuildingStructure", "BuildingStructure"): {
-    #     "title": None,
-    #     "components": [
-    #         {
-    #             "type": "plot",
-    #             "library": "px",
-    #             "function": "sunburst",
-    #             "id": "building-structure-sunburst",
-    #             "kwargs": {
-    #                 "data_frame": pd.DataFrame(
-    #                     {
-    #                         "BuildingID": [
-    #                             "Building A",
-    #                             "Building A",
-    #                             "Building B",
-    #                             "Building B",
-    #                         ],
-    #                         "ParentID": [
-    #                             "Building A",
-    #                             "Room 1",
-    #                             "Building B",
-    #                             "Room 2",
-    #                         ],
-    #                         "EntityType": ["Room", "Device", "Room", "Device"],
-    #                         "EntityID": ["Room 1", "Device 1", "Room 2", "Device 2"],
-    #                     }
-    #                 ),
-    #                 "path": ["BuildingID", "ParentID", "EntityID"],
-    #                 "title": "Building Structure",
-    #                 "height": 1000,
-    #                 "width": 1000,
-    #                 "color": "BuildingID",
-    #                 "color_discrete_map": {
-    #                     "Building A": "lightgreen",
-    #                     "Building B": "White",
-    #                 },
-    #             },
-    #             "layout_kwargs": {
-    #                 "title": {
-    #                     "text": "Building Structure",
-    #                     "x": 0.5,
-    #                     "xanchor": "center",
-    #                     "font": {"size": 35},
-    #                 },
-    #                 "font_color": "black",
-    #                 "plot_bgcolor": "white",
-    #                 "coloraxis_colorbar": {
-    #                     "title": "Level",
-    #                     "orientation": "h",
-    #                     "yanchor": "top",
-    #                     "y": -0.2,
-    #                     "xanchor": "center",
-    #                     "x": 0.5,
-    #                 },
-    #             },
-    #             "css": {
-    #                 "padding": "10px",
-    #             },
-    #         },
-    #     ],
-    # },
+    ("BuildingStructure", "BuildingStructure"): {
+        "title": None,
+        "components": [
+            {
+                "type": "plot",
+                "library": "px",
+                "function": "sunburst",
+                "id": "building-structure-sunburst",
+                "kwargs": {
+                    "data_frame": pd.DataFrame(
+                        {
+                            "BuildingID": [
+                                "Building A",
+                                "Building A",
+                                "Building B",
+                                "Building B",
+                            ],
+                            "ParentID": [
+                                "Building A",
+                                "Room 1",
+                                "Building B",
+                                "Room 2",
+                            ],
+                            "EntityType": ["Room", "Device", "Room", "Device"],
+                            "EntityID": ["Room 1", "Device 1", "Room 2", "Device 2"],
+                        }
+                    ),
+                    "path": ["BuildingID", "ParentID", "EntityID"],
+                    "title": "Building Structure",
+                    "height": 1000,
+                    "width": 1000,
+                    "color": "BuildingID",
+                    "color_discrete_map": {
+                        "Building A": "lightgreen",
+                        "Building B": "White",
+                    },
+                },
+                "layout_kwargs": {
+                    "title": {
+                        "text": "Building Structure",
+                        "x": 0.5,
+                        "xanchor": "center",
+                        "font": {"size": 35},
+                    },
+                    "font_color": "black",
+                    "plot_bgcolor": "white",
+                    "coloraxis_colorbar": {
+                        "title": "Level",
+                        "orientation": "h",
+                        "yanchor": "top",
+                        "y": -0.2,
+                        "xanchor": "center",
+                        "x": 0.5,
+                    },
+                },
+                "css": {
+                    "padding": "10px",
+                },
+            },
+        ],
+    },
     # Pie Charts and Tables for Model Quality - Class Consistency
     ("ModelQuality", "ClassConsistency"): {
         "title": "Class Consistency Analysis",
