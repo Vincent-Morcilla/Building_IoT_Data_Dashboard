@@ -6,20 +6,20 @@ import warnings
 
 import pytest
 from selenium import webdriver
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from webdriver_manager.chrome import ChromeDriverManager
 
-# Adjust the Python path if needed
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
-# Import create_app from your application module
 from app import create_app
 
 # Define the host and port
 HOST = "127.0.0.1"
-PORT = 8050
+PORT = 8051
+BASE_URL = f"http://{HOST}:{PORT}"
 
 # Define a minimal sample_plot_configs within the test file
 sample_plot_configs = {
@@ -53,35 +53,42 @@ sample_plot_configs = {
 
 
 def run_app():
-    # Create the app with the minimal sample configs
+    """Create and run the Dash application."""
     app = create_app(sample_plot_configs)
     app.run_server(debug=False, host=HOST, port=PORT)
 
 
 @pytest.fixture(scope="module")
 def driver():
-    """Initialize the Selenium WebDriver for Chrome."""
+    """Initialize the Selenium WebDriver for Chrome.
+
+    Yields:
+        selenium.webdriver.Chrome: The Chrome WebDriver instance.
+    """
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=DeprecationWarning)
 
-        chrome_options = Options()
-        chrome_options.add_argument("--headless")  # Run in headless mode
-        chrome_options.add_argument("--disable-gpu")
-        chrome_options.add_argument("--no-sandbox")
-        chrome_options.add_argument("--disable-dev-shm-usage")
-        chrome_options.add_argument("--window-size=1920,1080")
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")  # Run in headless mode
+    chrome_options.add_argument("--window-size=1920,1080")
+    chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
 
-        service = Service(ChromeDriverManager().install())
-        driver = webdriver.Chrome(service=service, options=chrome_options)
+    service = Service(ChromeDriverManager().install())
+    driver_instance = webdriver.Chrome(service=service, options=chrome_options)
 
-    yield driver
-    driver.quit()
+    yield driver_instance
+    driver_instance.quit()
 
 
 @pytest.fixture(scope="module")
 def app_process():
-    """Run the Dash app in a separate process."""
-    # Start the app in a separate process
+    """Run the Dash app in a separate process.
+
+    Yields:
+        multiprocessing.Process: The process running the app.
+    """
     proc = multiprocessing.Process(target=run_app)
     proc.start()
     time.sleep(5)  # Wait a moment for the server to start
@@ -94,16 +101,19 @@ def app_process():
 
 
 def test_plot_and_table_rendering(driver, app_process):
-    """Test that plots and tables are being rendered."""
-    base_url = f"http://{HOST}:{PORT}"
+    """Test that plots and tables are being rendered correctly.
 
+    Args:
+        driver (selenium.webdriver.Chrome): The Selenium WebDriver instance.
+        app_process (multiprocessing.Process): The process running the app.
+    """
     from selenium.webdriver.support.ui import WebDriverWait
     from selenium.webdriver.support import expected_conditions as EC
 
     wait = WebDriverWait(driver, 10)
 
     # Open the application
-    driver.get(base_url)
+    driver.get(BASE_URL)
 
     # Wait for the sidebar to load
     wait.until(EC.presence_of_element_located((By.CLASS_NAME, "sidebar")))
@@ -119,15 +129,17 @@ def test_plot_and_table_rendering(driver, app_process):
     # Iterate over each non-Home sidebar option
     for option_name in non_home_link_texts:
         # Navigate to the base URL and wait for the sidebar
-        driver.get(base_url)
+        driver.get(BASE_URL)
         wait.until(EC.presence_of_element_located((By.CLASS_NAME, "sidebar")))
 
         # Re-find the link by its text
         try:
             link = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, option_name)))
             link.click()
-        except Exception as e:
-            raise Exception(f"Link with text '{option_name}' not found: {str(e)}")
+        except TimeoutException as exc:
+            raise Exception(
+                f"Link with text '{option_name}' not found: {str(exc)}"
+            ) from exc
 
         # Wait for the content to load
         wait.until(EC.presence_of_element_located((By.ID, "page-content")))
@@ -144,10 +156,10 @@ def test_plot_and_table_rendering(driver, app_process):
                         EC.element_to_be_clickable((By.LINK_TEXT, tab_name))
                     )
                     tab.click()
-                except Exception as e:
+                except TimeoutException as exc:
                     raise Exception(
-                        f"Tab with text '{tab_name}' not found under '{option_name}': {str(e)}"
-                    )
+                        f"Tab with text '{tab_name}' not found under '{option_name}': {str(exc)}"
+                    ) from exc
 
                 # Wait for content to load
                 wait.until(EC.presence_of_element_located((By.ID, "page-content")))
@@ -161,7 +173,7 @@ def test_plot_and_table_rendering(driver, app_process):
                         EC.presence_of_element_located((By.TAG_NAME, "h2"))
                     )
                     content_title = content_title_element.text.strip()
-                except:
+                except TimeoutException:
                     content_title = ""
 
                 # Build the key to access the plot config
@@ -188,32 +200,37 @@ def test_plot_and_table_rendering(driver, app_process):
                             plot_element = wait.until(
                                 EC.presence_of_element_located((By.ID, component["id"]))
                             )
-                            assert (
-                                plot_element.is_displayed()
-                            ), f"Plot '{component['id']}' is not displayed in {option_name} - {tab_name}"
-                            # Verify plot data
-                        except Exception as e:
-                            raise Exception(
-                                f"Plot component with ID '{component['id']}' not found in {option_name} - {tab_name}: {str(e)}"
+                            assert plot_element.is_displayed(), (
+                                f"Plot '{component['id']}' is not displayed in "
+                                f"{option_name} - {tab_name}"
                             )
+                            # Additional checks for plot data can be added here
+                        except TimeoutException as exc:
+                            raise Exception(
+                                f"Plot component with ID '{component['id']}' not found in "
+                                f"{option_name} - {tab_name}: {str(exc)}"
+                            ) from exc
                     elif component["type"] == "table":
                         # Verify the table is rendered
                         try:
                             table_element = wait.until(
                                 EC.presence_of_element_located((By.ID, component["id"]))
                             )
-                            assert (
-                                table_element.is_displayed()
-                            ), f"Table '{component['id']}' is not displayed in {option_name} - {tab_name}"
+                            assert table_element.is_displayed(), (
+                                f"Table '{component['id']}' is not displayed in "
+                                f"{option_name} - {tab_name}"
+                            )
 
                             # Extract table data from the DOM
                             table_rows = table_element.find_elements(
                                 By.CSS_SELECTOR, 'div[role="row"]'
                             )
                             # Subtract one for header row
-                            assert len(table_rows) - 1 == len(
-                                component["data"]
-                            ), f"Number of table rows does not match in {option_name} - {tab_name}"
+                            num_data_rows = len(table_rows) - 1
+                            assert num_data_rows == len(component["data"]), (
+                                f"Number of table rows does not match in "
+                                f"{option_name} - {tab_name}"
+                            )
 
                             # Verify table headers
                             header_cells = table_rows[0].find_elements(
@@ -233,13 +250,15 @@ def test_plot_and_table_rendering(driver, app_process):
                                 expected_texts = [
                                     str(row_data[col]) for col in component["columns"]
                                 ]
-                                assert (
-                                    cell_texts == expected_texts
-                                ), f"Row {i} data does not match in {option_name} - {tab_name}"
-                        except Exception as e:
+                                assert cell_texts == expected_texts, (
+                                    f"Row {i} data does not match in "
+                                    f"{option_name} - {tab_name}"
+                                )
+                        except TimeoutException as exc:
                             raise Exception(
-                                f"Table component with ID '{component['id']}' not found or invalid in {option_name} - {tab_name}: {str(e)}"
-                            )
+                                f"Table component with ID '{component['id']}' not found or invalid in "
+                                f"{option_name} - {tab_name}: {str(exc)}"
+                            ) from exc
         else:
             # No tabs
             try:
@@ -247,7 +266,7 @@ def test_plot_and_table_rendering(driver, app_process):
                     EC.presence_of_element_located((By.TAG_NAME, "h2"))
                 )
                 content_title = content_title_element.text.strip()
-            except:
+            except TimeoutException:
                 content_title = ""
 
             # Build the key to access the plot config
@@ -275,10 +294,12 @@ def test_plot_and_table_rendering(driver, app_process):
                         assert (
                             plot_element.is_displayed()
                         ), f"Plot '{component['id']}' is not displayed in {option_name}"
-                    except Exception as e:
+                        # Additional checks for plot data can be added here
+                    except TimeoutException as exc:
                         raise Exception(
-                            f"Plot component with ID '{component['id']}' not found in {option_name}: {str(e)}"
-                        )
+                            f"Plot component with ID '{component['id']}' not found in "
+                            f"{option_name}: {str(exc)}"
+                        ) from exc
                 elif component["type"] == "table":
                     # Verify the table is rendered
                     try:
@@ -294,7 +315,8 @@ def test_plot_and_table_rendering(driver, app_process):
                             By.CSS_SELECTOR, 'div[role="row"]'
                         )
                         # Subtract one for header row
-                        assert len(table_rows) - 1 == len(
+                        num_data_rows = len(table_rows) - 1
+                        assert num_data_rows == len(
                             component["data"]
                         ), f"Number of table rows does not match in {option_name}"
 
@@ -319,7 +341,8 @@ def test_plot_and_table_rendering(driver, app_process):
                             assert (
                                 cell_texts == expected_texts
                             ), f"Row {i} data does not match in {option_name}"
-                    except Exception as e:
+                    except TimeoutException as exc:
                         raise Exception(
-                            f"Table component with ID '{component['id']}' not found or invalid in {option_name}: {str(e)}"
-                        )
+                            f"Table component with ID '{component['id']}' not found or invalid in "
+                            f"{option_name}: {str(exc)}"
+                        ) from exc
