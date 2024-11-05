@@ -1,21 +1,20 @@
 """
-This module identifies rooms in the building model that have an associated 
-air temperature sensor and air temperature setpoint, and for each, extracts 
-the timeseries data.  If the building also has an outside air temperature 
-sensor, the timeseries data for that sensor is also extracted.  The module
-returns a dictionary containing the analysis results.
+This module interprets and structures this hierarchy of locations, systems, equipment, and points of a building 
+in order to create an interactive visualization of the layout of a building. This hierarchy goes from the general 
+down through the levels of rooms and equipment to the systems they are connected with. Points will also be mapped 
+to their respective rooms, equipment, or systems in order for one to have detailed visualizations of them.
 
-@tim: TODO:
-    - consider error conditions (e.g. missing stream data)
-    - incorporate units (if available)
-    - write tests
-    - fix front-end code to be less hacky
+The module returns a dictionary of configuration that could be used in a frontend sunburst chart to let users 
+explore the building structure interactively.
+
+@bassel: TODO:
+    - Handle potential issues with missing or incomplete data in the hierarchy
+    - Implement comprehensive tests to validate hierarchy extraction
 """
 
 import pandas as pd
 
 from analytics.dbmgr import DBManager  # only imported for type hinting
-
 
 def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:
     query = """
@@ -175,7 +174,7 @@ def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:
                     BIND(?levelLabel AS ?parentLabel)
                     BIND(?sensor AS ?child)
                     BIND(?sensorLabel AS ?childLabel)
-                    BIND('Sensor' AS ?entityType)
+                    BIND('Point' AS ?entityType)
                 }    
 
                 # match sensors connected to rooms
@@ -190,7 +189,7 @@ def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:
                     BIND(?roomLabel AS ?parentLabel)
                     BIND(?sensor AS ?child)
                     BIND(?sensorLabel AS ?childLabel)
-                    BIND('Sensor' AS ?entityType)
+                    BIND('Point' AS ?entityType)
                 }
                 # sensor connected to an equipment in a room 
                 UNION {
@@ -205,7 +204,7 @@ def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:
                     BIND(?equip1Label AS ?parentLabel)
                     BIND(?sensor AS ?child)
                     BIND(?sensorLabel AS ?childLabel)
-                    BIND('Sensor' AS ?entityType)         
+                    BIND('Point' AS ?entityType)         
                 }
                 # sensor connected to equipment connected to another equipment
                 UNION {
@@ -222,7 +221,7 @@ def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:
                     BIND(?equip2Label AS ?parentLabel)
                     BIND(?sensor AS ?child)
                     BIND(?sensorLabel AS ?childLabel)
-                    BIND('Sensor' AS ?entityType)
+                    BIND('Point' AS ?entityType)
                 }
                 # sensors connected to equipment feeds a room
                 # UNION {
@@ -253,7 +252,7 @@ def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:
                     BIND(?equip2Label AS ?parentLabel)
                     BIND(?sensor AS ?child)
                     BIND(?sensorLabel AS ?childLabel)
-                    BIND('Sensor' AS ?entityType)
+                    BIND('Point' AS ?entityType)
                 }
 
                 # Match sensors connected to System entities connected to building
@@ -269,13 +268,12 @@ def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:
                     BIND(?systemLabel AS ?parentLabel)
                     BIND(?sensor AS ?child)
                     BIND(?sensorLabel AS ?childLabel)
-                    BIND('Sensor' AS ?entityType)    
+                    BIND('Point' AS ?entityType)    
                 }
             }    
         }
     """
     return db.query(query, graph='schema+model', return_df=True, defrag=True)
-
 
 def _get_building_area(db: DBManager) -> pd.DataFrame:
     query = """
@@ -344,7 +342,7 @@ def _get_building_area(db: DBManager) -> pd.DataFrame:
 
 def run(db: DBManager) -> dict:
     """
-    Run the room climate analysis.
+    Run the building structure analysis.
 
     Parameters
     ----------
@@ -359,8 +357,6 @@ def run(db: DBManager) -> dict:
 
     data_hierarchy = _get_building_hierarchy(db)
 
-    # print(df.head())
-
     if data_hierarchy.empty:
         return {}
 
@@ -372,8 +368,6 @@ def run(db: DBManager) -> dict:
     data_hierarchy["entityType"] = data_hierarchy["entityType"].apply(str)
 
     data_hierarchy = data_hierarchy[["ids", "labels", "parents", "entityType"]]
-
-    # print(data_hierarchy["entityType"].drop_duplicates())
 
     df_area = _get_building_area(db)
 
@@ -395,9 +389,7 @@ def run(db: DBManager) -> dict:
         "Location": "LightCoral",
         "System": "Lavender",
         "Equipment": "#32BF84",
-        "Sensor": "Gold",
-        # "Point": "#90EE90",
-        # "Other": "Black",
+        "Point": "Gold",
     }
 
     # Custom annotations for the legend
@@ -419,7 +411,7 @@ def run(db: DBManager) -> dict:
         annotations.append(annotation)
 
     config = {
-        ("BuildingStructure", "BuildingStructure"): {
+        ("BuildingStructure", "BuildingHierarchy"): {
             "title": None,
             "components": [
                 {
