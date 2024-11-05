@@ -16,6 +16,7 @@ import pandas as pd
 
 from analytics.dbmgr import DBManager  # only imported for type hinting
 
+
 def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:
     query = """
         SELECT DISTINCT ?parent ?parentLabel ?child ?childLabel ?building ?buildingLabel ?system ?systemLabel ?entityType
@@ -273,7 +274,8 @@ def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:
             }    
         }
     """
-    return db.query(query, graph='schema+model', return_df=True, defrag=True)
+    return db.query(query, graph="schema+model", return_df=True, defrag=True)
+
 
 def _get_building_area(db: DBManager) -> pd.DataFrame:
     query = """
@@ -337,7 +339,7 @@ def _get_building_area(db: DBManager) -> pd.DataFrame:
             }    
         }
     """
-    return db.query(query, graph='schema+model', return_df=True, defrag=True)
+    return db.query(query, graph="schema+model", return_df=True, defrag=True)
 
 
 def run(db: DBManager) -> dict:
@@ -380,7 +382,6 @@ def run(db: DBManager) -> dict:
     )
     df_area["parents"] = df_area["parent"].str.split("#").str[-1]
     df_area["entityType"] = df_area["entityType"].apply(str)
-
 
     data_area = df_area[["ids", "labels", "parents", "entityType"]]
 
