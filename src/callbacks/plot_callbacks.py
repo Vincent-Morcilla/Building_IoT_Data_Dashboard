@@ -10,13 +10,7 @@ from components.plot_generator import (
     create_table_component,
 )
 from helpers.data_processing import apply_generic_filters, apply_transformation
-from models.types import (
-    PlotConfig,
-    Filters,
-    InputMapping,
-    DataProcessingConfig,
-    PlotComponentConfig,
-)
+from models.types import PlotConfig
 
 
 def process_interaction_action(

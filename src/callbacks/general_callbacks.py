@@ -2,13 +2,7 @@ from dash import Dash, Input, Output, html
 from typing import Any
 from components.layout import home_page_content
 from components.tabs import create_tab_layout
-from models.types import (
-    PlotConfig,
-    CategoriesStructure,
-    Categories,
-    CategoryKeyMapping,
-    SubcategoryKeyMapping,
-)
+from models.types import PlotConfig, CategoriesStructure
 
 
 def register_general_callbacks(

@@ -11,7 +11,6 @@ from dash.exceptions import PreventUpdate
 from helpers.helpers import sanitise_filename
 from models.types import (
     PlotConfig,
-    PlotConfigsKeys,
     SpecificCategorySubcategoryPlotConfig,
 )
 
