@@ -72,4 +72,12 @@ def register_general_callbacks(
                 subcategory_key_mapping,
             )
 
-        return html.Div([html.H1("Sorry, there was no visualization generated.")])
+        # Handle invalid URLs
+        return html.Div(
+            [
+                html.H4(
+                    f"No content available for {pathname.strip('/').replace('-', ' ')}. Please select an option from the sidebar."
+                )
+            ],
+            id="page-content",
+        )
