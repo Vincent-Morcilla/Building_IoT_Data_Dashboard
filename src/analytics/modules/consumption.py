@@ -14,7 +14,6 @@ over time in a timeline, enabling the end user to explore energy and resource us
 """
 
 import pandas as pd
-import numpy as np
 
 
 from analytics.dbmgr import DBManager  # only imported for type hinting
@@ -50,7 +49,7 @@ WHERE {
     }
 }
     """
-    return db.query(query, graph='schema+model', return_df=True, defrag=True)
+    return db.query(query, graph="schema+model", return_df=True, defrag=True)
 
 
 def run(db: DBManager) -> dict:
@@ -72,8 +71,8 @@ def run(db: DBManager) -> dict:
 
     if data_meters.empty:
         return {}
-    
-     # Apply the helper function to fetch sensor data for each stream_id in data_meters
+
+    # Apply the helper function to fetch sensor data for each stream_id in data_meters
     data_meters["sensor_data"] = data_meters["stream_id"].apply(db.get_stream)
 
     grouped_meters = data_meters.groupby(["equipment_type", "sensor_type"])
@@ -90,43 +89,53 @@ def run(db: DBManager) -> dict:
         combined_data = None
 
         # Process data for each sensor in the group
-        for idx, row in group.iterrows():
-            sensor_data = row['sensor_data']
-            unit = row.get('unit', 'Unknown')
+        for _, row in group.iterrows():
+            sensor_data = row["sensor_data"]
+            unit = row.get("unit", "Unknown")
             if pd.isna(unit):
                 if meter_type.lower() in ["building_gas_meter", "building_water_meter"]:
                     unit = "Cubic meters"
                 else:
-                    unit = None 
+                    unit = None
 
             if sensor_data is not None and not sensor_data.empty:
                 # Pivot and resample sensor data to 1-hour intervals
-                sensor_data = sensor_data.pivot(index="time", columns="brick_class", values="value")
+                sensor_data = sensor_data.pivot(
+                    index="time", columns="brick_class", values="value"
+                )
 
                 # Resample based on sensor type: Cumulative -> sum resampling, Instantaneous -> mean resampling
                 if sensor_type.lower() in ["electrical_power_sensor"]:
                     # For electrical power sensors (Measure instantaneous consumption at a specific moment in time)
                     sensor_data = sensor_data.resample("10min").mean()
-                elif sensor_type.lower() in ["usage_sensor", "electrical_energy_sensor"]:
+                elif sensor_type.lower() in [
+                    "usage_sensor",
+                    "electrical_energy_sensor",
+                ]:
                     # For water and gas electrical sensors (Measure cumulative consumption over time)
                     sensor_data = sensor_data.resample("10min").sum()
 
-                sensor_data = sensor_data.interpolate(method='linear')
+                sensor_data = sensor_data.interpolate(method="linear")
 
                 # Sum sensor values across the same timestamps
                 if combined_data is None:
                     combined_data = sensor_data  # Initialize combined data
                 else:
-                    combined_data = combined_data.add(sensor_data, fill_value=0)  # Add current sensor's values
-
+                    combined_data = combined_data.add(
+                        sensor_data, fill_value=0
+                    )  # Add current sensor's values
 
         # Prepare the final DataFrame for plotting
         if combined_data is not None:
-            plot_data = pd.DataFrame({
-                "Timestamp": combined_data.index,
-                "Usage": combined_data.sum(axis=1),  # Sum across all columns to get total usage per timestamp
-                "Sensor": f"{meter_type} Combined ({unit})"
-            })
+            plot_data = pd.DataFrame(
+                {
+                    "Timestamp": combined_data.index,
+                    "Usage": combined_data.sum(
+                        axis=1
+                    ),  # Sum across all columns to get total usage per timestamp
+                    "Sensor": f"{meter_type} Combined ({unit})",
+                }
+            )
 
         # Define the configuration structure for the frontend based on meter_type and sensor_type
         component = {
@@ -191,19 +200,3 @@ def run(db: DBManager) -> dict:
             }
 
     return config
-
-
-if __name__ == "__main__":
-    DATA = "../../datasets/bts_site_b_train/train.zip"
-    MAPPER = "../../datasets/bts_site_b_train/mapper_TrainOnly.csv"
-    MODEL = "../../datasets/bts_site_b_train/Site_B.ttl"
-    SCHEMA = "../../datasets/bts_site_b_train/Brick_v1.2.1.ttl"
-
-    import sys
-
-    sys.path.append("..")
-
-    db = DBManager(DATA, MAPPER, MODEL, SCHEMA)
-
-    config = run(db)
-    # print(config)
