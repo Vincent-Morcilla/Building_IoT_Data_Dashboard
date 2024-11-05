@@ -1,6 +1,6 @@
 import copy
 from typing import List, Dict, Any
-from dash import html, no_update
+from dash import Dash, html, no_update
 from dash.dependencies import Input, Output
 import pandas as pd
 from components.plot_generator import (
@@ -10,10 +10,17 @@ from components.plot_generator import (
     create_table_component,
 )
 from helpers.data_processing import apply_generic_filters, apply_transformation
+from models.types import (
+    PlotConfig,
+    Filters,
+    InputMapping,
+    DataProcessingConfig,
+    PlotComponentConfig,
+)
 
 
 def process_interaction_action(
-    plot_configs,  # FIXME: Add type hint
+    plot_configs: PlotConfig,
     input_values: List[Any],
     outputs: List[Dict[str, Any]],
     interaction: Dict[str, Any],
@@ -22,13 +29,14 @@ def process_interaction_action(
     """Process interactions between components based on configuration.
 
     Args:
-        input_values: The input values from the triggers.
-        outputs: The output configurations.
-        interaction: The interaction configuration from plot_configs.
-        triggers: List of triggers from the interaction.
+        plot_configs (PlotConfig): The plot configuration dictionary.
+        input_values (List[Any]): The input values from the triggers.
+        outputs (List[Dict[str, Any]]): The output configurations.
+        interaction (Dict[str, Any]): The interaction configuration from plot_configs.
+        triggers (List[Dict[str, Any]]): List of triggers from the interaction.
 
     Returns:
-        The updated outputs for the Dash components.
+        List[Any]: The updated outputs for the Dash components.
     """
     output_results = []
 
@@ -97,17 +105,17 @@ def process_interaction_action(
 
 
 def update_components_based_on_table_selection_action(
-    plot_configs,
-    input_values,
-    outputs,
-    interaction,
-    triggers=None,
-):
+    plot_configs: PlotConfig,
+    input_values: List[Any],
+    outputs: List[Dict[str, Any]],
+    interaction: Dict[str, Any],
+    triggers: List[Dict[str, Any]] = None,
+) -> List[Any]:
     """
     Update components based on the selected row in the table.
 
     Args:
-        plot_configs: The plot configurations.
+        plot_configs (PlotConfig): The plot configurations.
         input_values (List[Any]): The input values from the triggers.
         outputs (List[Dict[str, Any]]): The outputs to update.
         interaction (Dict[str, Any]): Interaction configuration.
@@ -216,12 +224,12 @@ def update_components_based_on_table_selection_action(
     return output_results
 
 
-def register_plot_callbacks(app, plot_configs):
+def register_plot_callbacks(app: Dash, plot_configs: PlotConfig) -> None:
     """Register callbacks for the plot configurations.
 
     Args:
-        app (dash.Dash): The Dash app instance.
-        plot_configs (dict): The plot configurations.
+        app (Dash): The Dash app instance.
+        plot_configs (PlotConfig): The plot configurations.
     """
     action_functions = {
         "process_interaction": process_interaction_action,

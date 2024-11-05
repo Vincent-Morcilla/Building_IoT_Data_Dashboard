@@ -1,6 +1,6 @@
 from components.plot_generator import create_layout_for_category
 
-plot_config = {
+selected_plot_config = {
     "title": "Sample Category",
     "title_element": "H2",
     "components": [
@@ -26,7 +26,7 @@ plot_config = {
 }
 
 # Call the function to generate layout components
-layout_components = create_layout_for_category("sample-category", plot_config)
+layout_components = create_layout_for_category(selected_plot_config)
 
 
 def test_create_layout_for_category():

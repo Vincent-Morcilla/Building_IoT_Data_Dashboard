@@ -1,4 +1,19 @@
-def register_general_callbacks(app, plot_configs, categories_structure):
+from dash import Dash, Input, Output, html
+from typing import Any
+from components.layout import home_page_content
+from components.tabs import create_tab_layout
+from models.types import (
+    PlotConfig,
+    CategoriesStructure,
+    Categories,
+    CategoryKeyMapping,
+    SubcategoryKeyMapping,
+)
+
+
+def register_general_callbacks(
+    app: Dash, plot_configs: PlotConfig, categories_structure: CategoriesStructure
+) -> None:
     """
     Registers general callbacks for the Dash application.
 
@@ -7,19 +22,16 @@ def register_general_callbacks(app, plot_configs, categories_structure):
     2. Displaying the appropriate page content based on the URL pathname.
 
     Args:
-        app: Dash app instance where callbacks will be registered.
-        categories_structure: A tuple containing the categories, category key mapping,
-                              and subcategory key mapping.
+        app (Dash): Dash app instance where callbacks will be registered.
+        plot_configs (PlotConfig): Configuration dictionary for plots and components.
+        categories_structure (CategoriesStructure): A tuple containing the categories,
+                              category key mapping, and subcategory key mapping.
     """
-    from dash import Input, Output, html
-    from components.layout import home_page_content
-    from components.tabs import create_tab_layout
-
     # Unpack the categories structure
     categories, category_key_mapping, subcategory_key_mapping = categories_structure
 
     @app.callback(Output("url", "pathname"), Input("logo-button", "n_clicks"))
-    def redirect_to_home(n_clicks):
+    def redirect_to_home(n_clicks: int) -> Any:
         """
         Redirects the user to the homepage when the logo button is clicked.
 
@@ -34,7 +46,7 @@ def register_general_callbacks(app, plot_configs, categories_structure):
         return None
 
     @app.callback(Output("page-content", "children"), [Input("url", "pathname")])
-    def display_page(pathname):
+    def display_page(pathname: str) -> html.Div:
         """
         Generates and returns the page content based on the current URL pathname.
 
