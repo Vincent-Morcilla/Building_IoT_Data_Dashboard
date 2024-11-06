@@ -96,6 +96,9 @@ def test_homepage_title(driver):
     wait = WebDriverWait(driver, 10)
 
     # Verify the page title
+    while driver.title == "Updating...":
+        time.sleep(1)
+
     assert driver.title == "Network in Progress"
 
     # Wait for the title logo to be present
