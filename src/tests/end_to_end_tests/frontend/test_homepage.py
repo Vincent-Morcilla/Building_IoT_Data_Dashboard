@@ -94,7 +94,7 @@ def test_homepage_title(driver):
     driver.get(BASE_URL)
 
     wait = WebDriverWait(driver, 30)
-
+    time.sleep(10)
     # Verify the page title
     assert driver.title == "Network in Progress"
 
