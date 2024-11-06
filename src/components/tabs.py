@@ -1,23 +1,33 @@
 from dash import html
 import dash_bootstrap_components as dbc
 from components.plot_generator import create_layout_for_category
+from models.types import (
+    PlotConfig,
+    Categories,
+    CategoryKeyMapping,
+    SubcategoryKeyMapping,
+)
 
 
 def create_tab_content(
-    plot_configs,
-    category_name,
-    subcategory,
-    category_key_mapping,
-    subcategory_key_mapping,
-):
+    plot_configs: PlotConfig,
+    category_name: str,
+    subcategory: str,
+    category_key_mapping: CategoryKeyMapping,
+    subcategory_key_mapping: SubcategoryKeyMapping,
+) -> dbc.Tab:
     """
     Create the content for an individual tab.
 
     Args:
+        plot_configs (PlotConfig): Dictionary containing plot configuration.
         category_name (str): The display name of the category.
         subcategory (str): The display name of the subcategory.
-        category_key_mapping (dict): A dictionary mapping display category names to their original keys.
-        subcategory_key_mapping (dict): A dictionary mapping (category, subcategory) to original subcategory keys.
+        category_key_mapping (CategoryKeyMapping): A dictionary mapping display category names
+                                                   to their original keys.
+        subcategory_key_mapping (SubcategoryKeyMapping): A dictionary mapping
+                                                         (category, subcategory)
+                                                         to original subcategory keys.
 
     Returns:
         dbc.Tab: A Dash Tab component with the content for the given category and subcategory.
@@ -43,7 +53,7 @@ def create_tab_content(
     # Check if the key exists in plot_configs and generate content
     if key in plot_configs:
         config = plot_configs[key]
-        content = create_layout_for_category(key, config)
+        content = create_layout_for_category(config)
     else:
         content = html.Div(
             [
@@ -62,20 +72,25 @@ def create_tab_content(
 
 
 def create_tab_layout(
-    plot_configs,
-    selected_category,
-    categories,
-    category_key_mapping,
-    subcategory_key_mapping,
-):
+    plot_configs: PlotConfig,
+    selected_category: str,
+    categories: Categories,
+    category_key_mapping: CategoryKeyMapping,
+    subcategory_key_mapping: SubcategoryKeyMapping,
+) -> html.Div:
     """
     Create a layout containing tabs for the selected category.
 
     Args:
+        plot_configs (PlotConfig): Dictionary containing plot configuration.
         selected_category (str): The category selected from the URL or user input.
-        categories (dict): A dictionary where the keys are display category names, and the values are lists of subcategories.
-        category_key_mapping (dict): A dictionary mapping display category names to their original keys.
-        subcategory_key_mapping (dict): A dictionary mapping (category, subcategory) to original subcategory keys.
+        categories (Categories): A dictionary where keys are display category names,
+                                 and values are lists of subcategories.
+        category_key_mapping (CategoryKeyMapping): A dictionary mapping display category names
+                                                   to their original keys.
+        subcategory_key_mapping (SubcategoryKeyMapping): A dictionary mapping
+                                                         (category, subcategory)
+                                                         to original subcategory keys.
 
     Returns:
         html.Div: A Dash Div component containing the layout of tabs for the selected category.
