@@ -245,7 +245,6 @@ class DBManager:
             df.columns = df.columns.map(str)
             df.drop_duplicates(inplace=True)
 
-            # @tim: TODO: incorporate this with the non-DataFrame return
             if defrag:
                 for col in df.columns:
                     df[col] = df[col].apply(DBManager.defrag_uri)
