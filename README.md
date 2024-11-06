@@ -29,11 +29,12 @@ In the root directory of the repository run:
 docker compose up
 ```
 
-It may take a minute to ingest the dataset and run the analyses.  You'll see 
-a progress meter in the terminal, but once complete you should see that `Dash is running on http://0.0.0.0:8050/`.
+It may take up to 5 minutes to build the image for the first time.  Once built, 
+it may take a minute to ingest the dataset and run the analyses.  You'll see a 
+progress meter in the terminal, but once complete you should see that 
+`Dash is running on http://0.0.0.0:8050/`.
 
 Open [http://127.0.0.1:8050](http://127.0.0.1:8050) in your browser.
-
 
 ### Run Natively
 
@@ -66,7 +67,7 @@ python src/app.py \
 ```
 
 It may take a minute to ingest the dataset and run the analyses.  You'll see 
-a progress meter in the terminal, but once complete you should see that `Dash is running on http://0.0.0.0:8050/`.
+a progress meter in the terminal, but once complete you should see that that `Dash is running on http://127.0.0.1:8050/`.
 
 Open [http://127.0.0.1:8050](http://127.0.0.1:8050) in your browser.
 
