@@ -11,6 +11,57 @@ import pandas as pd
 from analytics.dbmgr import DBManager
 
 
+def _detect_step_function_behavior(values, percentage_threshold=0.1, constant_diff=1, unique_values_threshold=5):
+    """
+    Detect if a time series behaves like a step function.
+    
+    Args:
+        values (np.array): Array of sensor values
+        percentage_threshold (float): Threshold for relative change (default: 0.1)
+        constant_diff (float): Value for divide-by-zero cases (default: 1)
+        unique_values_threshold (int): Threshold for unique values (default: 5)
+    
+    Returns:
+        dict: Dictionary containing step function metrics
+    """
+    if len(values) < 2:
+        return {
+            "percentage_flat": None,
+            "unique_values_count": None,
+            "is_step_function": None
+        }
+
+    # Calculate differences between consecutive values
+    differences = np.diff(values)
+    
+    # Handle zero and near-zero values more robustly
+    prev_values = values[:-1]
+    relative_differences = np.zeros_like(differences, dtype=float)
+    
+    # Mask for non-zero values
+    non_zero_mask = np.abs(prev_values) > 1e-10
+    
+    # Calculate relative differences only for non-zero values
+    relative_differences[non_zero_mask] = np.abs(
+        differences[non_zero_mask] / prev_values[non_zero_mask]
+    ) * 100
+    
+    # For zero values, use absolute differences
+    relative_differences[~non_zero_mask] = np.abs(differences[~non_zero_mask])
+    
+    # Calculate metrics
+    flat_regions = relative_differences < percentage_threshold
+    percentage_flat = np.sum(flat_regions) / len(differences) * 100
+    unique_values_count = len(np.unique(values))
+    is_step_function = (percentage_flat > 90) and (unique_values_count <= unique_values_threshold)
+
+    return {
+        "percentage_flat": percentage_flat,
+        "unique_values_count": unique_values_count,
+        "is_step_function": is_step_function
+    }
+
+
 def _preprocess_to_sensor_rows(db: DBManager):
     sensor_data = []
     all_streams = db.get_all_streams()
@@ -22,11 +73,14 @@ def _preprocess_to_sensor_rows(db: DBManager):
             if df.empty:
                 continue
 
+            values = df["value"].values
+            step_info = _detect_step_function_behavior(values)
+
             row = {
                 "stream_id": stream_id,
                 "Label": label,
                 "Timestamps": df["time"],
-                "Values": df["value"].values,
+                "Values": values,
                 "Deduced_Granularity": _deduce_granularity(df["time"]),
                 "Value_Count": len(df),
                 "Outliers": _detect_outliers(df["value"].values)[0],
@@ -37,6 +91,9 @@ def _preprocess_to_sensor_rows(db: DBManager):
                 "Sensor_Mean": df["value"].mean(),
                 "Sensor_Min": df["value"].min(),
                 "Sensor_Max": df["value"].max(),
+                "Percentage_Flat_Regions": step_info["percentage_flat"],
+                "Unique_Values_Count": step_info["unique_values_count"],
+                "Is_Step_Function": step_info["is_step_function"],
             }
             sensor_data.append(row)
         except Exception:
@@ -167,6 +224,9 @@ def _prepare_data_quality_df(df: pd.DataFrame) -> pd.DataFrame:
             "Sensor Max": df["Sensor_Max"],
             "Start Timestamp": df["Start_Timestamp"],
             "End Timestamp": df["End_Timestamp"],
+            "Flat Regions %": df["Percentage_Flat_Regions"].round(2),
+            "Unique Values": df["Unique_Values_Count"],
+            "Is Step Function": df["Is_Step_Function"],
         }
     )
 
@@ -194,6 +254,8 @@ def _create_summary_table(data_quality_df):
                 "Group Mean": "first",
                 "Group Std": "first",
                 "Total Gap Size (s)": "sum",
+                "Is Step Function": lambda x: (x.sum() / len(x) * 100).round(2),  # Add this line
+
             }
         )
         .reset_index()
@@ -207,7 +269,7 @@ def _create_summary_table(data_quality_df):
         ).dt.total_seconds()
         * 100
     ).round(2)
-    summary_table = summary_table.rename(columns={"Stream ID": "Number of Streams"})
+    summary_table = summary_table.rename(columns={"Stream ID": "Number of Streams", "Is Step Function": "Step Function Percentage"})
 
     return summary_table
 
@@ -260,6 +322,7 @@ def _get_data_quality_overview(data_quality_df):
                 "Total Medium Gaps",
                 "Total Large Gaps",
                 "Average Gap Percentage",
+                "Step Function Sensors",
             ],
             "Value": [
                 len(data_quality_df),
@@ -269,6 +332,7 @@ def _get_data_quality_overview(data_quality_df):
                 data_quality_df["Medium Gaps"].sum(),
                 data_quality_df["Large Gaps"].sum(),
                 f"{data_quality_df['Gap Percentage'].mean():.2%}",
+                data_quality_df["Is Step Function"].sum(),
             ],
         }
     )
@@ -870,6 +934,9 @@ def run(db: DBManager) -> dict:
                                 "Sensor Max",
                                 "Start Timestamp",
                                 "End Timestamp",
+                                "Flat Regions %",
+                                "Unique Values",
+                                "Is Step Function",
                             ]
                         ],
                         "export_format": "csv",
