@@ -27,4 +27,6 @@ Files:
     frontend/test_sidebar.py: Tests sidebar component rendering.
     frontend/test_tabs.py: Verifies tab creation for category layouts.
     frontend/test_update_components_based_on_table_selection.py: Tests row-based data updates.
+    frontend/test_update_components_based_on_grouped_table_selection.py: Tests component updates
+      based on grouped table selection.
 """
