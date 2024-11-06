@@ -1,5 +1,10 @@
+"""
+TODO: Add module description
+"""
+
 from dash import html
 import dash_bootstrap_components as dbc
+
 from components.plot_generator import create_layout_for_category
 from models.types import (
     PlotConfig,

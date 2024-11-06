@@ -1,5 +1,10 @@
-import dash_bootstrap_components as dbc
+"""
+TODO: Add module description
+"""
+
 from typing import Any, Dict, List, Tuple, Union
+
+import dash_bootstrap_components as dbc
 
 # Plot Configuration Types
 

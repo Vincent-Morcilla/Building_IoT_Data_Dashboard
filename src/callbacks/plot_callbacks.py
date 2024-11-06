@@ -1,5 +1,10 @@
+"""
+TODO: Add module description
+"""
+
 from dash import Dash, no_update
 from dash.dependencies import Input, Output
+
 from actions.process_interaction import process_interaction_action
 from actions.update_components_based_on_grouped_table_selection import (
     update_components_based_on_grouped_table_selection_action,

@@ -1,5 +1,10 @@
+"""
+TODO: Add module description
+"""
+
 import re
 from typing import Dict, List, Tuple
+
 from models.types import PlotConfigsKeys
 
 
