@@ -12,6 +12,12 @@ import pandas as pd
 from analytics.dbmgr import DBManager  # only imported for type hinting
 from models.types import PlotConfig  # only imported for type hinting
 
+# Category and subcategory for the plot configuration
+# The category is used to group the analysis in the app sidebar
+# The subcategory is used as a tab within the category
+CATEGORY = "RoomClimate"
+SUBCATEGORY = "RoomClimate"
+
 
 def _get_rooms_with_temp(db: DBManager) -> pd.DataFrame:
     """
@@ -112,13 +118,13 @@ def _build_components(df: pd.DataFrame, room_id: str, title: str) -> list:
     return components
 
 
-def _build_plot_config(table: pd.DataFrame, timeseries_data_dict: dict) -> dict:
+def _build_plot_config(table: pd.DataFrame, timeseries_data_dict: dict) -> PlotConfig:
     """
     Build the plot configuration for the room climate analysis.
     """
 
     plot_config = {
-        ("RoomClimate", "RoomClimate"): {
+        (CATEGORY, SUBCATEGORY): {
             "components": [
                 # Placeholder Div for timeseries plot
                 {
@@ -211,8 +217,8 @@ def run(db: DBManager) -> PlotConfig:
 
     Returns
     -------
-    dict
-        A dictionary containing the analysis results.
+    PlotConfig
+        A plot configuration dictionary containing the analysis results.
     """
 
     # Get rooms with air temperature sensors and setpoints
