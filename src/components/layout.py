@@ -1,9 +1,10 @@
 from dash import dcc, html
 import dash_bootstrap_components as dbc
 from components.sidebar import generate_sidebar
+from models.types import CategoriesStructure
 
 
-def create_layout(plot_configs, categories_structure):
+def create_layout(categories_structure: CategoriesStructure) -> html.Div:
     """
     Create the main layout for the Dash application.
 
@@ -11,9 +12,8 @@ def create_layout(plot_configs, categories_structure):
     page content will be displayed, and URL routing for page navigation.
 
     Args:
-        plot_configs (dict): The configuration for various plots used in the app.
-        categories_structure (tuple): A tuple containing the categories, category key mapping,
-                                      and subcategory key mapping.
+        categories_structure (CategoriesStructure): Contains categories, category key mapping,
+                                                    and subcategory key mapping.
 
     Returns:
         html.Div: A Div component representing the overall layout of the application.
@@ -43,12 +43,12 @@ def create_layout(plot_configs, categories_structure):
     )
 
 
-def home_page_content(categories_structure):
+def home_page_content(categories_structure: CategoriesStructure) -> html.Div:
     """
     Create the homepage content for the Dash application.
 
-    The homepage displays a logo and a message prompting users to select an option
-    from the sidebar.
+    Args:
+        categories_structure (CategoriesStructure): Contains categories, category key mapping, and subcategory key mapping.
 
     Returns:
         html.Div: A Div component containing the homepage content.

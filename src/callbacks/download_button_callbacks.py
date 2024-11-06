@@ -1,7 +1,7 @@
 import hashlib
 import io
 import zipfile
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
 import pandas as pd
 from dash import Dash, dcc
@@ -9,6 +9,10 @@ from dash.dependencies import Input, Output
 from dash.exceptions import PreventUpdate
 
 from helpers.helpers import sanitise_filename
+from models.types import (
+    PlotConfig,
+    SpecificCategorySubcategoryPlotConfig,
+)
 
 
 def hash_dataframe(df: pd.DataFrame) -> str:
@@ -60,15 +64,15 @@ def generate_filename(
 
 
 def process_dataframe(
-    source: Any,
+    source: Union[pd.DataFrame, Dict[str, pd.DataFrame]],
     main_cat: str,
     sub_cat: str,
     component_id: str,
     title: str,
     comp_type: str,
     file_counters: Dict[str, int],
-    processed_df_hashes: set,
-    csv_files: list,
+    processed_df_hashes: Set[str],
+    csv_files: List[Tuple[str, bytes]],
     trace_type: Optional[str] = None,
 ) -> None:
     """
@@ -121,8 +125,8 @@ def process_dataframe(
 
 
 def locate_component(
-    plot_configs: Dict[Any, Any], component_id: str
-) -> Optional[Dict[str, Any]]:
+    plot_configs: PlotConfig, component_id: str
+) -> Optional[SpecificCategorySubcategoryPlotConfig]:
     """
     Locate a component by its ID within plot_configs.
 
@@ -141,7 +145,7 @@ def locate_component(
 
 
 def extract_dataframe_from_component(
-    component: Dict[str, Any]
+    component: SpecificCategorySubcategoryPlotConfig,
 ) -> Optional[pd.DataFrame]:
     """
     Extract the DataFrame from a given component.
@@ -228,7 +232,7 @@ class DownloadManager:
         return dcc.send_bytes(write_zip, "All_Dataframes.zip")
 
 
-def register_download_callbacks(app: Dash, plot_configs: Dict[Any, Any]) -> None:
+def register_download_callbacks(app: Dash, plot_configs: PlotConfig) -> None:
     """
     Register callbacks to handle global download functionality.
 

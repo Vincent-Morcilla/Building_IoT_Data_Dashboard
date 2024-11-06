@@ -1,13 +1,15 @@
 from dash import html
 import dash_bootstrap_components as dbc
+from models.types import Categories, NavLinks
 
 
-def generate_sidebar(categories):
+def generate_sidebar(categories: Categories) -> html.Div:
     """
     Generate a sidebar for a Dash application with navigation links.
 
     Args:
-        categories (dict): A dictionary where keys are category names and values are lists of subcategories.
+        categories (Categories): A dictionary where keys are category names and values
+                                 are lists of subcategories.
 
     Returns:
         html.Div: A Dash HTML Div component representing the sidebar with navigation links.
