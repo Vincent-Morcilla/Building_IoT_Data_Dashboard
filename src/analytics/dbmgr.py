@@ -209,16 +209,29 @@ class DBManager:
         defrag: bool = False,
         **kwargs,
     ) -> rdflib.query.Result | pd.DataFrame:
-        """Query the knowledge graph.
+        """Query the building model or brick schema knowledge graph with a SPARQL
+        query string.  Available graphs are:
+
+        - "model": The building model.
+        - "schema": The brick schema.
+        - "schema+model": The combination of the model and schema.
+        - "expanded_model": The model with the schema expanded, i.e. after
+            inference.
 
         Args:
             query_str (str): The SPARQL query string.
             graph (str, optional): The graph to query. Defaults to "model".
             return_df (bool, optional): Whether to return the results as a
                 DataFrame. Defaults to False.
+            defrag (bool, optional): Whether to defragment the URIs in the
+                DataFrame. Defaults to False.
+            **kwargs: Additional keyword arguments to pass to the query.
 
         Returns:
             rdflib.query.Result | pd.DataFrame: The query results.
+
+        Raises:
+            ValueError: If the graph is not found.
         """
         try:
             graph = self._g[graph]
