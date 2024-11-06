@@ -59,7 +59,7 @@ pip install -r requirements.txt
 Run the app:
 
 ```sh
-python src/app.py \
+python src/app.py --building B \
     datasets/bts_site_b_train/train.zip \
     datasets/bts_site_b_train/mapper_TrainOnly.csv \
     datasets/bts_site_b_train/Site_B.ttl \
