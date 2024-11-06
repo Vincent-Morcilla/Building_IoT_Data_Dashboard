@@ -1,6 +1,7 @@
 """
-Module for managing the dataset of time series streams, the building model, 
-and the brick schema.
+Module for managing the dataset of time series data, the building model, the
+mapping file between the time series data and building model, and the brick 
+schema.
 """
 
 from collections.abc import Iterable
@@ -15,40 +16,43 @@ from tqdm import tqdm
 
 
 class DBManager:
-    """
-    Class for managing the dataset of time series streams, the building model,
-    and the brick schema.
+    """Class for managing the dataset of time series data, the building model,
+    the mapping file between the time series data and building model, and the
+    brick schema.
 
     Args:
-        data_zip_path (str): Path to the zip file containing the stream data.
+        data_zip_path (str): Path to the zip file containing the time series data.
         mapper_path (str): Path to the CSV file containing the mapping of
-            stream IDs to filenames.
+            stream IDs to files in the zip file.
         model_path (str): Path to the RDF file containing the Brick model.
-        schema_path (str): Path to the RDF file containing the Brick schema.
+        schema_path (str, optional): Path to the RDF file containing the Brick
+            schema. Defaults to None, in which case the latest Brick schema will
+            be used.
+        building (str, optional): The building to filter the streams by. Defaults
+            to None.
 
     Raises:
         FileNotFoundError: If the data zip file is not found.
         FileNotFoundError: If the mapping file is not found.
         FileNotFoundError: If the model file is not found.
         FileNotFoundError: If the schema file is not found.
-
-    Returns:
-        DBManager: An instance of the DBManager class
     """
 
     def __init__(
         self, data_zip_path, mapper_path, model_path, schema_path=None, building=None
-    ):
-        """Initialize the DBManager.
+    ) -> None:
+        """Initialise the DBManager.
 
         Args:
-            data_zip_path (str): Path to the zip file containing the stream data.
+            data_zip_path (str): Path to the zip file containing the time series data.
             mapper_path (str): Path to the CSV file containing the mapping of
-                stream IDs to filenames.
+                stream IDs to files in the zip file.
             model_path (str): Path to the RDF file containing the Brick model.
-            schema_path (str, optional): Path to the RDF file containing the
-                Brick schema. Defaults to None, in which case latest schema will
+            schema_path (str, optional): Path to the RDF file containing the Brick
+                schema. Defaults to None, in which case the latest Brick schema will
                 be used.
+            building (str, optional): The building to filter the streams by. Defaults
+                to None.
 
         Raises:
             FileNotFoundError: If the data zip file is not found.
@@ -73,6 +77,22 @@ class DBManager:
             raise FileNotFoundError(f"Schema file not found: {self._schema_path}")
 
         self._mapper = pd.read_csv(self._mapper_path, index_col=0)
+
+        # Filter the mapper to only include streams from the specified building
+        if building is not None:
+            self._mapper = self._mapper[self._mapper["Building"] == building]
+
+        # Filter out streams that were not saved to file, i.e., are not in the
+        # data zip file
+        # pylint: disable=C0121
+        self._mapper = self._mapper[
+            self._mapper["Filename"].str.contains("FILE NOT SAVED") == False
+        ]
+
+        # the "model" graph is the building model, the "schema" graph is the
+        # Brick schema, the "schema+model" graph is the combination of the
+        # model and schema, and the "expanded_model" graph is the model with
+        # the schema expanded
         self._g = {"model": brickschema.Graph().load_file(self._model_path)}
 
         if self._schema_path is not None:
@@ -88,11 +108,12 @@ class DBManager:
         self._g["expanded_model"].load_file(self._model_path)
         self._g["expanded_model"].expand(profile="rdfs")
 
+        # Load the stream data
         self._db = {}
-        self._load_db(building)
+        self._load_db()
 
     def __len__(self) -> int:
-        """Get the number of streams in the database.
+        """The number of streams in the database.
 
         Returns:
             int: The number of streams in the database.
@@ -122,13 +143,13 @@ class DBManager:
         """Get the stream data for a given stream ID."""
         return self._db[key]
 
-    def __setitem__(self, key, value: pd.DataFrame):
+    def __setitem__(self, key, value: pd.DataFrame) -> None:
         """Set the stream data for a given stream ID."""
         self._db[key] = value
 
     @property
     def model(self) -> brickschema.Graph:
-        """The building model as knowledge graph.
+        """The building model as a knowledge graph.
 
         Returns:
             brickschema.Graph: The building model in RDF format.
@@ -137,7 +158,7 @@ class DBManager:
 
     @property
     def schema(self) -> brickschema.Graph:
-        """The brick schema as knowledge graph.
+        """The brick schema as a knowledge graph.
 
         Returns:
             brickschema.Graph: The brick schema in RDF format.
@@ -145,11 +166,20 @@ class DBManager:
         return self._g["schema"]
 
     @property
-    def expanded_model(self) -> brickschema.Graph:
-        """The brick schema as knowledge graph.
+    def schema_and_model(self) -> brickschema.Graph:
+        """The building model and brick schema as a knowledge graph.
 
         Returns:
-            brickschema.Graph: The brick schema in RDF format.
+            brickschema.Graph: The building model and brick schema in RDF format.
+        """
+        return self._g["schema+model"]
+
+    @property
+    def expanded_model(self) -> brickschema.Graph:
+        """The building model and brick schema after inference a knowledge graph.
+
+        Returns:
+            brickschema.Graph: The expanded building model in RDF format.
         """
         return self._g["expanded_model"]
 
@@ -179,16 +209,29 @@ class DBManager:
         defrag: bool = False,
         **kwargs,
     ) -> rdflib.query.Result | pd.DataFrame:
-        """Query the knowledge graph.
+        """Query the building model or brick schema knowledge graph with a SPARQL
+        query string.  Available graphs are:
+
+        - "model": The building model.
+        - "schema": The brick schema.
+        - "schema+model": The combination of the model and schema.
+        - "expanded_model": The model with the schema expanded, i.e. after
+            inference.
 
         Args:
             query_str (str): The SPARQL query string.
             graph (str, optional): The graph to query. Defaults to "model".
             return_df (bool, optional): Whether to return the results as a
                 DataFrame. Defaults to False.
+            defrag (bool, optional): Whether to defragment the URIs in the
+                DataFrame. Defaults to False.
+            **kwargs: Additional keyword arguments to pass to the query.
 
         Returns:
             rdflib.query.Result | pd.DataFrame: The query results.
+
+        Raises:
+            ValueError: If the graph is not found.
         """
         try:
             graph = self._g[graph]
@@ -255,6 +298,14 @@ class DBManager:
         for stream_id, data in stream_data.items():
             self.set_stream(stream_id, data)
 
+    def get_all_streams(self) -> dict[str, pd.DataFrame]:
+        """Get all streams in the database.
+
+        Returns:
+            dict[str, pd.DataFrame]: A dictionary of all stream data.
+        """
+        return self.data
+
     def get_stream_label(self, stream_id: str) -> str:
         """Get the Brick class of a given stream ID from the mapper file.
 
@@ -274,22 +325,31 @@ class DBManager:
 
         return record.iloc[0]
 
-    def _load_db(self, building=None):
-        # @tim: TODO: decide whether to keep/remove these filters
-        # Mappings for building B only, and ignore streams not saved to file
-        if building is not None:
-            self._mapper = self._mapper[self._mapper["Building"] == building]
+    def get_label(self, stream_id: str) -> str:
+        """Get the label for a given stream ID.
 
-        # pylint: disable=C0121
-        self._mapper = self._mapper[
-            self._mapper["Filename"].str.contains("FILE NOT SAVED") == False
-        ]
+        Args:
+            stream_id (str): The stream ID.
+
+        Returns:
+            str: The label for the given stream ID.
+
+        Raises:
+            KeyError: If the stream ID is not found in the mapper.
+        """
+        return self.get_stream_label(stream_id)
+
+    def _load_db(self) -> None:
+        """Load the stream data from the zip file into the database."""
 
         with zipfile.ZipFile(self._data_zip_path, "r") as db_zip:
+            # iterate through the files in the zip file
             for path in tqdm(db_zip.namelist(), desc="Reading stream data      "):
+                # ignore non-pickle files
                 if not path.endswith(".pkl"):
                     continue
 
+                # get the stream ID from the mapper
                 filename = Path(path).name
                 record = self._mapper.loc[
                     self._mapper["Filename"] == filename, "StreamID"
@@ -301,6 +361,7 @@ class DBManager:
 
                 stream_id = record.iloc[0]
 
+                # load the stream data from the pickle file
                 pkl_data = db_zip.read(path)
                 data = pickle.loads(pkl_data)
                 data_df = pd.DataFrame(data)
@@ -309,10 +370,11 @@ class DBManager:
                     inplace=True,
                 )
 
+                # set the stream data in the database
                 self._db[stream_id] = data_df
 
     @staticmethod
-    def defrag_uri(uri):
+    def defrag_uri(uri: rdflib.term.URIRef | str) -> str:
         """Extract the fragment (last path component) from a URI.
 
         Args:
@@ -327,28 +389,3 @@ class DBManager:
             elif "/" in uri:
                 return uri.split("/")[-1]
         return uri
-
-    def get_all_streams(self) -> dict[str, pd.DataFrame]:
-        """Get all streams in the database.
-
-        Returns:
-            dict[str, pd.DataFrame]: A dictionary of all stream data.
-        """
-        return self.data
-
-    def get_label(self, stream_id: str) -> str:
-        """Get the label for a given stream ID.
-
-        Args:
-            stream_id (str): The stream ID.
-
-        Returns:
-            str: The label for the given stream ID.
-
-        Raises:
-            KeyError: If the stream ID is not found in the mapper.
-        """
-        label = self._mapper.loc[self._mapper["StreamID"] == stream_id, "strBrickLabel"]
-        if label.empty:
-            raise KeyError(f"Stream ID {stream_id} not found in the mapper")
-        return label.iloc[0]
