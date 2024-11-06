@@ -10,13 +10,14 @@ from callbacks.general_callbacks import register_general_callbacks
 from callbacks.plot_callbacks import register_plot_callbacks
 from components.layout import create_layout
 from helpers.helpers import create_category_structure
+from models.types import PlotConfig
 from sampledata.plot_configs import sample_plot_configs
 
 # Name of the application
 APP_NAME = "Network in Progress"
 
 
-def create_app(plot_configs) -> Dash:
+def create_app(plot_configs: PlotConfig) -> Dash:
     """
     Initialize and configure the Dash application.
 
@@ -38,7 +39,7 @@ def create_app(plot_configs) -> Dash:
     categories_structure = (categories, category_key_mapping, subcategory_key_mapping)
 
     # Set the app layout
-    app.layout = create_layout(plot_configs, categories_structure)
+    app.layout = create_layout(categories_structure)
 
     # Register download, general and plot-related callbacks
     register_download_callbacks(app, plot_configs)
@@ -51,29 +52,34 @@ def create_app(plot_configs) -> Dash:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Building Time Series Visualization",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     # By enabling debug mode, the server will automatically reload if code changes,
     # and will show an interactive debugger in the browser if an error occurs
     # during a request.
     parser.add_argument(
-        "-d", "--debug", help="Enable Flask debug mode", action="store_true"
+        "-d",
+        "--debug",
+        help="Enable Flask debug mode (default: %(default)s)",
+        action="store_true",
     )
     parser.add_argument(
         "-a",
         "--host",
-        help="Host address used to serve the application",
+        help="Host address used to serve the application (default: %(default)s)",
         default="0.0.0.0",
     )
     parser.add_argument(
-        "-p", "--port", help="Port used to serve the application", default=8050
+        "-p",
+        "--port",
+        help="Port used to serve the application (default: %(default)s)",
+        default=8050,
     )
 
     # Optional test mode argument, will load sample data and visualisations if enabled
     parser.add_argument(
         "-t",
         "--test-mode",
-        help="Enable test mode (no file paths required)",
+        help="Run the app using built-in sample data (default: %(default)s)",
         action="store_true",
     )
 
@@ -83,7 +89,7 @@ if __name__ == "__main__":
     parser.add_argument("model", help="Path to the model ttl file", nargs="?")
     parser.add_argument(
         "schema",
-        help="Path to the schema ttl file",
+        help="Path to the schema ttl file (default: %(default)s, load latest Brick schema)",
         nargs="?",
         default=None,  # Will load the latest Brick schema if not provided
     )

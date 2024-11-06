@@ -59,7 +59,7 @@ def app_process():
 
 @pytest.fixture(scope="module")
 def driver(app_process):
-    """Initialize the Selenium WebDriver for Chrome.
+    """Initialize and yield a Selenium WebDriver instance for testing.
 
     Args:
         app_process (multiprocessing.Process): The process running the app.
@@ -84,34 +84,49 @@ def driver(app_process):
     driver_instance.quit()
 
 
-def test_sidebar_navigation(driver):
-    """Test navigation through the sidebar and logo button clicks.
+def test_invalid_url(driver):
+    """Verify that navigating to an invalid URL shows the appropriate error message.
 
     Args:
         driver (selenium.webdriver.Chrome): The Selenium WebDriver instance.
     """
-    driver.get(BASE_URL)
+    invalid_path = "/invalid-url"
 
-    wait = WebDriverWait(driver, 10)
+    # Navigate to the invalid URL
+    driver.get(BASE_URL + invalid_path)
 
-    # Verify the 'Home' link is clickable and click it
-    home_link = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, "Home")))
+    wait = WebDriverWait(driver, 20)
+
+    # Adjust XPath based on actual HTML structure
+    error_message_xpath = "//div[@id='page-content']//h4"
+
     try:
-        home_link.click()
-    except Exception:
-        driver.execute_script("arguments[0].click();", home_link)
+        # Wait for the error message element to be present
+        error_element = wait.until(
+            EC.presence_of_element_located((By.XPATH, error_message_xpath))
+        )
+        error_text = error_element.text.strip()
 
-    # Assert the URL is the homepage
-    wait.until(EC.url_to_be(f"{BASE_URL}/"))
-    assert driver.current_url == f"{BASE_URL}/"
+        # Use the exact error message from the application
+        expected_text = (
+            "No content available for invalid url. "
+            "Please select an option from the sidebar."
+        )
 
-    # Verify the 'Logo' button is clickable and click it
-    logo_button = wait.until(EC.element_to_be_clickable((By.ID, "logo-button")))
-    try:
-        logo_button.click()
-    except Exception:
-        driver.execute_script("arguments[0].click();", logo_button)
+        assert error_text == expected_text, (
+            f"Expected error message to be '{expected_text}', "
+            f"but got '{error_text}'."
+        )
 
-    # Assert the URL is the homepage after clicking the logo
-    wait.until(EC.url_to_be(f"{BASE_URL}/"))
-    assert driver.current_url == f"{BASE_URL}/"
+        print("Test Passed: Appropriate error message is displayed for invalid URL.")
+
+    except AssertionError as assertion_error:
+        # Print the actual error text for debugging
+        print(f"Test Failed. Actual error message: '{error_text}'")
+        pytest.fail(f"Test Failed: {assertion_error}")
+
+    except Exception as general_exception:
+        # Print the page source for debugging
+        print("Test Failed. Page source at the time of failure:")
+        print(driver.page_source)
+        pytest.fail(f"Test Failed: {general_exception}")

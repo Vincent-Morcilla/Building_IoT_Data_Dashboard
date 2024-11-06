@@ -1,15 +1,15 @@
 """
-This module identifies rooms in the building model that have an associated 
-air temperature sensor and air temperature setpoint, and for each, extracts 
-the timeseries data.  If the building also has an outside air temperature 
-sensor, the timeseries data for that sensor is also extracted.  The module
-returns a dictionary containing the analysis results.
+This module interprets and structures this hierarchy of locations, systems, equipment, and points of a building 
+in order to create an interactive visualization of the layout of a building. This hierarchy goes from the general 
+down through the levels of rooms and equipment to the systems they are connected with. Points will also be mapped 
+to their respective rooms, equipment, or systems in order for one to have detailed visualizations of them.
 
-@tim: TODO:
-    - consider error conditions (e.g. missing stream data)
-    - incorporate units (if available)
-    - write tests
-    - fix front-end code to be less hacky
+The module returns a dictionary of configuration that could be used in a frontend sunburst chart to let users 
+explore the building structure interactively.
+
+@bassel: TODO:
+    - Handle potential issues with missing or incomplete data in the hierarchy
+    - Implement comprehensive tests to validate hierarchy extraction
 """
 
 import pandas as pd
@@ -19,15 +19,16 @@ from analytics.dbmgr import DBManager  # only imported for type hinting
 
 def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:
     query = """
-        SELECT DISTINCT ?parent ?parentLabel ?child ?childLabel ?building ?buildingLabel ?entityType
+        SELECT DISTINCT ?parent ?parentLabel ?child ?childLabel ?building ?buildingLabel ?system ?systemLabel ?entityType
         WHERE {
             # Define the building
             ?building a brick:Building . 
             ?building a ?buildingLabel .
-            # BIND('Location' AS ?entityType)
-            # BIND('' AS ?parentLabel)
-            # BIND(?building AS ?child)
-            # BIND(?buildingLabel AS ?childLabel)
+            BIND('' AS ?parent)
+            BIND('' AS ?parentLabel)
+            BIND(?building AS ?child)
+            BIND(?buildingLabel AS ?childLabel)
+            BIND('Location' AS ?entityType)
 
             OPTIONAL {
                 # Match root node: building
@@ -39,22 +40,22 @@ def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:
                     BIND('' AS ?parentLabel)
                     BIND(?building AS ?child)
                     BIND(?buildingLabel AS ?childLabel)
+                    BIND('Location' AS ?entityType)
                 }
 
                 # Match System entities connected to building
                 UNION
                 {
-                    ?sys brick:hasLocation ?building .
+                    ?building a brick:Building . 
                     ?building a ?buildingLabel .
-                    ?sys a ?sysLabel .
-                    ?sysLabel brick:hasAssociatedTag tag:System . 
+                    ?system brick:hasLocation ?building .
+                    ?system a ?systemLabel .
+                    ?systemLabel brick:hasAssociatedTag tag:System . 
                     BIND(?building AS ?parent)
                     BIND(?buildingLabel AS ?parentLabel)
-                    BIND(?sys AS ?child)
-                    BIND(?sysLabel AS ?childLabel)
+                    BIND(?system AS ?child)
+                    BIND(?systemLabel AS ?childLabel)
                     BIND('System' AS ?entityType)
-                    # BIND(?sys AS ?system)
-                    # BIND(?sysLabel AS ?systemLabel)
                 }
 
                 # match equipments connected to building
@@ -174,7 +175,7 @@ def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:
                     BIND(?levelLabel AS ?parentLabel)
                     BIND(?sensor AS ?child)
                     BIND(?sensorLabel AS ?childLabel)
-                    BIND('Sensor' AS ?entityType)
+                    BIND('Point' AS ?entityType)
                 }    
 
                 # match sensors connected to rooms
@@ -189,7 +190,7 @@ def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:
                     BIND(?roomLabel AS ?parentLabel)
                     BIND(?sensor AS ?child)
                     BIND(?sensorLabel AS ?childLabel)
-                    BIND('Sensor' AS ?entityType)
+                    BIND('Point' AS ?entityType)
                 }
                 # sensor connected to an equipment in a room 
                 UNION {
@@ -204,7 +205,7 @@ def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:
                     BIND(?equip1Label AS ?parentLabel)
                     BIND(?sensor AS ?child)
                     BIND(?sensorLabel AS ?childLabel)
-                    BIND('Sensor' AS ?entityType)         
+                    BIND('Point' AS ?entityType)         
                 }
                 # sensor connected to equipment connected to another equipment
                 UNION {
@@ -221,7 +222,7 @@ def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:
                     BIND(?equip2Label AS ?parentLabel)
                     BIND(?sensor AS ?child)
                     BIND(?sensorLabel AS ?childLabel)
-                    BIND('Sensor' AS ?entityType)
+                    BIND('Point' AS ?entityType)
                 }
                 # sensors connected to equipment feeds a room
                 # UNION {
@@ -252,7 +253,7 @@ def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:
                     BIND(?equip2Label AS ?parentLabel)
                     BIND(?sensor AS ?child)
                     BIND(?sensorLabel AS ?childLabel)
-                    BIND('Sensor' AS ?entityType)
+                    BIND('Point' AS ?entityType)
                 }
 
                 # Match sensors connected to System entities connected to building
@@ -268,12 +269,12 @@ def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:
                     BIND(?systemLabel AS ?parentLabel)
                     BIND(?sensor AS ?child)
                     BIND(?sensorLabel AS ?childLabel)
-                    BIND('Sensor' AS ?entityType)    
+                    BIND('Point' AS ?entityType)    
                 }
             }    
         }
     """
-    return db.query(query, return_df=True, defrag=True)
+    return db.query(query, graph="schema+model", return_df=True, defrag=True)
 
 
 def _get_building_area(db: DBManager) -> pd.DataFrame:
@@ -322,27 +323,28 @@ def _get_building_area(db: DBManager) -> pd.DataFrame:
                     BIND(?roomLabel AS ?childLabel)
                     BIND('Location' AS ?entityType)
                 }
-                # # match all HVAC
-                # UNION {
-                #     ?level brick:isPartOf ?building .
-                #     ?room brick:isPartOf ?level .
-                #     ?room a ?roomLabel .
-                #     ?hvac brick:hasPart ?room .
-                #     ?hvac a ?hvacLabel .
-                #     BIND(?room AS ?parent) 
-                #     BIND(?roomLabel AS ?parentLabel)
-                #     BIND(?hvac AS ?child)
-                #     BIND(?hvacLabel AS ?childLabel)
-                # }
+                # match all HVAC
+                UNION {
+                    ?level brick:isPartOf ?building .
+                    ?room brick:isPartOf ?level .
+                    ?room a ?roomLabel .
+                    ?hvac brick:hasPart ?room .
+                    ?hvac a ?hvacLabel .
+                    BIND(?room AS ?parent) 
+                    BIND(?roomLabel AS ?parentLabel)
+                    BIND(?hvac AS ?child)
+                    BIND(?hvacLabel AS ?childLabel)
+                    BIND('Location' AS ?entityType)
+                }
             }    
         }
     """
-    return db.query(query, return_df=True, defrag=True)
+    return db.query(query, graph="schema+model", return_df=True, defrag=True)
 
 
 def run(db: DBManager) -> dict:
     """
-    Run the room climate analysis.
+    Run the building structure analysis.
 
     Parameters
     ----------
@@ -357,8 +359,6 @@ def run(db: DBManager) -> dict:
 
     data_hierarchy = _get_building_hierarchy(db)
 
-    # print(df.head())
-
     if data_hierarchy.empty:
         return {}
 
@@ -367,6 +367,7 @@ def run(db: DBManager) -> dict:
         data_hierarchy["childLabel"].str.split("#").str[-1].str.replace("_", " ")
     )
     data_hierarchy["parents"] = data_hierarchy["parent"].str.split("#").str[-1]
+    data_hierarchy["entityType"] = data_hierarchy["entityType"].apply(str)
 
     data_hierarchy = data_hierarchy[["ids", "labels", "parents", "entityType"]]
 
@@ -380,33 +381,124 @@ def run(db: DBManager) -> dict:
         df_area["childLabel"].str.split("#").str[-1].str.replace("_", " ")
     )
     df_area["parents"] = df_area["parent"].str.split("#").str[-1]
+    df_area["entityType"] = df_area["entityType"].apply(str)
 
     data_area = df_area[["ids", "labels", "parents", "entityType"]]
 
+    color_map = {
+        # "(?)":"black",
+        "Location": "LightCoral",
+        "System": "Lavender",
+        "Equipment": "#32BF84",
+        "Point": "Gold",
+    }
+
+    # Custom annotations for the legend
+    annotations = []
+    legend_y = 1.05  # Initial y position for the legend
+    spacing = 0.03
+
+    for category, color in color_map.items():
+        annotation = {
+            "x": 1.05,
+            "y": legend_y,
+            "xref": "paper",
+            "yref": "paper",
+            "showarrow": False,
+            "text": f"<span style='font-size:30px; color:{color};'>■</span> <span style='font-size:12px;'>{category}</span>",
+            "font": {"size": 12},
+        }
+        legend_y -= spacing
+        annotations.append(annotation)
+
     config = {
-        "BuildingStructure_BuildingHierarchy": {
-            "SunburstChart": {
-                "title": "Building Hierarchy",
-                "EntityID": "EntityID",
-                "EntityType": "EntityType",
-                "ParentID": "ParentID",
-                "BuildingID": "BuildingID",
-                "z-axis": "Level",
-                "z-axis_label": "Hierarchy Level",
-                "dataframe": data_hierarchy,
-            }
+        ("BuildingStructure", "BuildingHierarchy"): {
+            "title": None,
+            "components": [
+                {
+                    "type": "plot",
+                    "library": "px",
+                    "function": "sunburst",
+                    "id": "building-hierarchy-sunburst",
+                    "kwargs": {
+                        "data_frame": data_hierarchy,
+                        "parents": "parents",
+                        "names": "labels",
+                        "ids": "ids",
+                        "title": "Building Hierarchy",
+                        "height": 1000,
+                        "width": 1000,
+                        "color": "entityType",
+                        "color_discrete_map": color_map,
+                    },
+                    "layout_kwargs": {
+                        "title": {
+                            "text": "Building Hierarchy",
+                            "x": 0.5,
+                            "xanchor": "center",
+                            "font": {"size": 35},
+                        },
+                        "font_color": "black",
+                        "plot_bgcolor": "white",
+                        "coloraxis_colorbar": {
+                            "title": "Level",
+                            "orientation": "h",
+                            "yanchor": "top",
+                            "y": -0.2,
+                            "xanchor": "center",
+                            "x": 0.5,
+                        },
+                        "annotations": annotations,
+                    },
+                    "css": {
+                        "padding": "10px",
+                    },
+                },
+            ],
         },
-        "BuildingStructure_BuildingArea": {
-            "SunburstChart": {
-                "title": "Building Locations",
-                "EntityID": "AreaID",
-                "EntityType": "AreaType",
-                "ParentID": "ParentAreaID",
-                "BuildingID": "BuildingAreaID",
-                "z-axis": "AreaLevel",
-                "z-axis_label": "Area Level",
-                "dataframe": data_area,
-            }
+        ("BuildingStructure", "BuildingLocations"): {
+            "title": None,
+            "components": [
+                {
+                    "type": "plot",
+                    "library": "px",
+                    "function": "sunburst",
+                    "id": "building-locations-sunburst",
+                    "kwargs": {
+                        "data_frame": data_area,
+                        "parents": "parents",
+                        "names": "labels",
+                        "ids": "ids",
+                        "title": "Building Locations",
+                        "height": 1000,
+                        "width": 1000,
+                        "color": "entityType",
+                        "color_discrete_map": color_map,
+                    },
+                    "layout_kwargs": {
+                        "title": {
+                            "text": "Building Locations",
+                            "x": 0.5,
+                            "xanchor": "center",
+                            "font": {"size": 35},
+                        },
+                        "font_color": "black",
+                        "plot_bgcolor": "white",
+                        "coloraxis_colorbar": {
+                            "title": "Level",
+                            "orientation": "h",
+                            "yanchor": "top",
+                            "y": -0.2,
+                            "xanchor": "center",
+                            "x": 0.5,
+                        },
+                        "annotations": annotations,
+                    },
+                    "css": {
+                        "padding": "10px",
+                    },
+                },
+            ],
         },
     }
 

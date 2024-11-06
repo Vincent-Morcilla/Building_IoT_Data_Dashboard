@@ -1,11 +1,11 @@
-from typing import Dict, Any
 import pandas as pd
+from models.types import Filters, InputMapping, Transformation
 
 
 def apply_generic_filters(
     data_frame: pd.DataFrame,
-    filters: Dict[str, Any],
-    input_mapping: Dict[str, Any],
+    filters: Filters,
+    input_mapping: InputMapping,
 ) -> pd.DataFrame:
     """Apply generic filters to the DataFrame.
 
@@ -58,8 +58,8 @@ def apply_generic_filters(
 
 def apply_transformation(
     data_frame: pd.DataFrame,
-    transformation: Dict[str, Any],
-    input_mapping: Dict[str, Any],
+    transformation: Transformation,
+    input_mapping: InputMapping,
 ) -> pd.DataFrame:
     """Apply a transformation to the DataFrame.
 
