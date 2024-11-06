@@ -173,7 +173,7 @@ def update_components_based_on_grouped_table_selection_action(
                             stream_df,
                             left_index=True,
                             right_index=True,
-                            how="outer"
+                            how="outer",
                         )
                 except Exception as stream_error:
                     print(f"Error processing stream {stream_id}: {str(stream_error)}")
@@ -184,7 +184,9 @@ def update_components_based_on_grouped_table_selection_action(
                 streams_df = streams_df.rename(columns={"index": "time"})
 
                 # Get step function percentage
-                step_function_pct = grouped_table_data[grouped_table_data["Brick Class"] == selected_value]["Step Function Percentage"].iloc[0]
+                step_function_pct = grouped_table_data[
+                    grouped_table_data["Brick Class"] == selected_value
+                ]["Step Function Percentage"].iloc[0]
 
                 # Create color and dash sequences based on step function status
                 colors = []
@@ -192,9 +194,15 @@ def update_components_based_on_grouped_table_selection_action(
                 for col in streams_df.columns:
                     if col.startswith("Stream_"):
                         stream_id = col.replace("Stream_", "")
-                        full_stream_id = [sid for sid in table_data["Stream ID"] if sid.startswith(stream_id)][0]
-                        is_step = table_data[table_data["Stream ID"] == full_stream_id]["Is Step Function"].iloc[0]
-                        
+                        full_stream_id = [
+                            sid
+                            for sid in table_data["Stream ID"]
+                            if sid.startswith(stream_id)
+                        ][0]
+                        is_step = table_data[table_data["Stream ID"] == full_stream_id][
+                            "Is Step Function"
+                        ].iloc[0]
+
                         # Determine if this stream should be highlighted
                         should_highlight = False
                         if step_function_pct != 0 and step_function_pct != 100:
@@ -202,9 +210,11 @@ def update_components_based_on_grouped_table_selection_action(
                                 should_highlight = is_step
                             else:
                                 should_highlight = not is_step
-                        
+
                         colors.append("#808080" if should_highlight else None)
-                        dash_patterns.append("solid")#"dash" if should_highlight else "solid")
+                        dash_patterns.append(
+                            "solid"
+                        )  # "dash" if should_highlight else "solid")
 
                 plot_component = {
                     "type": "plot",
@@ -214,11 +224,15 @@ def update_components_based_on_grouped_table_selection_action(
                     "kwargs": {
                         "data_frame": streams_df,
                         "x": "time",
-                        "y": [col for col in streams_df.columns if col.startswith("Stream_")],
+                        "y": [
+                            col
+                            for col in streams_df.columns
+                            if col.startswith("Stream_")
+                        ],
                         "title": f"All {selected_value} Streams (Step Function Percentage: {step_function_pct}%)",
                         "labels": {"time": "Date", "value": "Value"},
                         "color_discrete_sequence": colors,
-                        "line_dash_sequence": dash_patterns
+                        "line_dash_sequence": dash_patterns,
                     },
                     "layout_kwargs": {
                         "xaxis_title": "Date",

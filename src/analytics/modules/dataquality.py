@@ -11,16 +11,18 @@ import pandas as pd
 from analytics.dbmgr import DBManager
 
 
-def _detect_step_function_behavior(values, percentage_threshold=0.1, constant_diff=1, unique_values_threshold=5):
+def _detect_step_function_behavior(
+    values, percentage_threshold=0.1, constant_diff=1, unique_values_threshold=5
+):
     """
     Detect if a time series behaves like a step function.
-    
+
     Args:
         values (np.array): Array of sensor values
         percentage_threshold (float): Threshold for relative change (default: 0.1)
         constant_diff (float): Value for divide-by-zero cases (default: 1)
         unique_values_threshold (int): Threshold for unique values (default: 5)
-    
+
     Returns:
         dict: Dictionary containing step function metrics
     """
@@ -28,37 +30,39 @@ def _detect_step_function_behavior(values, percentage_threshold=0.1, constant_di
         return {
             "percentage_flat": None,
             "unique_values_count": None,
-            "is_step_function": None
+            "is_step_function": None,
         }
 
     # Calculate differences between consecutive values
     differences = np.diff(values)
-    
+
     # Handle zero and near-zero values more robustly
     prev_values = values[:-1]
     relative_differences = np.zeros_like(differences, dtype=float)
-    
+
     # Mask for non-zero values
     non_zero_mask = np.abs(prev_values) > 1e-10
-    
+
     # Calculate relative differences only for non-zero values
-    relative_differences[non_zero_mask] = np.abs(
-        differences[non_zero_mask] / prev_values[non_zero_mask]
-    ) * 100
-    
+    relative_differences[non_zero_mask] = (
+        np.abs(differences[non_zero_mask] / prev_values[non_zero_mask]) * 100
+    )
+
     # For zero values, use absolute differences
     relative_differences[~non_zero_mask] = np.abs(differences[~non_zero_mask])
-    
+
     # Calculate metrics
     flat_regions = relative_differences < percentage_threshold
     percentage_flat = np.sum(flat_regions) / len(differences) * 100
     unique_values_count = len(np.unique(values))
-    is_step_function = (percentage_flat > 90) and (unique_values_count <= unique_values_threshold)
+    is_step_function = (percentage_flat > 90) and (
+        unique_values_count <= unique_values_threshold
+    )
 
     return {
         "percentage_flat": percentage_flat,
         "unique_values_count": unique_values_count,
-        "is_step_function": is_step_function
+        "is_step_function": is_step_function,
     }
 
 
@@ -254,8 +258,9 @@ def _create_summary_table(data_quality_df):
                 "Group Mean": "first",
                 "Group Std": "first",
                 "Total Gap Size (s)": "sum",
-                "Is Step Function": lambda x: (x.sum() / len(x) * 100).round(2),  # Add this line
-
+                "Is Step Function": lambda x: (x.sum() / len(x) * 100).round(
+                    2
+                ),  # Add this line
             }
         )
         .reset_index()
@@ -269,7 +274,12 @@ def _create_summary_table(data_quality_df):
         ).dt.total_seconds()
         * 100
     ).round(2)
-    summary_table = summary_table.rename(columns={"Stream ID": "Number of Streams", "Is Step Function": "Step Function Percentage"})
+    summary_table = summary_table.rename(
+        columns={
+            "Stream ID": "Number of Streams",
+            "Is Step Function": "Step Function Percentage",
+        }
+    )
 
     return summary_table
 
