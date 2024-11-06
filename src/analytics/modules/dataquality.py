@@ -440,6 +440,7 @@ def _build_components(df: pd.DataFrame, stream_id: str, title: str) -> list:
         }
     ]
 
+
 def generate_green_scale(n_colors):
     """Generate a green color scale with the specified number of colors."""
     import numpy as np
@@ -516,40 +517,29 @@ def run(db: DBManager) -> dict:
                         "columns": [{"name": i, "id": i} for i in ["Metric", "Value"]],
                         "export_format": "csv",
                         "fixed_rows": {"headers": True},
-                        # "style_header": {
-                        #     "fontWeight": "bold",
-                        #     "backgroundColor": "#3c9639",
-                        #     "color": "white",
-                        #     "textAlign": "center",  # Center header text
-                        # },
-                        # "style_data": {"textAlign": "center"},  # Center all cell data
-                        # "style_table": {
-                        #     "height": 1000,
-                        #     "overflowX": "auto",
-                        # },
                         "style_header": {
                             "fontWeight": "bold",
                             "backgroundColor": "#3c9639",
                             "color": "white",
                             "textAlign": "center",
                             "whiteSpace": "normal",  # Allow text wrapping in headers
-                            "height": "auto",        # Adjust height automatically
-                            "minWidth": "100px",     # Minimum width for columns
+                            "height": "auto",  # Adjust height automatically
+                            "minWidth": "100px",  # Minimum width for columns
                         },
                         "style_cell": {
                             "textAlign": "center",
                             "padding": "10px",
                             "whiteSpace": "normal",  # Allow text wrapping in cells
                             "height": "auto",
-                            "minWidth": "100px",     # Minimum width for columns
-                            "maxWidth": "180px",     # Maximum width for columns
+                            "minWidth": "100px",  # Minimum width for columns
+                            "maxWidth": "180px",  # Maximum width for columns
                             "overflow": "hidden",
-                            "textOverflow": "ellipsis"
+                            "textOverflow": "ellipsis",
                         },
                         "style_table": {
                             "height": 600,
                             "overflowX": "auto",
-                            "minWidth": "100%",      # Table takes full width
+                            "minWidth": "100%",  # Table takes full width
                         },
                         "style_data_conditional": [
                             {
@@ -779,39 +769,32 @@ def run(db: DBManager) -> dict:
                         "fixed_rows": {"headers": True},
                         "sort_action": "native",
                         "sort_mode": "multi",
-                        # "style_header": {
-                        #     "fontWeight": "bold",
-                        #     "backgroundColor": "#3c9639",
-                        #     "color": "white",
-                        #     "textAlign": "center",  # Center header text
-                        # },
                         "style_header": {
                             "fontWeight": "bold",
                             "backgroundColor": "#3c9639",
                             "color": "white",
                             "textAlign": "center",
                             "whiteSpace": "normal",  # Allow text wrapping in headers
-                            "height": "auto",        # Adjust height automatically
-                            "minWidth": "100px",     # Minimum width for columns
-                            "textAlign": "center"
+                            "height": "auto",  # Adjust height automatically
+                            "minWidth": "100px",  # Minimum width for columns
+                            "textAlign": "center",
                         },
                         "style_cell": {
                             "textAlign": "center",
                             "padding": "10px",
                             "whiteSpace": "normal",  # Allow text wrapping in cells
                             "height": "auto",
-                            "minWidth": "100px",     # Minimum width for columns
-                            "maxWidth": "180px",     # Maximum width for columns
+                            "minWidth": "100px",  # Minimum width for columns
+                            "maxWidth": "180px",  # Maximum width for columns
                             "overflow": "hidden",
                             "textOverflow": "ellipsis",
                         },
                         "style_table": {
                             "height": 1500,
                             "overflowX": "auto",
-                            "minWidth": "100%",      # Table takes full width
+                            "minWidth": "100%",  # Table takes full width
                         },
                         "style_data": {"textAlign": "center"},  # Center all cell data
-
                         "style_data_conditional": [
                             {
                                 "if": {"row_index": "odd"},
@@ -907,23 +890,23 @@ def run(db: DBManager) -> dict:
                             "color": "white",
                             "textAlign": "center",
                             "whiteSpace": "normal",  # Allow text wrapping in headers
-                            "height": "auto",        # Adjust height automatically
-                            "minWidth": "100px",     # Minimum width for columns
+                            "height": "auto",  # Adjust height automatically
+                            "minWidth": "100px",  # Minimum width for columns
                         },
                         "style_cell": {
                             "textAlign": "center",
                             "padding": "10px",
                             "whiteSpace": "normal",  # Allow text wrapping in cells
                             "height": "auto",
-                            "minWidth": "100px",     # Minimum width for columns
-                            "maxWidth": "180px",     # Maximum width for columns
+                            "minWidth": "100px",  # Minimum width for columns
+                            "maxWidth": "180px",  # Maximum width for columns
                             "overflow": "hidden",
                             "textOverflow": "ellipsis",
                         },
                         "style_table": {
                             "height": 1500,
                             "overflowX": "auto",
-                            "minWidth": "100%",      # Table takes full width
+                            "minWidth": "100%",  # Table takes full width
                         },
                         "style_data": {"textAlign": "center"},  # Center all cell data
                     },
