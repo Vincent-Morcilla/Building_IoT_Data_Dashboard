@@ -1,6 +1,12 @@
+"""
+TODO: Add module description
+"""
+
 from typing import List, Dict, Any
+
 from dash import html
 import pandas as pd
+
 from components.plot_generator import (
     create_plot_component,
     create_ui_component,

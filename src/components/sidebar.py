@@ -1,5 +1,10 @@
+"""
+TODO: Add module description
+"""
+
 from dash import html
 import dash_bootstrap_components as dbc
+
 from models.types import Categories, NavLinks
 
 

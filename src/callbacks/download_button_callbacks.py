@@ -1,7 +1,11 @@
+"""
+TODO: Add module description
+"""
+
 import hashlib
 import io
-import zipfile
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
+import zipfile
 
 import pandas as pd
 from dash import Dash, dcc

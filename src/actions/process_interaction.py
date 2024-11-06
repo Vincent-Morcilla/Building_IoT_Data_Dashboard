@@ -1,6 +1,12 @@
+"""
+TODO: Add module description
+"""
+
 import copy
 from typing import List, Dict, Any
+
 from dash import no_update
+
 from components.plot_generator import (
     create_plot_component,
     find_component_by_id,

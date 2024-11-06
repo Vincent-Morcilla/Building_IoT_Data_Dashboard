@@ -1,5 +1,10 @@
+"""
+TODO: Add module description
+"""
+
 from dash import dcc, html
 import dash_bootstrap_components as dbc
+
 from components.sidebar import generate_sidebar
 from models.types import CategoriesStructure
 

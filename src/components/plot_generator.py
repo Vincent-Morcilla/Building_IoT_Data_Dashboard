@@ -1,8 +1,14 @@
+"""
+TODO: Add module description
+"""
+
+from typing import Any, Dict, List
+
 from dash import dcc, html, dash_table
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-from typing import Any, Dict, List
+
 from components.download_button import create_global_download_button
 from helpers.data_processing import apply_transformation
 from models.types import (
