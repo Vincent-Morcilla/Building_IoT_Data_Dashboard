@@ -192,7 +192,7 @@ def _build_plot_config(table: pd.DataFrame, timeseries_data_dict: dict) -> dict:
 
     # If there are more than 20 rooms, enable filtering
     if len(table) > 20:
-        plot_config[("RoomClimate", "RoomClimate")]["components"][1]["kwargs"][
+        plot_config[("RoomClimate", "RoomClimate")]["components"][2]["kwargs"][
             "filter_action"
         ] = "native"
 
