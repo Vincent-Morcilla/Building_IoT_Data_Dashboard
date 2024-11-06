@@ -440,6 +440,7 @@ def _build_components(df: pd.DataFrame, stream_id: str, title: str) -> list:
         }
     ]
 
+
 def generate_green_scale(n_colors):
     """Generate a green color scale with the specified number of colors."""
     import numpy as np

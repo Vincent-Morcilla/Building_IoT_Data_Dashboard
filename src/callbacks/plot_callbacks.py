@@ -97,6 +97,7 @@ def process_interaction_action(
 
     return output_results
 
+
 def update_components_based_on_grouped_table_selection_action(
     plot_configs,
     input_values,
@@ -235,16 +236,23 @@ def update_components_based_on_grouped_table_selection_action(
         if db is None:
             error_message += "Database connection not provided. "
         if index_column != "Brick Class":
-            error_message += f"Expected index_column 'Brick Class' but got '{index_column}'. "
-        
-        output_results.append([
-            html.Div([
-                html.H4("Configuration Error"),
-                html.P(error_message),
-                html.Pre(f"Data source: {data_source}\nIndex column: {index_column}")
-            ])
-        ])
+            error_message += (
+                f"Expected index_column 'Brick Class' but got '{index_column}'. "
+            )
 
+        output_results.append(
+            [
+                html.Div(
+                    [
+                        html.H4("Configuration Error"),
+                        html.P(error_message),
+                        html.Pre(
+                            f"Data source: {data_source}\nIndex column: {index_column}"
+                        ),
+                    ]
+                )
+            ]
+        )
 
     return output_results
 
@@ -379,7 +387,7 @@ def register_plot_callbacks(app: Dash, plot_configs: PlotConfig) -> None:
     action_functions = {
         "process_interaction": process_interaction_action,
         "update_components_based_on_table_selection": update_components_based_on_table_selection_action,
-        "update_components_based_on_grouped_table_selection": update_components_based_on_grouped_table_selection_action
+        "update_components_based_on_grouped_table_selection": update_components_based_on_grouped_table_selection_action,
     }
 
     for category_key, config in plot_configs.items():
