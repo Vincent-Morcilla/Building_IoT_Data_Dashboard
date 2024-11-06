@@ -66,13 +66,19 @@ if __name__ == "__main__":
         "-a",
         "--host",
         help="Host address used to serve the application (default: %(default)s)",
-        default="0.0.0.0",
+        default="127.0.0.1",
     )
     parser.add_argument(
         "-p",
         "--port",
         help="Port used to serve the application (default: %(default)s)",
         default=8050,
+    )
+    parser.add_argument(
+        "-b",
+        "--building",
+        help="Filter mapper and data based on building (default: %(default)s)",
+        default=None,
     )
 
     # Optional test mode argument, will load sample data and visualisations if enabled
@@ -112,7 +118,7 @@ if __name__ == "__main__":
     if args.test_mode:
         plot_configs = sample_plot_configs
     else:
-        db = DBManager(args.data, args.mapper, args.model, args.schema)
+        db = DBManager(args.data, args.mapper, args.model, args.schema, args.building)
         am = AnalyticsManager(db)
         plot_configs = am.run_analytics()
 
