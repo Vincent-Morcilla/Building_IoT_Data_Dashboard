@@ -75,22 +75,24 @@ Open [http://127.0.0.1:8050](http://127.0.0.1:8050) in your browser.
 Help is available by passing the `-h` or `--help` options:
 
 ```sh
-usage: app.py [-h] [-d] [-a HOST] [-p PORT] [-t] [data] [mapper] [model] [schema]
+usage: app.py [-h] [-d] [-a HOST] [-p PORT] [-b BUILDING] [-t] [data] [mapper] [model] [schema]
 
 Building Time Series Visualization
 
 positional arguments:
-  data                  Path to the timeseries zip file (default: None)
-  mapper                Path to the mapper csv file (default: None)
-  model                 Path to the model ttl file (default: None)
-  schema                Path to the schema ttl file (default: None)
+  data                  Path to the timeseries zip file
+  mapper                Path to the mapper csv file
+  model                 Path to the model ttl file
+  schema                Path to the schema ttl file (default: None, load latest Brick schema)
 
 options:
   -h, --help            show this help message and exit
   -d, --debug           Enable Flask debug mode (default: False)
-  -a HOST, --host HOST  Host address used to serve the application (default: 0.0.0.0)
+  -a HOST, --host HOST  Host address used to serve the application (default: 127.0.0.1)
   -p PORT, --port PORT  Port used to serve the application (default: 8050)
-  -t, --test-mode       Enable test mode (no file paths required) (default: False)
+  -b BUILDING, --building BUILDING
+                        Filter mapper and data based on building (default: None)
+  -t, --test-mode       Run the app using built-in sample data (default: False)
 ```
 
 ---
