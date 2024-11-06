@@ -93,8 +93,8 @@ def test_homepage_title(driver):
     """
     driver.get(BASE_URL)
 
-    wait = WebDriverWait(driver, 30)
-    time.sleep(10)
+    wait = WebDriverWait(driver, 10)
+
     # Verify the page title
     assert driver.title == "Network in Progress"
 
@@ -102,6 +102,7 @@ def test_homepage_title(driver):
     wait.until(EC.presence_of_element_located((By.CLASS_NAME, "title-logo")))
 
     # Check if the homepage content (image and paragraph) is rendered
+    time.sleep(5)
     title_logo = driver.find_element(By.CLASS_NAME, "title-logo")
     assert title_logo.get_attribute("alt") == "Title-Logo"
 
