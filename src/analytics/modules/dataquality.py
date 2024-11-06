@@ -790,7 +790,7 @@ def run(db: DBManager) -> dict:
                             "component_property": "children",
                         },
                     ],
-                    "action": "update_components_based_on_table_selection",
+                    "action": "update_components_based_on_grouped_table_selection",
                     "data_source": {
                         "table_data": data_quality_df,
                         "grouped_table_data": summary_table_df,
