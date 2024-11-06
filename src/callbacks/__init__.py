@@ -4,11 +4,11 @@ Callbacks module for app interactivity and data-driven updates.
 This module manages the callbacks that enable user interactions with 
 plots, filters, and other dynamic components in the app.
 
-Files:
-    download_button_callbacks.py: Handles callbacks for the download button, 
-                                  packaging data into downloadable CSV files.
-    general_callbacks.py: Manages general callbacks, such as page routing 
-                          and logo navigation.
-    plot_callbacks.py: Contains callbacks specific to interactive plot components, 
-                       including filtering and data updates.
+Modules:
+    - download_button_callbacks: Manages callbacks for downloading data in CSV format.
+    - general_callbacks: Handles general app interactions such as page routing 
+                         and logo navigation.
+    - plot_callbacks: Registers plot-specific callbacks, integrating both generalised 
+                      and customised functions from the `actions` folder to apply 
+                      filters, transformations, and other dynamic updates.
 """

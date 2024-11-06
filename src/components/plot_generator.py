@@ -4,6 +4,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from typing import Any, Dict, List
 from components.download_button import create_global_download_button
+from helpers.data_processing import apply_transformation
 from models.types import (
     DataMappings,
     DataProcessingConfig,
@@ -148,20 +149,20 @@ def create_go_figure(
 
 
 def process_data_frame(
-    data_frame: pd.DataFrame, data_processing: DataProcessingConfig
+    data_frame: pd.DataFrame, data_processing: Dict[str, Any]
 ) -> pd.DataFrame:
-    """Process the data frame according to the data_processing instructions.
+    """Process the data frame by applying filters, grouping/aggregation, and transformations.
 
     Args:
         data_frame (pd.DataFrame): The data frame to process.
-        data_processing (DataProcessingConfig): Instructions for processing the data frame.
+        data_processing (Dict): Instructions for processing, including filters, groupby, and transformations.
 
     Returns:
         pd.DataFrame: The processed data frame.
     """
     df = data_frame.copy()
 
-    # Apply filtering
+    # Step 1: Apply filtering
     filters = data_processing.get("filter", {})
     for column, value in filters.items():
         if column not in df.columns:
@@ -173,9 +174,9 @@ def process_data_frame(
 
     if df.empty:
         print("Warning: DataFrame is empty after filtering.")
-        return df  # Return the empty DataFrame
+        return df  # Return the empty DataFrame if no data remains after filtering
 
-    # Apply grouping and aggregation
+    # Step 2: Apply grouping and aggregation
     groupby_columns = data_processing.get("groupby", [])
     aggregations = data_processing.get("aggregation", {})
     if groupby_columns and aggregations:
@@ -196,7 +197,7 @@ def process_data_frame(
             return df
         df = df.groupby(groupby_columns).agg(**agg_dict).reset_index()
 
-    # Apply explode transformation
+    # Step 3: Apply transformations
     transformations = data_processing.get("transformations", [])
     for transformation in transformations:
         if transformation["type"] == "explode":
@@ -207,7 +208,6 @@ def process_data_frame(
                     raise ValueError(
                         f"Column '{column}' cannot be exploded. Ensure it contains lists."
                     )
-
     return df
 
 
@@ -277,7 +277,13 @@ def map_data_to_trace(
 
     Returns:
         Dict[str, Any]: Keyword arguments for the trace.
+
+    Raises:
+        ValueError: If `data_mappings` is not a dictionary.
     """
+    if not isinstance(data_mappings, dict):
+        raise ValueError("`data_mappings` must be a dictionary.")
+
     trace_kwargs = {}
     for arg, col in data_mappings.items():
         if col in data_frame.columns:
