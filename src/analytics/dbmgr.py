@@ -36,7 +36,9 @@ class DBManager:
         DBManager: An instance of the DBManager class
     """
 
-    def __init__(self, data_zip_path, mapper_path, model_path, schema_path=None):
+    def __init__(
+        self, data_zip_path, mapper_path, model_path, schema_path=None, building=None
+    ):
         """Initialize the DBManager.
 
         Args:
@@ -87,7 +89,7 @@ class DBManager:
         self._g["expanded_model"].expand(profile="rdfs")
 
         self._db = {}
-        self._load_db()
+        self._load_db(building)
 
     def __len__(self) -> int:
         """Get the number of streams in the database.
@@ -272,10 +274,13 @@ class DBManager:
 
         return record.iloc[0]
 
-    def _load_db(self):
+    def _load_db(self, building=None):
         # @tim: TODO: decide whether to keep/remove these filters
         # Mappings for building B only, and ignore streams not saved to file
-        self._mapper = self._mapper[self._mapper["Building"] == "B"]
+        if building is not None:
+            self._mapper = self._mapper[self._mapper["Building"] == building]
+
+        # pylint: disable=C0121
         self._mapper = self._mapper[
             self._mapper["Filename"].str.contains("FILE NOT SAVED") == False
         ]
