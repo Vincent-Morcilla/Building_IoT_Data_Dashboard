@@ -23,6 +23,9 @@ git lfs pull
 
 ### Run in Docker
 
+Ensure you have the [Docker Engine](https://docs.docker.com/engine/install/) 
+installed and that Docker is running.
+
 In the root directory of the repository run:
 
 ```sh
