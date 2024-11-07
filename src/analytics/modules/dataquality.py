@@ -108,28 +108,47 @@ def _preprocess_to_sensor_rows(db: DBManager):
 
 def _profile_groups(df):
     """
-    Calculate group statistics for sensor data.
+    Calculate group statistics for sensor data and flag outlier sensors.
 
     Args:
         df (pd.DataFrame): Preprocessed sensor data.
 
     Returns:
-        pd.DataFrame: Sensor data with added group statistics.
+        pd.DataFrame: Sensor data with added group statistics and flags.
     """
-    grouped = df.groupby("Label")
+    # Create a copy to avoid modifying the original
+    result = df.copy()
 
-    def calculate_group_stats(group):
-        return pd.Series(
-            {
-                "Group_Mean": group["Sensor_Mean"].mean(),
-                "Group_Std": group["Sensor_Mean"].std(),
-                "Group_Min": group["Sensor_Min"].min(),
-                "Group_Max": group["Sensor_Max"].max(),
-            }
+    # Initialize columns
+    result["Group_Mean"] = np.nan
+    result["Group_Std"] = np.nan
+    result["Flagged For Removal"] = 0  # Initialize with zeros
+
+    # Group by Label
+    for label, group in df.groupby("Label"):
+        # Calculate group statistics
+        group_mean = group["Sensor_Mean"].mean()
+        group_std = group["Sensor_Mean"].std()
+
+        # Store group statistics
+        result.loc[group.index, "Group_Mean"] = group_mean
+        result.loc[group.index, "Group_Std"] = group_std
+
+        # Skip flagging if group_std is 0 (usually setpoints)
+        if group_std == 0:
+            continue
+
+        # Calculate limits
+        lower_limit = group_mean - 3 * group_std
+        upper_limit = group_mean + 3 * group_std
+
+        # Flag sensors outside the limits
+        flags = (group["Sensor_Mean"] < lower_limit) | (
+            group["Sensor_Mean"] > upper_limit
         )
+        result.loc[group.index, "Flagged For Removal"] = flags.astype(int)
 
-    group_stats = grouped.apply(calculate_group_stats)
-    return df.merge(group_stats, left_on="Label", right_index=True)
+    return result
 
 
 def _analyse_sensor_gaps(df):
@@ -174,7 +193,6 @@ def _analyse_sensor_gaps(df):
         medium_gap = np.sum((normalised_diffs > 3) & (normalised_diffs <= 6))
         large_gap = np.sum(normalised_diffs > 6)
         total_gaps = small_gap + medium_gap + large_gap
-
         time_delta_seconds = (timestamps.iloc[-1] - timestamps.iloc[0]).total_seconds()
         total_gap_intervals = sum(diff - 1 for diff in normalised_diffs if diff > 1.5)
         total_gap_size_seconds = total_gap_intervals * granularity_in_seconds
@@ -226,6 +244,7 @@ def _prepare_data_quality_df(df: pd.DataFrame) -> pd.DataFrame:
             "Sensor Mean": df["Sensor_Mean"].round(2),
             "Sensor Min": df["Sensor_Min"],
             "Sensor Max": df["Sensor_Max"],
+            "Flagged For Removal": df["Flagged For Removal"],
             "Start Timestamp": df["Start_Timestamp"],
             "End Timestamp": df["End_Timestamp"],
             "Flat Regions %": df["Percentage_Flat_Regions"].round(2),
@@ -258,6 +277,7 @@ def _create_summary_table(data_quality_df):
                 "Group Mean": "first",
                 "Group Std": "first",
                 "Total Gap Size (s)": "sum",
+                "Flagged For Removal": "sum",
                 "Is Step Function": lambda x: (x.sum() / len(x) * 100).round(
                     2
                 ),  # Add this line
@@ -332,6 +352,7 @@ def _get_data_quality_overview(data_quality_df):
                 "Total Medium Gaps",
                 "Total Large Gaps",
                 "Average Gap Percentage",
+                "Sensors Flagged For Removal",
                 "Step Function Sensors",
             ],
             "Value": [
@@ -342,6 +363,7 @@ def _get_data_quality_overview(data_quality_df):
                 data_quality_df["Medium Gaps"].sum(),
                 data_quality_df["Large Gaps"].sum(),
                 f"{data_quality_df['Gap Percentage'].mean():.2%}",
+                data_quality_df["Flagged For Removal"].sum(),
                 data_quality_df["Is Step Function"].sum(),
             ],
         }
@@ -698,6 +720,98 @@ def run(db: DBManager) -> dict:
                     "type": "plot",
                     "library": "go",
                     "function": "Figure",
+                    "id": "data-quality-flagged-pie",
+                    "data_frame": pd.DataFrame(
+                        {
+                            "Status": ["Not Flagged", "Flagged"],
+                            "Count": [
+                                len(
+                                    data_quality_df[
+                                        data_quality_df["Flagged For Removal"] == 0
+                                    ]
+                                ),
+                                len(
+                                    data_quality_df[
+                                        data_quality_df["Flagged For Removal"] == 1
+                                    ]
+                                ),
+                            ],
+                        }
+                    ),
+                    "trace_type": "Pie",
+                    "data_mappings": {"labels": "Status", "values": "Count"},
+                    "kwargs": {
+                        "textinfo": "percent+label",
+                        "textposition": "inside",
+                        "showlegend": False,
+                        "marker": {"colors": ["#2d722c", "#3c9639"]},
+                    },
+                    "layout_kwargs": {
+                        "title": {
+                            "text": "Flagged Sensors Distribution",
+                            "font_color": "black",
+                            "x": 0.5,
+                            "xanchor": "center",
+                        },
+                    },
+                    "css": {
+                        "width": "50%",
+                        "display": "inline-block",
+                        "padding": "5px",
+                        "marginTop": "0%",
+                        "marginBottom": "5%",
+                    },
+                },
+                {
+                    "type": "plot",
+                    "library": "go",
+                    "function": "Figure",
+                    "id": "data-quality-stepfunction-pie",
+                    "data_frame": pd.DataFrame(
+                        {
+                            "Status": ["Not Step Function", "Step Function"],
+                            "Count": [
+                                len(
+                                    data_quality_df[
+                                        data_quality_df["Is Step Function"] == False
+                                    ]
+                                ),
+                                len(
+                                    data_quality_df[
+                                        data_quality_df["Is Step Function"] == True
+                                    ]
+                                ),
+                            ],
+                        }
+                    ),
+                    "trace_type": "Pie",
+                    "data_mappings": {"labels": "Status", "values": "Count"},
+                    "kwargs": {
+                        "textinfo": "percent+label",
+                        "textposition": "inside",
+                        "showlegend": False,
+                        "marker": {"colors": ["#2d722c", "#3c9639"]},
+                    },
+                    "layout_kwargs": {
+                        "title": {
+                            "text": "Step Function Distribution",
+                            "font_color": "black",
+                            "x": 0.5,
+                            "xanchor": "center",
+                        },
+                    },
+                    "css": {
+                        "width": "50%",
+                        "display": "inline-block",
+                        "padding": "5px",
+                        "marginTop": "0%",
+                        "marginBottom": "5%",
+                    },
+                },
+                {
+                    "type": "plot",
+                    "library": "go",
+                    "function": "Figure",
                     "id": "data-quality-stream-histogram",
                     "data_frame": data_quality_df.groupby("Brick Class")
                     .size()
@@ -942,6 +1056,7 @@ def run(db: DBManager) -> dict:
                                 "Sensor Mean",
                                 "Sensor Min",
                                 "Sensor Max",
+                                "Flagged For Removal",
                                 "Start Timestamp",
                                 "End Timestamp",
                                 "Flat Regions %",
@@ -959,7 +1074,11 @@ def run(db: DBManager) -> dict:
                             {
                                 "if": {"row_index": "odd"},
                                 "backgroundColor": "#ddf2dc",
-                            }
+                            },
+                            {
+                                "if": {"filter_query": "{Flagged For Removal} gt 0"},
+                                "backgroundColor": "#ffcccb",  # Light red background for flagged sensors
+                            },
                         ],
                         "style_header": {
                             "fontWeight": "bold",
@@ -976,12 +1095,12 @@ def run(db: DBManager) -> dict:
                             "whiteSpace": "normal",  # Allow text wrapping in cells
                             "height": "auto",
                             "minWidth": "100px",  # Minimum width for columns
-                            "maxWidth": "180px",  # Maximum width for columns
+                            "maxWidth": "350px",  # Maximum width for columns
                             "overflow": "hidden",
                             "textOverflow": "ellipsis",
                         },
                         "style_table": {
-                            "height": 1500,
+                            "height": 2000,
                             "overflowX": "auto",
                             "minWidth": "100%",  # Table takes full width
                         },
