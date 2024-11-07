@@ -2,7 +2,6 @@ import pytest
 from unittest.mock import patch
 from dash import html
 import pandas as pd
-
 from actions.update_components_based_on_table_selection import (
     update_components_based_on_table_selection_action,
 )

@@ -3,6 +3,7 @@ import pandas as pd
 import plotly.graph_objects as go
 from components.plot_generator import create_go_figure
 
+
 # Sample data for testing
 df = pd.DataFrame(
     {"Category": ["A", "B", "C", "A", "B", "C"], "Value": [10, 15, 7, 12, 18, 5]}

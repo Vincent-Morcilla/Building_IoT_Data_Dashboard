@@ -1,6 +1,7 @@
 import pytest
 from components.plot_generator import find_component_by_id
 
+
 # Sample plot configuration for testing
 plot_configs = {
     "category1": {

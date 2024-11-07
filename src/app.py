@@ -23,7 +23,7 @@ from models.types import PlotConfig
 from sampledata.plot_configs import sample_plot_configs
 
 # Name of the application
-APP_NAME = "Network in Progress"
+APP_NAME = "Green Insight"
 
 
 def create_app(plot_configs: PlotConfig) -> Dash:

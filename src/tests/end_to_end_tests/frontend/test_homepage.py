@@ -108,4 +108,4 @@ def test_homepage_title(driver):
         expected_text in text_element.text
     ), f"Expected text '{expected_text}' not found."
 
-    assert driver.title == "Network in Progress"
+    assert driver.title == "Green Insight"

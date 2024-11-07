@@ -1,6 +1,7 @@
 from dash import dcc, html
 from components.plot_generator import create_ui_component
 
+
 # Define the input component
 component_input = {
     "id": "test-input",
