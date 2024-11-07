@@ -1,5 +1,16 @@
 """
-TODO: Add module description
+Defines sample configurations for plots and interactive components.
+
+This module provides a set of predefined configurations for various types of
+plots, tables, and UI components used in the application. Each configuration
+specifies the layout, styling, data mappings, and interactivity for a given
+plot or component, organized by category and subcategory. 
+
+These sample configurations serve as examples for defining and structuring
+visualizations, including timeseries plots, histograms, heatmaps, and
+interactive tables. They also illustrate how to specify component properties,
+data sources, and actions, facilitating the creation of complex, interactive
+visuals within the app.
 """
 
 import string

@@ -1,5 +1,10 @@
 """
-TODO: Add module description
+Defines the main layout of the Dash application.
+
+This module sets up the overall structure of the app, including the sidebar,
+content area, and URL routing for page navigation. It includes functions to create
+the app's layout and the home page content, integrating the sidebar and content
+components into a cohesive user interface.
 """
 
 from dash import dcc, html

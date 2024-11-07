@@ -1,5 +1,10 @@
 """
-TODO: Add module description
+Generates the sidebar component with navigation links for the Dash app.
+
+This module creates the sidebar used for navigating between different categories
+and subcategories of visualizations in the app. It constructs navigation links
+based on the categories provided, allowing users to switch between different
+sections of the application easily.
 """
 
 from dash import html

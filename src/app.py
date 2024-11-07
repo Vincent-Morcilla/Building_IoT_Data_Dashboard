@@ -1,3 +1,12 @@
+"""
+Main application module for the Dash web app.
+
+This module initializes and configures the Dash application. It sets up the app layout,
+registers callbacks, and handles command-line arguments for running the app in test mode
+or with real data files. It uses the provided plot configurations to create the app's
+visualizations and interactive components.
+"""
+
 import argparse
 
 from dash import Dash

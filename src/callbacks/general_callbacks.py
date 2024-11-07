@@ -1,5 +1,10 @@
 """
-TODO: Add module description
+Registers general callbacks for navigation and content rendering.
+
+This module sets up callbacks that handle page navigation and content updates
+based on the URL pathname. It manages the redirection to the home page when the
+logo is clicked and updates the displayed content when users navigate between
+different sections of the app.
 """
 
 from typing import Any
