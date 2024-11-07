@@ -15,22 +15,6 @@ how outside temperature may impact building system usage.
 """
 
 
-# electric_energy_query_str = """
-# SELECT ?meter ?sensor ?stream_id ?phase_count ?phases ?unit ?power_complexity ?power_flow
-# WHERE {
-#     ?sensor rdf:type brick:Electrical_Energy_Sensor .
-#     ?meter rdf:type brick:Electrical_Meter .
-#     ?sensor brick:isPointOf ?meter .
-#     ?sensor senaps:stream_id ?stream_id .
-#     OPTIONAL { ?sensor brick:electricalPhaseCount [ brick:value ?phase_count ] . }
-#     OPTIONAL { ?sensor brick:electricalPhases [ brick:value ?phases ] . }
-#     OPTIONAL { ?sensor brick:hasUnit [ brick:value ?unit ] . }
-#     OPTIONAL { ?sensor brick:powerComplexity [ brick:value ?power_complexity ] . }
-#     OPTIONAL { ?sensor brick:powerFlow [ brick:value ?power_flow ] . }
-# }
-# ORDER BY ?meter
-# """
-
 def get_electric_energy_query_str():
     return """
             SELECT ?meter ?sensor ?stream_id ?phase_count ?phases ?unit ?power_complexity ?power_flow
@@ -47,22 +31,6 @@ def get_electric_energy_query_str():
             }
             ORDER BY ?meter
             """
-
-# electric_power_query_str = """
-# SELECT ?meter ?sensor ?stream_id ?phase_count ?phases ?unit ?power_complexity ?power_flow
-# WHERE {
-#     ?sensor rdf:type brick:Electrical_Power_Sensor .
-#     ?meter rdf:type brick:Electrical_Meter .
-#     ?sensor brick:isPointOf ?meter .
-#     ?sensor senaps:stream_id ?stream_id .
-#     OPTIONAL { ?sensor brick:electricalPhaseCount [ brick:value ?phase_count ] . }
-#     OPTIONAL { ?sensor brick:electricalPhases [ brick:value ?phases ] . }
-#     OPTIONAL { ?sensor brick:hasUnit [ brick:value ?unit ] . }
-#     OPTIONAL { ?sensor brick:powerComplexity [ brick:value ?power_complexity ] . }
-#     OPTIONAL { ?sensor brick:powerFlow [ brick:value ?power_flow ] . }
-# }
-# ORDER BY ?meter
-# """
 
 def get_electric_power_query_str():
     return """
@@ -92,27 +60,6 @@ def get_gas_query_str():
             ORDER BY ?meter
             """
 
-# gas_query_str = """
-# SELECT ?meter ?sensor ?stream_id
-# WHERE {
-#     ?sensor rdf:type brick:Usage_Sensor .
-#     ?meter rdf:type brick:Building_Gas_Meter .
-#     ?sensor brick:isPointOf ?meter .
-#     ?sensor senaps:stream_id ?stream_id
-# }
-# ORDER BY ?meter
-# """
-
-# chiller_query_str = """
-# SELECT ?meter ?sensor ?stream_id
-# WHERE {
-#     ?sensor rdf:type brick:Chilled_Water_Differential_Temperature_Sensor .
-#     ?meter rdf:type brick:Chiller .
-#     ?sensor brick:isPointOf ?meter .
-#     ?sensor senaps:stream_id ?stream_id
-# }
-# ORDER BY ?meter
-# """
 
 def get_chiller_query_str():
     return """
@@ -126,16 +73,6 @@ def get_chiller_query_str():
             ORDER BY ?meter
             """
 
-# water_query_str = """
-# SELECT ?meter ?sensor ?stream_id
-# WHERE {
-#     ?sensor rdf:type brick:Usage_Sensor .
-#     ?meter rdf:type brick:Building_Water_Meter .
-#     ?sensor brick:isPointOf ?meter .
-#     ?sensor senaps:stream_id ?stream_id
-# }
-# ORDER BY ?meter
-# """
 
 def get_water_query_str():
     return """
@@ -149,16 +86,6 @@ def get_water_query_str():
             ORDER BY ?meter
             """
 
-# boiler_query_str = """
-# SELECT ?meter ?sensor ?stream_id
-# WHERE {
-#     ?sensor rdf:type brick:Water_Temperature_Sensor .
-#     ?meter rdf:type brick:Hot_Water_System .
-#     ?sensor brick:isPointOf ?meter .
-#     ?sensor senaps:stream_id ?stream_id
-# }
-# ORDER BY ?meter
-# """
 
 def get_boiler_query_str():
     return """
@@ -171,17 +98,6 @@ def get_boiler_query_str():
             }
             ORDER BY ?meter
             """
-
-# outside_air_temperature_query_str = """
-# SELECT ?sensor ?stream_id 
-# WHERE {
-#     ?sensor rdf:type brick:Outside_Air_Temperature_Sensor .
-#     ?sensor brick:isPointOf   ?loc .
-#     ?loc a brick:Weather_Station .
-#     ?sensor senaps:stream_id ?stream_id .
-# }
-# ORDER BY ?stream_id
-# """
 
 def get_outside_air_temperature_query_str():
     return """
