@@ -1,4 +1,3 @@
-import pytest
 import pandas as pd
 import hashlib
 from zipfile import ZipFile

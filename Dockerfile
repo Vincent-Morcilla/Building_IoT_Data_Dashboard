@@ -14,4 +14,12 @@ COPY datasets/bts_site_b_train/Brick_v1.2.1.ttl dataset/
 
 EXPOSE 8050
 
-CMD [ "python", "app.py", "dataset/train.zip", "dataset/mapper_TrainOnly.csv", "dataset/Site_B.ttl", "dataset/Brick_v1.2.1.ttl" ]
+# Run the app, binding to all interfaces to expose it to the outside world
+# and filtering the dataset to just building B.
+CMD [ "python", "app.py", \
+      "--host", "0.0.0.0", \
+      "--building", "B", \
+      "dataset/train.zip", \
+      "dataset/mapper_TrainOnly.csv", \
+      "dataset/Site_B.ttl", \
+      "dataset/Brick_v1.2.1.ttl" ]

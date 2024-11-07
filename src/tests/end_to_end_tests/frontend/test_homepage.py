@@ -95,12 +95,6 @@ def test_homepage_title(driver):
 
     wait = WebDriverWait(driver, 10)
 
-    # Verify the page title
-    while driver.title == "Updating...":
-        time.sleep(1)
-
-    assert driver.title == "Network in Progress"
-
     # Wait for the title logo to be present
     wait.until(EC.presence_of_element_located((By.CLASS_NAME, "title-logo")))
 
@@ -113,3 +107,5 @@ def test_homepage_title(driver):
     assert (
         expected_text in text_element.text
     ), f"Expected text '{expected_text}' not found."
+
+    assert driver.title == "Green Insight"

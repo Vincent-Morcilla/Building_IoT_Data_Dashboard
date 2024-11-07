@@ -1,5 +1,15 @@
+"""
+Helper functions for string manipulation and category structure creation.
+
+This module contains utility functions that assist with string formatting,
+such as converting PascalCase to space-separated words and sanitizing filenames.
+It also includes a function to create the category and subcategory structure
+used in the app's sidebar navigation based on the plot configurations.
+"""
+
 import re
 from typing import Dict, List, Tuple
+
 from models.types import PlotConfigsKeys
 
 

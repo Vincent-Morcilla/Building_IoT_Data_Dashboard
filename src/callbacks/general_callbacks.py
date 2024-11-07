@@ -1,5 +1,16 @@
-from dash import Dash, Input, Output, html
+"""
+Registers general callbacks for navigation and content rendering.
+
+This module sets up callbacks that handle page navigation and content updates
+based on the URL pathname. It manages the redirection to the home page when the
+logo is clicked and updates the displayed content when users navigate between
+different sections of the app.
+"""
+
 from typing import Any
+
+from dash import Dash, Input, Output, html
+
 from components.layout import home_page_content
 from components.tabs import create_tab_layout
 from models.types import PlotConfig, CategoriesStructure

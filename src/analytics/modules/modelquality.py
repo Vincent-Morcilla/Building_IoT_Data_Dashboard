@@ -9,22 +9,202 @@ quality.  In particular:
   data.
 """
 
-# @tim: TODO: Make tables filterable, where appropriate
-# @tim: TODO: Refactor plot config code to make it more readable
-# @tim: TODO: Add more detailed docstrings to the functions
-# @tim: TODO: Add type hints to the functions
-# @tim: TODO: Add inline comments to the functions
+# @tim: TODO: Consider making tables filterable, where appropriate
 # @tim: TODO: Whatever revisions were discussed in the meeting
 
 import numpy as np
 import pandas as pd
 
 from analytics.dbmgr import DBManager  # only imported for type hinting
+from models.types import PlotConfig  # only imported for type hinting
+from models.types import PlotComponentConfig  # only imported for type hinting
+from models.types import TableComponentConfig  # only imported for type hinting
+
+# Category for the plot configuration
+# The category is used to group the analysis in the app sidebar
+CATEGORY = "ModelQuality"
+
+
+################################################################################
+#                               HELPER FUNCTIONS                               #
+################################################################################
+
+
+def _generate_id(
+    category: str, subcategory: str, component: str, suffix: str | None = None
+) -> str:
+    """
+    Generate a unique ID for a component in the plot configuration.
+
+    Parameters
+    ----------
+    category : str
+        The category of the analysis.
+    subcategory : str
+        The subcategory of the analysis.
+    component : str
+        The component of the analysis.
+    suffix : str, optional
+        A suffix to append to the ID, by default None
+
+    Returns
+    -------
+    str
+        The generated ID.
+    """
+
+    def _clean_string(s):
+        if not isinstance(s, str):
+            return s
+        return s.lower().replace(" ", "-")
+
+    category = _clean_string(category)
+    subcategory = _clean_string(subcategory)
+    component = _clean_string(component)
+
+    if suffix is None:
+        return f"{category}-{subcategory}-{component}"
+
+    suffix = _clean_string(suffix)
+    return f"{category}-{subcategory}-{component}-{suffix}"
+
+
+def _build_pie_chart_component(
+    title: str, component_id: str, df: pd.DataFrame, label: str
+) -> PlotComponentConfig:
+    """
+    Build a pie chart component for the analysis.
+
+    Parameters
+    ----------
+    title : str
+        The title of the pie chart.
+    component_id : str
+        The unique ID of the component.
+    df : pd.DataFrame
+        The DataFrame containing the data for the pie chart.
+    label : str
+        The column in the DataFrame containing the labels for the pie chart.
+
+    Returns
+    -------
+    PlotComponentConfig
+        The configuration for the pie chart component.
+    """
+
+    return {
+        "type": "plot",
+        "library": "go",
+        "function": "Figure",
+        "id": component_id,
+        "data_frame": df,
+        "trace_type": "Pie",
+        "data_mappings": {
+            "labels": label,
+        },
+        "kwargs": {
+            "textinfo": "percent+label",
+            "textposition": "inside",
+            "showlegend": False,
+        },
+        "layout_kwargs": {
+            "title": {
+                "text": title,
+                "font_color": "black",
+                "x": 0.5,
+                "xanchor": "center",
+            },
+        },
+        "css": {
+            "width": "50%",
+            "display": "inline-block",
+            "padding": "10px",
+        },
+    }
+
+
+def _build_table_component(
+    title: str,
+    component_id: str,
+    df: pd.DataFrame,
+    columns: list,
+    title_padding: int | None = None,
+) -> TableComponentConfig:
+    """
+    Build a table component for the analysis.
+
+    Parameters
+    ----------
+    title : str
+        The title of the table.
+    component_id : str
+        The unique ID of the component.
+    df : pd.DataFrame
+        The DataFrame containing the data for the table.
+    columns : list
+        The columns to display in the table.
+    title_padding : int, optional
+        The padding for the title, by default None
+
+    Returns
+    -------
+    TableComponentConfig
+        The configuration for the table component.
+    """
+
+    component = {
+        "type": "table",
+        "dataframe": df,
+        "id": component_id,
+        "title": title,
+        "title_element": "H5",
+        "kwargs": {
+            "columns": columns,
+            "export_format": "csv",
+            "fixed_rows": {"headers": True},
+            "sort_action": "native",
+            "sort_mode": "multi",
+            "style_data_conditional": [
+                {
+                    "if": {"row_index": "odd"},
+                    "backgroundColor": "#ddf2dc",
+                }
+            ],
+            "style_table": {
+                "height": 1000,
+                "overflowX": "auto",
+            },
+            "tooltip_data": [
+                {
+                    column: {"value": str(value), "type": "markdown"}
+                    for column, value in row.items()
+                }
+                for row in df.to_dict("records")
+            ],
+            "tooltip_duration": None,
+        },
+    }
+
+    if title_padding is not None:
+        component["title_kwargs"] = {
+            "style": {
+                "margin-top": title_padding,
+            },
+        }
+
+    return component
+
+
+################################################################################
+#                                   ANALYSIS                                   #
+################################################################################
 
 
 def _build_master_df(db: DBManager) -> pd.DataFrame:
     """
-    Get all entities in the Brick model and their associated classes, streams, and units.
+    Get all entities in the Brick model and their associated classes, streams,
+    and units, then perform some preliminary analysis on the data to builkd a
+    master DataFrame in preparation for the individual analyses.
 
     Parameters
     ----------
@@ -36,7 +216,9 @@ def _build_master_df(db: DBManager) -> pd.DataFrame:
     pd.DataFrame
         A DataFrame containing all entities in the Brick model.
     """
-    # Get all entities in the Brick model and their associated classes, streams, and units
+
+    # Sparql query to get all entities in the Brick model and their associated
+    # classes, streams, and units
     query = """
         SELECT ?entity_id ?brick_class ?stream_id ?named_unit ?anonymous_unit WHERE {
             ?entity_id a ?brick_class .
@@ -47,6 +229,8 @@ def _build_master_df(db: DBManager) -> pd.DataFrame:
             filter ( strstarts(str(?brick_class),str(brick:)) ) .
         }
     """
+
+    # Execute the query and return the results as a DataFrame
     df = db.query(query, return_df=True)
 
     # ------------------------  RECOGNISED ENTITIES  ------------------------- #
@@ -74,6 +258,9 @@ def _build_master_df(db: DBManager) -> pd.DataFrame:
 
         return not pd.isna(r.named_unit)
 
+    # Add a column to the DataFrame to flag if the unit is named, i.e., machine-readable
+    # The colunm will be True if the unit is named, False if it is anonymous, and None if
+    # there is no unit
     df["unit_is_named"] = df.apply(unit_is_named, axis=1)
 
     # --------------------------  TIMESERIES DATA  --------------------------- #
@@ -91,9 +278,9 @@ def _build_master_df(db: DBManager) -> pd.DataFrame:
 
     # Create a temporary column with 'stream_id' converted to a string for the join
     # pylint: disable=W0108
-    df["stream_id_str"] = df["stream_id"].apply(lambda x: str(x))  # noqa
+    df["stream_id_str"] = df["stream_id"].apply(lambda x: str(x))
 
-    # Perform the left join
+    # Join the DataFrame with the mapping file to get the 'strBrickLabel' column
     df = pd.merge(
         df,
         db.mapper[["StreamID", "strBrickLabel"]],
@@ -105,7 +292,10 @@ def _build_master_df(db: DBManager) -> pd.DataFrame:
     # Rename the 'strBrickLabel' column to 'brick_class_in_mapper'
     df.rename(columns={"strBrickLabel": "brick_class_in_mapper"}, inplace=True)
 
-    # Create a temporary column with the fragment of the 'brick_class' for comparison
+    # The brick class in the building model is a BrickURI object, which is not
+    # directly comparable to the 'brick_class_in_mapper' column. To compare them,
+    # we will create a temporary column with the fragment of the 'brick_class' for
+    # comparison
     df["brick_class_fragment"] = df["brick_class"].apply(
         lambda x: str(x.fragment) if x is not None else None
     )
@@ -115,7 +305,7 @@ def _build_master_df(db: DBManager) -> pd.DataFrame:
         pd.isna(df["brick_class_in_mapper"]),  # Check if brick_class_in_mapper is empty
         None,  # Leave empty where there's no mapping value
         df["brick_class_fragment"]
-        == df["brick_class_in_mapper"],  # Compare fragment with the mapping
+        == df["brick_class_in_mapper"],  # Otherwise compare fragment with the mapping
     )
 
     # Drop the temporary columns
@@ -123,209 +313,133 @@ def _build_master_df(db: DBManager) -> pd.DataFrame:
 
     # -----------------------------  CLEANUP  -------------------------------- #
 
+    # Remove the URI prefixes from all cells in the DataFrame
     for col in df.columns:
         df[col] = df[col].apply(db.defrag_uri)
 
     return df
 
 
-def _recognised_entity_analysis(master_df):
+def _recognised_entity_analysis(master_df: pd.DataFrame) -> PlotConfig:
     """
-    Generate the configuration for the recognised entity analysis.
+    Generate the configuration for the recognised entity analysis.  A recognised
+    entity is an entity in the building model that is of a class recognised by
+    the Brick schema.
+
+    The purpose of this analysis is to identify the entities in the building
+    model that are not recognised by the Brick schema.
 
     Args:
         master_df (pd.Dataframe): The master dataframe containing the entities
             in the building model.
 
     Returns:
-        dict: The configuration for the recognised entity analysis.
+        PlotConfig: The configuration for the recognised entity analysis.
     """
+
+    subcategory = "RecognisedEntities"
+    page_title = "Brick Entities in Building Model Recognised by Brick Schema"
+
+    # Extract and sort the relevant columns from the master DataFrame
     df = master_df[["brick_class", "entity_id", "class_in_brick_schema"]].copy()
     df.sort_values(
         by=["class_in_brick_schema", "brick_class", "entity_id"], inplace=True
     )
 
+    # Split the DataFrame into recognised and unrecognised entities
     recognised_df = df[df["class_in_brick_schema"] == "Recognised"].copy()
     recognised_df.drop(columns=["class_in_brick_schema"], inplace=True)
 
     unrecognised_df = df[df["class_in_brick_schema"] == "Unrecognised"].copy()
     unrecognised_df.drop(columns=["class_in_brick_schema"], inplace=True)
 
-    # Pie Charts and Tables for Model Quality - Recognised Entities
-    plot_config = {
-        ("ModelQuality", "RecognisedEntities"): {
-            "title": "Brick Entities in Building Model Recognised by Brick Schema",
-            "components": [
-                # Pie Chart: Recognised vs Unrecognised Entities
-                {
-                    "type": "plot",
-                    "library": "go",
-                    "function": "Figure",
-                    "id": "model-quality-recognised-entities-pie",
-                    "data_frame": df,
-                    "trace_type": "Pie",
-                    "data_mappings": {
-                        "labels": "class_in_brick_schema",
-                    },
-                    "kwargs": {
-                        "textinfo": "percent+label",
-                        "textposition": "inside",
-                        "showlegend": False,
-                    },
-                    "layout_kwargs": {
-                        "title": {
-                            "text": "Recognised vs Unrecognised Entities",
-                            "font_color": "black",
-                            "x": 0.5,
-                            "xanchor": "center",
-                        },
-                    },
-                    "css": {
-                        "width": "50%",
-                        "display": "inline-block",
-                        "padding": "10px",
-                    },
-                },
-                # Pie Chart: Unrecognised Entities by Class
-                {
-                    "type": "plot",
-                    "library": "go",
-                    "function": "Figure",
-                    "id": "model-quality-recognised-entities-unrecognised-pie",
-                    "data_frame": unrecognised_df,
-                    "trace_type": "Pie",
-                    "data_mappings": {
-                        "labels": "brick_class",
-                    },
-                    "kwargs": {
-                        "textinfo": "percent+label",
-                        "textposition": "inside",
-                        "showlegend": False,
-                    },
-                    "layout_kwargs": {
-                        "title": {
-                            "text": "Unrecognised Entities by Class",
-                            "font_color": "black",
-                            "x": 0.5,
-                            "xanchor": "center",
-                        },
-                    },
-                    "css": {
-                        "width": "50%",
-                        "display": "inline-block",
-                        "padding": "10px",
-                    },
-                },
+    components = []
+
+    # Configure the Recognised vs Unrecognised Entities pie chart
+    pie_config_1 = _build_pie_chart_component(
+        "Recognised vs Unrecognised Entities",
+        _generate_id(CATEGORY, subcategory, "pie-1"),
+        df,
+        "class_in_brick_schema",
+    )
+    components.append(pie_config_1)
+
+    # Configure the Unrecognised Entities by Class pie chart
+    pie_config_2 = _build_pie_chart_component(
+        "Unrecognised Entities by Class",
+        _generate_id(CATEGORY, subcategory, "pie-2"),
+        unrecognised_df,
+        "brick_class",
+    )
+    components.append(pie_config_2)
+
+    # If there are unrecognised entities, configure the Unrecognised Entities table
+    if len(unrecognised_df) > 0:
+        table_config = _build_table_component(
+            "Unrecognised Entities",
+            _generate_id(CATEGORY, subcategory, "table-1"),
+            unrecognised_df,
+            [
+                {"name": "Brick Class", "id": "brick_class"},
+                {"name": "Entity ID", "id": "entity_id"},
             ],
+        )
+        components.append(table_config)
+
+    # If there are recognised entities, configure the Recognised Entities table
+    if len(recognised_df) > 0:
+        table_config = _build_table_component(
+            "Recognised Entities",
+            _generate_id(CATEGORY, subcategory, "table-2"),
+            recognised_df,
+            [
+                {"name": "Brick Class", "id": "brick_class"},
+                {"name": "Entity ID", "id": "entity_id"},
+            ],
+            30 if len(unrecognised_df) > 0 else None,
+        )
+
+        components.append(table_config)
+
+    return {
+        (CATEGORY, subcategory): {
+            "title": page_title,
+            "components": components,
         }
     }
 
-    if len(unrecognised_df) > 0:
-        plot_config[("ModelQuality", "RecognisedEntities")]["components"].extend(
-            [
-                {
-                    "type": "table",
-                    "dataframe": unrecognised_df,
-                    "id": "model-quality-unrecognised-entities-table",
-                    "title": "Unrecognised Entities",
-                    "title_element": "H5",
-                    "kwargs": {
-                        "columns": [
-                            {"name": "Brick Class", "id": "brick_class"},
-                            {"name": "Entity ID", "id": "entity_id"},
-                        ],
-                        "export_format": "csv",
-                        "fixed_rows": {"headers": True},
-                        "sort_action": "native",
-                        "sort_mode": "multi",
-                        "style_data_conditional": [
-                            {
-                                "if": {"row_index": "odd"},
-                                "backgroundColor": "#ddf2dc",
-                            }
-                        ],
-                        "style_table": {
-                            "height": 1000,
-                            "overflowX": "auto",
-                        },
-                        "tooltip_data": [
-                            {
-                                column: {"value": str(value), "type": "markdown"}
-                                for column, value in row.items()
-                            }
-                            for row in unrecognised_df.to_dict("records")
-                        ],
-                        "tooltip_duration": None,
-                    },
-                },
-            ]
-        )
 
-    if len(recognised_df) > 0:
-        plot_config[("ModelQuality", "RecognisedEntities")]["components"].extend(
-            [
-                {
-                    "type": "table",
-                    "dataframe": recognised_df,
-                    "id": "model-quality-recognised-entities-table",
-                    "title": "Recognised Entities",
-                    "title_element": "H5",
-                    "title_kwargs": {  # Adjust the styling as needed
-                        "style": {
-                            "margin-top": 30,
-                        },
-                    },
-                    "kwargs": {
-                        "columns": [
-                            {"name": "Brick Class", "id": "brick_class"},
-                            {"name": "Entity ID", "id": "entity_id"},
-                        ],
-                        "export_format": "csv",
-                        "fixed_rows": {"headers": True},
-                        "sort_action": "native",
-                        "sort_mode": "multi",
-                        "style_data_conditional": [
-                            {
-                                "if": {"row_index": "odd"},
-                                "backgroundColor": "#ddf2dc",
-                            }
-                        ],
-                        "style_table": {
-                            "height": 1000,
-                            "overflowX": "auto",
-                        },
-                        "tooltip_data": [
-                            {
-                                column: {"value": str(value), "type": "markdown"}
-                                for column, value in row.items()
-                            }
-                            for row in recognised_df.to_dict("records")
-                        ],
-                        "tooltip_duration": None,
-                    },
-                },
-            ]
-        )
-
-    return plot_config
-
-
-def _associated_units_analysis(master_df):
+def _associated_units_analysis(master_df: pd.DataFrame) -> PlotConfig:
     """
     Generate the configuration for the associated units analysis.
+
+    The purpose of this analysis is to determine whether streams in the building
+    model have associated units.  And of those that have units, whether the units
+    are machine-readable.  A unit is considered machine-readable if it is linked
+    to an ontology, such as the QUDT ontology, rather than being encoded as an
+    anonymous node (aka blank node) in the model.
 
     Args:
         master_df (pd.Dataframe): The master dataframe containing the entities
             in the building model.
 
     Returns:
-        dict: The configuration for the associated units analysis.
+        PlotConfig: The configuration for the associated units analysis.
     """
+
+    subcategory = "AssociatedUnits"
+    page_title = "Brick Entities in Building Model with Associated Units"
+
+    # Extract and sort the relevant columns and rows from the master DataFrame
     df = master_df[["brick_class", "stream_id", "unit", "unit_is_named"]].copy()
     df.dropna(subset=["stream_id"], inplace=True)
     df.sort_values(by=["brick_class", "stream_id"], inplace=True)
+
+    # Add a column to the DataFrame to label if the stream has a unit
     df["has_unit"] = df["unit"].apply(lambda x: "No units" if pd.isna(x) else "Units")
 
+    # Split the DataFrame into streams without units, streams with named units,
+    # and streams with anonymous units
     streams_without_units = df[pd.isna(df["unit"])].copy()
     streams_without_units.sort_values(by=["brick_class", "stream_id"], inplace=True)
     streams_without_units.drop(
@@ -343,184 +457,95 @@ def _associated_units_analysis(master_df):
         columns=["unit_is_named", "has_unit"], inplace=True
     )
 
-    plot_config = {
-        ("ModelQuality", "AssociatedUnits"): {
-            "title": "Brick Entities in Building Model with Associated Units",
-            "components": [
-                # Pie Chart: Has vs Missing Units
-                {
-                    "type": "plot",
-                    "library": "go",
-                    "function": "Figure",
-                    "id": "model-quality-associated-units-pie",
-                    "data_frame": df,
-                    "trace_type": "Pie",
-                    "data_mappings": {
-                        "labels": "has_unit",
-                    },
-                    "kwargs": {
-                        "textinfo": "percent+label",
-                        "textposition": "inside",
-                        "showlegend": False,
-                    },
-                    "layout_kwargs": {
-                        "title": {
-                            "text": "Proportion of Streams with Units",
-                            "font_color": "black",
-                            "x": 0.5,
-                            "xanchor": "center",
-                        },
-                    },
-                    "css": {
-                        "width": "50%",
-                        "display": "inline-block",
-                        "padding": "10px",
-                    },
-                },
-                # Pie Chart: Machines vs Non-Machine Readable Units
-                {
-                    "type": "plot",
-                    "library": "go",
-                    "function": "Figure",
-                    "id": "model-quality-associated-units-readable-pie",
-                    "data_frame": stream_with_named_units,
-                    "trace_type": "Pie",
-                    "data_mappings": {
-                        "labels": "has_named_unit",
-                    },
-                    "kwargs": {
-                        "textinfo": "percent+label",
-                        "textposition": "inside",
-                        "showlegend": False,
-                    },
-                    "layout_kwargs": {
-                        "title": {
-                            "text": "Units that are Machine Readable",
-                            "font_color": "black",
-                            "x": 0.5,
-                            "xanchor": "center",
-                        },
-                    },
-                    "css": {
-                        "width": "50%",
-                        "display": "inline-block",
-                        "padding": "10px",
-                    },
-                },
+    components = []
+
+    # Configure the Proportion of Streams with Units pie chart
+    pie_config_1 = _build_pie_chart_component(
+        "Proportion of Streams with Units",
+        _generate_id(CATEGORY, subcategory, "pie-1"),
+        df,
+        "has_unit",
+    )
+
+    components.append(pie_config_1)
+
+    # Configure the Proportion of Streams with Machine Readable Units pie chart
+    pie_config_2 = _build_pie_chart_component(
+        "Units that are Machine Readable",
+        _generate_id(CATEGORY, subcategory, "pie-2"),
+        stream_with_named_units,
+        "has_named_unit",
+    )
+
+    components.append(pie_config_2)
+
+    # If there are streams without units, configure the Streams without Units table
+    if len(streams_without_units) > 0:
+        table_config = _build_table_component(
+            "Streams without Units",
+            _generate_id(CATEGORY, subcategory, "table-1"),
+            streams_without_units,
+            [
+                {"name": "Brick Class", "id": "brick_class"},
+                {"name": "Stream ID", "id": "stream_id"},
             ],
+        )
+
+        components.append(table_config)
+
+    # If there are streams with anonymous units, configure the Streams with
+    # Anonymous Units table
+    if len(streams_with_anonymous_units) > 0:
+        table_config = _build_table_component(
+            "Streams with Non-Machine Readable Units",
+            _generate_id(CATEGORY, subcategory, "table-2"),
+            streams_with_anonymous_units,
+            [
+                {"name": "Brick Class", "id": "brick_class"},
+                {"name": "Stream ID", "id": "stream_id"},
+            ],
+            30 if len(streams_without_units) > 0 else None,
+        )
+
+        components.append(table_config)
+
+    return {
+        (CATEGORY, subcategory): {
+            "title": page_title,
+            "components": components,
         }
     }
 
-    if len(streams_without_units) > 0:
-        plot_config[("ModelQuality", "AssociatedUnits")]["components"].extend(
-            [
-                # Table: Details of Streams without Units
-                {
-                    "type": "table",
-                    "dataframe": streams_without_units,
-                    "id": "model-quality-associated-units-missing-table",
-                    "title": "Streams without Units",
-                    "title_element": "H5",
-                    "kwargs": {
-                        "columns": [
-                            {"name": "Brick Class", "id": "brick_class"},
-                            {"name": "Stream ID", "id": "stream_id"},
-                        ],
-                        "export_format": "csv",
-                        "fixed_rows": {"headers": True},
-                        "sort_action": "native",
-                        "sort_mode": "multi",
-                        "style_data_conditional": [
-                            {
-                                "if": {"row_index": "odd"},
-                                "backgroundColor": "#ddf2dc",
-                            }
-                        ],
-                        "style_table": {
-                            "height": 1000,
-                            "overflowX": "auto",
-                        },
-                        "tooltip_data": [
-                            {
-                                column: {"value": str(value), "type": "markdown"}
-                                for column, value in row.items()
-                            }
-                            for row in streams_without_units.to_dict("records")
-                        ],
-                        "tooltip_duration": None,
-                    },
-                },
-            ]
-        )
 
-    if len(streams_with_anonymous_units) > 0:
-        plot_config[("ModelQuality", "AssociatedUnits")]["components"].extend(
-            [
-                # Table: Details of Streams with Anonymous Units
-                {
-                    "type": "table",
-                    "dataframe": streams_with_anonymous_units,
-                    "id": "model-quality-associated-units-blank-table",
-                    "title": "Streams with Non-Machine Readable Units",
-                    "title_element": "H5",
-                    "title_kwargs": {  # Adjust the styling as needed
-                        "style": {
-                            "margin-top": 30,
-                        },
-                    },
-                    "kwargs": {
-                        "columns": [
-                            {"name": "Brick Class", "id": "brick_class"},
-                            {"name": "Stream ID", "id": "stream_id"},
-                        ],
-                        "export_format": "csv",
-                        "fixed_rows": {"headers": True},
-                        "sort_action": "native",
-                        "sort_mode": "multi",
-                        "style_data_conditional": [
-                            {
-                                "if": {"row_index": "odd"},
-                                "backgroundColor": "#ddf2dc",
-                            }
-                        ],
-                        "style_table": {
-                            "height": 1000,
-                            "overflowX": "auto",
-                        },
-                        "tooltip_data": [
-                            {
-                                column: {"value": str(value), "type": "markdown"}
-                                for column, value in row.items()
-                            }
-                            for row in streams_with_anonymous_units.to_dict("records")
-                        ],
-                        "tooltip_duration": None,
-                    },
-                },
-            ]
-        )
-
-    return plot_config
-
-
-def _associated_timeseries_data_analysis(master_df):
+def _associated_timeseries_data_analysis(master_df: pd.DataFrame) -> PlotConfig:
     """
     Generate the configuration for the associated timeseries data analysis.
+
+    The purpose of this analysis is to determine whether streams in the building
+    model have associated timeseries data.
 
     Args:
         master_df (pd.Dataframe): The master dataframe containing the entities
             in the building model.
 
     Returns:
-        dict: The configuration for the associated timeseries data analysis.
+        PlotConfig: The configuration for the associated timeseries data analysis.
     """
+
+    subcategory = "TimeseriesData"
+    page_title = "Data Sources in Building Model with Timeseries Data"
+
+    # Extract and sort the relevant columns and rows from the master DataFrame
     df = master_df[["brick_class", "stream_id", "stream_exists_in_mapping"]].copy()
     df.dropna(subset=["stream_id"], inplace=True)
     df.sort_values(by=["brick_class", "stream_id"], inplace=True)
+
+    # Add a column to the DataFrame to label if the stream has timeseries data
     df["has_data"] = df["stream_exists_in_mapping"].apply(
         lambda x: "Data" if x else "No data"
     )
 
+    # Split the DataFrame into streams with and without timeseries data
     # pylint: disable=C0121
     missing_streams_by_class_pie = df[df["stream_exists_in_mapping"] == False].copy()
 
@@ -531,177 +556,88 @@ def _associated_timeseries_data_analysis(master_df):
         ["brick_class", "stream_id"]
     ]
 
-    plot_config = {
-        ("ModelQuality", "TimeseriesData"): {
-            "title": "Data Sources in Building Model with Timeseries Data",
-            "components": [
-                # Pie Chart: Proportion of Data Sources with Timeseries Data
-                {
-                    "type": "plot",
-                    "library": "go",
-                    "function": "Figure",
-                    "id": "model-quality-timeseries-data-pie",
-                    "data_frame": df,
-                    "trace_type": "Pie",
-                    "data_mappings": {
-                        "labels": "has_data",
-                    },
-                    "kwargs": {
-                        "textinfo": "percent+label",
-                        "textposition": "inside",
-                        "showlegend": False,
-                    },
-                    "layout_kwargs": {
-                        "title": {
-                            "text": "Proportion of Data Sources with Timeseries Data",
-                            "font_color": "black",
-                            "x": 0.5,
-                            "xanchor": "center",
-                        },
-                    },
-                    "css": {
-                        "width": "50%",
-                        "display": "inline-block",
-                        "padding": "10px",
-                    },
-                },
-                # Pie Chart: Missing Data by Class
-                {
-                    "type": "plot",
-                    "library": "go",
-                    "function": "Figure",
-                    "id": "model-quality-timeseries-data-missing-pie",
-                    "data_frame": missing_streams_by_class_pie,
-                    "trace_type": "Pie",
-                    "data_mappings": {
-                        "labels": "brick_class",
-                    },
-                    "kwargs": {
-                        "textinfo": "percent+label",
-                        "textposition": "inside",
-                        "showlegend": False,
-                    },
-                    "layout_kwargs": {
-                        "title": {
-                            "text": "Missing Data by Class",
-                            "font_color": "black",
-                            "x": 0.5,
-                            "xanchor": "center",
-                        },
-                    },
-                    "css": {
-                        "width": "50%",
-                        "display": "inline-block",
-                        "padding": "10px",
-                    },
-                },
+    components = []
+
+    # Configure the Proportion of Data Sources with Timeseries Data pie chart
+    pie_config_1 = _build_pie_chart_component(
+        "Proportion of Data Sources with Timeseries Data",
+        _generate_id(CATEGORY, subcategory, "pie-1"),
+        df,
+        "has_data",
+    )
+
+    components.append(pie_config_1)
+
+    # Configure the Missing Data by Class pie chart
+    pie_config_2 = _build_pie_chart_component(
+        "Missing Data by Class",
+        _generate_id(CATEGORY, subcategory, "pie-2"),
+        missing_streams_by_class_pie,
+        "brick_class",
+    )
+
+    components.append(pie_config_2)
+
+    # If there are streams without timeseries data, configure the Streams without
+    # Timeseries Data table
+    if len(missing_data_df) > 0:
+        table_config = _build_table_component(
+            "Data Sources with Missing Timeseries Data",
+            _generate_id(CATEGORY, subcategory, "table-1"),
+            missing_data_df,
+            [
+                {"name": "Brick Class", "id": "brick_class"},
+                {"name": "Stream ID", "id": "stream_id"},
             ],
+        )
+
+        components.append(table_config)
+
+    # If there are streams with timeseries data, configure the Streams with
+    # Timeseries Data table
+    if len(have_data_df) > 0:
+        table_config = _build_table_component(
+            "Data Sources with Available Timeseries Data",
+            _generate_id(CATEGORY, subcategory, "table-2"),
+            have_data_df,
+            [
+                {"name": "Brick Class", "id": "brick_class"},
+                {"name": "Stream ID", "id": "stream_id"},
+            ],
+            30 if len(missing_data_df) > 0 else None,
+        )
+
+        components.append(table_config)
+
+    return {
+        (CATEGORY, subcategory): {
+            "title": page_title,
+            "components": components,
         }
     }
 
-    if len(missing_data_df) > 0:
-        plot_config[("ModelQuality", "TimeseriesData")]["components"].extend(
-            [
-                # Table: Details of Streams without Units
-                {
-                    "type": "table",
-                    "dataframe": missing_data_df,
-                    "id": "model-quality-timeseries-data-missing-table",
-                    "title": "Data Sources with Missing Timeseries Data",
-                    "title_element": "H5",
-                    "kwargs": {
-                        "columns": [
-                            {"name": "Brick Class", "id": "brick_class"},
-                            {"name": "Stream ID", "id": "stream_id"},
-                        ],
-                        "export_format": "csv",
-                        "fixed_rows": {"headers": True},
-                        "sort_action": "native",
-                        "sort_mode": "multi",
-                        "style_data_conditional": [
-                            {
-                                "if": {"row_index": "odd"},
-                                "backgroundColor": "#ddf2dc",
-                            }
-                        ],
-                        "style_table": {
-                            "height": 1000,
-                            "overflowX": "auto",
-                        },
-                        "tooltip_data": [
-                            {
-                                column: {"value": str(value), "type": "markdown"}
-                                for column, value in row.items()
-                            }
-                            for row in missing_data_df.to_dict("records")
-                        ],
-                        "tooltip_duration": None,
-                    },
-                },
-            ]
-        )
 
-    if len(have_data_df) > 0:
-        plot_config[("ModelQuality", "TimeseriesData")]["components"].extend(
-            [
-                # Table: Details of Streams with Anonymous Units
-                {
-                    "type": "table",
-                    "dataframe": have_data_df,
-                    "id": "model-quality-timeseries-data-available-table",
-                    "title": "Data Sources with Available Timeseries Data",
-                    "title_element": "H5",
-                    "title_kwargs": {  # Adjust the styling as needed
-                        "style": {
-                            "margin-top": 30,
-                        },
-                    },
-                    "kwargs": {
-                        "columns": [
-                            {"name": "Brick Class", "id": "brick_class"},
-                            {"name": "Stream ID", "id": "stream_id"},
-                        ],
-                        "fixed_rows": {"headers": True},
-                        "export_format": "csv",
-                        "sort_action": "native",
-                        "sort_mode": "multi",
-                        "style_data_conditional": [
-                            {
-                                "if": {"row_index": "odd"},
-                                "backgroundColor": "#ddf2dc",
-                            }
-                        ],
-                        "style_table": {
-                            "height": 1000,
-                            "overflowX": "auto",
-                        },
-                        "tooltip_data": [
-                            {
-                                column: {"value": str(value), "type": "markdown"}
-                                for column, value in row.items()
-                            }
-                            for row in have_data_df.to_dict("records")
-                        ],
-                        "tooltip_duration": None,
-                    },
-                },
-            ]
-        )
-
-    return plot_config
-
-
-def _class_consistency_analysis(master_df):
+def _class_consistency_analysis(master_df: pd.DataFrame) -> PlotConfig:
     """
     Generate the configuration for the class consistency analysis.
+
+    The purpose of this analysis is to identify class inconsistencies between the
+    building model and the timeseries data.  Specifically, this analysis compares
+    the classes of the entities in the building model with the classes of the
+    entities in mapping file that links the model to the timeseries data.
 
     Args:
         master_df (pd.Dataframe): The master dataframe containing the entities
             in the building model.
 
     Returns:
-        dict: The configuration for the class consistency analysis.
+        PlotConfig: The configuration for the class consistency analysis.
     """
+
+    subcategory = "ClassConsistency"
+    page_title = "Data Sources in Building Model with Timeseries Data"
+
+    # Extract and sort the relevant columns and rows from the master DataFrame
     df = master_df[
         [
             "brick_class",
@@ -714,134 +650,65 @@ def _class_consistency_analysis(master_df):
     df.sort_values(
         by=["brick_class", "brick_class_in_mapper", "entity_id"], inplace=True
     )
+
+    # Add a column to the DataFrame to label if the class is consistent
     df["consistency"] = df["brick_class_is_consistent"].apply(
         lambda x: "Consistent" if x else "Inconsistent"
     )
 
+    # Extract the inconsistent entities from the DataFrame
     # pylint: disable=C0121
     inconsistent_df = df[df["brick_class_is_consistent"] == False].copy()[
         ["brick_class", "brick_class_in_mapper", "entity_id"]
     ]
 
-    # Pie Charts and Tables for Model Quality - Class Consistency
-    plot_config = {
-        ("ModelQuality", "ClassConsistency"): {
-            "title": "Data Sources in Building Model with Timeseries Data",
-            "components": [
-                # Pie Chart: Consistent vs Inconsistent Classes
-                {
-                    "type": "plot",
-                    "library": "go",
-                    "function": "Figure",
-                    "id": "model-quality-class-consistency-pie",
-                    "data_frame": df,
-                    "trace_type": "Pie",
-                    "data_mappings": {
-                        "labels": "consistency",
-                    },
-                    "kwargs": {
-                        "textinfo": "percent+label",
-                        "textposition": "inside",
-                        "showlegend": False,
-                    },
-                    "layout_kwargs": {
-                        "title": {
-                            "text": "Proportion of Data Sources",
-                            "font_color": "black",
-                            "x": 0.5,
-                            "xanchor": "center",
-                        },
-                    },
-                    "css": {
-                        "width": "45%",
-                        "display": "inline-block",
-                        "padding": "10px",
-                    },
-                },
-                # Pie Chart: Inconsistent Classes by Brick Class
-                {
-                    "type": "plot",
-                    "library": "go",
-                    "function": "Figure",
-                    "id": "model-quality-inconsistent-classes-pie",
-                    "data_frame": inconsistent_df,
-                    "trace_type": "Pie",
-                    "data_mappings": {
-                        "labels": "brick_class",
-                    },
-                    "kwargs": {
-                        "textinfo": "percent+label",
-                        "textposition": "inside",
-                        "showlegend": False,
-                    },
-                    "layout_kwargs": {
-                        "title": {
-                            "text": "Inconsistent Data Sources by Class",
-                            "font_color": "black",
-                            "x": 0.5,
-                            "xanchor": "center",
-                        },
-                    },
-                    "css": {
-                        "width": "45%",
-                        "display": "inline-block",
-                        "padding": "10px",
-                    },
-                },
+    components = []
+
+    # Configure the Proportion of Data Sources pie chart
+    pie_config_1 = _build_pie_chart_component(
+        "Proportion of Data Sources",
+        _generate_id(CATEGORY, subcategory, "pie-1"),
+        df,
+        "consistency",
+    )
+
+    components.append(pie_config_1)
+
+    # Configure the Inconsistent Data Sources by Class pie chart
+    pie_config_2 = _build_pie_chart_component(
+        "Inconsistent Data Sources by Class",
+        _generate_id(CATEGORY, subcategory, "pie-2"),
+        inconsistent_df,
+        "brick_class",
+    )
+
+    components.append(pie_config_2)
+
+    # If there are inconsistent entities, configure the Inconsistent Data Sources
+    # table
+    if len(inconsistent_df) > 0:
+        table_config = _build_table_component(
+            "Data Sources with Inconsistent Brick Class",
+            _generate_id(CATEGORY, subcategory, "table-1"),
+            inconsistent_df,
+            [
+                {"name": "Brick Class in Model", "id": "brick_class"},
+                {"name": "Brick Class in Mapper", "id": "brick_class_in_mapper"},
+                {"name": "Entity ID", "id": "entity_id"},
             ],
+        )
+
+        components.append(table_config)
+
+    return {
+        (CATEGORY, subcategory): {
+            "title": page_title,
+            "components": components,
         }
     }
 
-    if len(inconsistent_df) > 0:
-        plot_config[("ModelQuality", "ClassConsistency")]["components"].extend(
-            [
-                # Table: Details of Inconsistent Classes
-                {
-                    "type": "table",
-                    "dataframe": inconsistent_df,
-                    "id": "model-quality-inconsistent-classes-table",
-                    "title": "Data Sources with Inconsistent Brick Class",
-                    "title_element": "H5",
-                    "kwargs": {
-                        "columns": [
-                            {"name": "Brick Class in Model", "id": "brick_class"},
-                            {
-                                "name": "Brick Class in Mapper",
-                                "id": "brick_class_in_mapper",
-                            },
-                            {"name": "Entity ID", "id": "entity_id"},
-                        ],
-                        "export_format": "csv",
-                        "fixed_rows": {"headers": True},
-                        "sort_action": "native",
-                        "sort_mode": "multi",
-                        "style_data_conditional": [
-                            {
-                                "if": {"row_index": "odd"},
-                                "backgroundColor": "#ddf2dc",
-                            }
-                        ],
-                        "style_table": {
-                            "height": 1000,
-                            "overflowX": "auto",
-                        },
-                        "tooltip_data": [
-                            {
-                                column: {"value": str(value), "type": "markdown"}
-                                for column, value in row.items()
-                            }
-                            for row in inconsistent_df.to_dict("records")
-                        ],
-                        "tooltip_duration": None,
-                    },
-                },
-            ]
-        )
 
-    return plot_config
-
-
-def run(db: DBManager) -> dict:
+def run(db: DBManager) -> PlotConfig:
     """
     Run the model quality analyses.
 
@@ -852,8 +719,8 @@ def run(db: DBManager) -> dict:
 
     Returns
     -------
-    dict
-        A dictionary containing the analysis results.
+    PlotConfig
+        A plot configuration dictionary containing the analysis results.
     """
     df = _build_master_df(db)
 

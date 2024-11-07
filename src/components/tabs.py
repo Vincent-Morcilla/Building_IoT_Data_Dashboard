@@ -1,5 +1,15 @@
+"""
+Handles the creation of tabbed content within the application.
+
+This module generates the content for individual tabs based on the selected
+category and subcategory. It constructs the tab layout by creating tabs for each
+subcategory under a selected category, enabling organized and accessible
+navigation through the app's visualizations and components.
+"""
+
 from dash import html
 import dash_bootstrap_components as dbc
+
 from components.plot_generator import create_layout_for_category
 from models.types import (
     PlotConfig,

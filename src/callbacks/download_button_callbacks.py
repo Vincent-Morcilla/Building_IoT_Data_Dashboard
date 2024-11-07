@@ -1,7 +1,16 @@
+"""
+Registers callbacks for the global download button functionality.
+
+This module manages the preparation and download of all data frames used in the
+application. It collects data frames from the plot configurations, ensures unique
+filenames, packages them into a ZIP file, and provides them to the user for
+download when the global download button is clicked.
+"""
+
 import hashlib
 import io
-import zipfile
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
+import zipfile
 
 import pandas as pd
 from dash import Dash, dcc

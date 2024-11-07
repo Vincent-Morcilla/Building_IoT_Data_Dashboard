@@ -1,3 +1,12 @@
+"""
+Main application module for the Dash web app.
+
+This module initializes and configures the Dash application. It sets up the app layout,
+registers callbacks, and handles command-line arguments for running the app in test mode
+or with real data files. It uses the provided plot configurations to create the app's
+visualizations and interactive components.
+"""
+
 import argparse
 
 from dash import Dash
@@ -14,7 +23,7 @@ from models.types import PlotConfig
 from sampledata.plot_configs import sample_plot_configs
 
 # Name of the application
-APP_NAME = "Network in Progress"
+APP_NAME = "Green Insight"
 
 
 def create_app(plot_configs: PlotConfig) -> Dash:
@@ -66,13 +75,19 @@ if __name__ == "__main__":
         "-a",
         "--host",
         help="Host address used to serve the application (default: %(default)s)",
-        default="0.0.0.0",
+        default="127.0.0.1",
     )
     parser.add_argument(
         "-p",
         "--port",
         help="Port used to serve the application (default: %(default)s)",
         default=8050,
+    )
+    parser.add_argument(
+        "-b",
+        "--building",
+        help="Filter mapper and data based on building (default: %(default)s)",
+        default=None,
     )
 
     # Optional test mode argument, will load sample data and visualisations if enabled
@@ -112,7 +127,7 @@ if __name__ == "__main__":
     if args.test_mode:
         plot_configs = sample_plot_configs
     else:
-        db = DBManager(args.data, args.mapper, args.model, args.schema)
+        db = DBManager(args.data, args.mapper, args.model, args.schema, args.building)
         am = AnalyticsManager(db)
         plot_configs = am.run_analytics()
 

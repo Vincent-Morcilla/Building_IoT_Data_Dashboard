@@ -1,5 +1,15 @@
-import dash_bootstrap_components as dbc
+"""
+Defines custom type annotations and aliases used throughout the application.
+
+This module provides type definitions for the various configurations, data structures,
+and components used in the app. It includes type aliases for plot configurations,
+category structures, filter conditions, and component configurations, enhancing code
+readability and maintainability.
+"""
+
 from typing import Any, Dict, List, Tuple, Union
+
+import dash_bootstrap_components as dbc
 
 # Plot Configuration Types
 

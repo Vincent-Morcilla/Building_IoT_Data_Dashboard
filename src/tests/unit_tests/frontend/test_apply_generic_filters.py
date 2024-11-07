@@ -1,4 +1,3 @@
-import pytest
 import pandas as pd
 from helpers.data_processing import apply_generic_filters
 

@@ -1,4 +1,15 @@
+"""
+Functions for applying filters and transformations to pandas DataFrames.
+
+This module provides utilities for processing data frames according to specified
+filter conditions and transformation instructions. It includes functions to apply
+generic filters based on user inputs and to perform data transformations like
+aggregation, resampling, and exploding columns, which are essential for dynamic
+data visualization and interaction in the app.
+"""
+
 import pandas as pd
+
 from models.types import Filters, InputMapping, Transformation
 
 

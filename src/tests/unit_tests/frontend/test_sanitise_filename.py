@@ -1,4 +1,3 @@
-import pytest
 from helpers.helpers import sanitise_filename
 
 
