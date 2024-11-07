@@ -1,8 +1,8 @@
-import copy
 import pytest
-from components.plot_generator import create_layout_for_category
 from dash import html, dcc
 import dash_bootstrap_components as dbc
+from components.plot_generator import create_layout_for_category
+
 
 # Positive test configuration
 selected_plot_config = {

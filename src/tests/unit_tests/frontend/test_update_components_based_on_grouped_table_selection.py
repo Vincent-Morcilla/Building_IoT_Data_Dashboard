@@ -2,10 +2,8 @@ import pytest
 from unittest.mock import MagicMock, patch
 from dash import html, no_update
 import pandas as pd
-
 from actions.update_components_based_on_grouped_table_selection import (
     update_components_based_on_grouped_table_selection_action,
-    create_plot_component,
 )
 
 
