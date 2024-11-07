@@ -1,5 +1,10 @@
 """
-TODO: Add module description
+Updates components when a selection is made in a grouped table.
+
+This module defines the action to update components based on the user's selection
+in a grouped table. It processes the selected data, retrieves relevant information,
+and updates associated plots or components, providing detailed insights and
+drill-down capabilities in the app's visualizations.
 """
 
 from typing import List, Dict, Any

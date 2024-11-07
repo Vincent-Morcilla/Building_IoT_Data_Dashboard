@@ -1,5 +1,10 @@
 """
-TODO: Add module description
+Helper functions for string manipulation and category structure creation.
+
+This module contains utility functions that assist with string formatting,
+such as converting PascalCase to space-separated words and sanitizing filenames.
+It also includes a function to create the category and subcategory structure
+used in the app's sidebar navigation based on the plot configurations.
 """
 
 import re
