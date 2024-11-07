@@ -198,5 +198,4 @@ def test_download_button(driver):
 
     except Exception as error:
         print(f"An error occurred: {error}")
-        driver.save_screenshot("error_screenshot.png")
         raise
