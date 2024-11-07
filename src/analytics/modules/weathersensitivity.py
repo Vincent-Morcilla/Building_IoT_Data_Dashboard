@@ -2,22 +2,51 @@ import pandas as pd
 import warnings
 from scipy import stats
 
-
-electric_energy_query_str = """
-SELECT ?meter ?sensor ?stream_id ?phase_count ?phases ?unit ?power_complexity ?power_flow
-WHERE {
-    ?sensor rdf:type brick:Electrical_Energy_Sensor .
-    ?meter rdf:type brick:Electrical_Meter .
-    ?sensor brick:isPointOf ?meter .
-    ?sensor senaps:stream_id ?stream_id .
-    OPTIONAL { ?sensor brick:electricalPhaseCount [ brick:value ?phase_count ] . }
-    OPTIONAL { ?sensor brick:electricalPhases [ brick:value ?phases ] . }
-    OPTIONAL { ?sensor brick:hasUnit [ brick:value ?unit ] . }
-    OPTIONAL { ?sensor brick:powerComplexity [ brick:value ?power_complexity ] . }
-    OPTIONAL { ?sensor brick:powerFlow [ brick:value ?power_flow ] . }
-}
-ORDER BY ?meter
 """
+This module identifies systems in the building model that have an associated 
+usage metric (energy, power, gas, water, chiller, and boiler). For each system,
+the module calculates the weather sensitivity, defined as the correlation 
+between outside air temperature and the system's usage over time.
+
+The module returns a dictionary containing the weather sensitivity analysis 
+results, which include the correlation values for each system and insights into 
+how outside temperature may impact building system usage.
+
+"""
+
+
+# electric_energy_query_str = """
+# SELECT ?meter ?sensor ?stream_id ?phase_count ?phases ?unit ?power_complexity ?power_flow
+# WHERE {
+#     ?sensor rdf:type brick:Electrical_Energy_Sensor .
+#     ?meter rdf:type brick:Electrical_Meter .
+#     ?sensor brick:isPointOf ?meter .
+#     ?sensor senaps:stream_id ?stream_id .
+#     OPTIONAL { ?sensor brick:electricalPhaseCount [ brick:value ?phase_count ] . }
+#     OPTIONAL { ?sensor brick:electricalPhases [ brick:value ?phases ] . }
+#     OPTIONAL { ?sensor brick:hasUnit [ brick:value ?unit ] . }
+#     OPTIONAL { ?sensor brick:powerComplexity [ brick:value ?power_complexity ] . }
+#     OPTIONAL { ?sensor brick:powerFlow [ brick:value ?power_flow ] . }
+# }
+# ORDER BY ?meter
+# """
+
+def get_electric_energy_query_str():
+    return """
+            SELECT ?meter ?sensor ?stream_id ?phase_count ?phases ?unit ?power_complexity ?power_flow
+            WHERE {
+                ?sensor rdf:type brick:Electrical_Energy_Sensor .
+                ?meter rdf:type brick:Electrical_Meter .
+                ?sensor brick:isPointOf ?meter .
+                ?sensor senaps:stream_id ?stream_id .
+                OPTIONAL { ?sensor brick:electricalPhaseCount [ brick:value ?phase_count ] . }
+                OPTIONAL { ?sensor brick:electricalPhases [ brick:value ?phases ] . }
+                OPTIONAL { ?sensor brick:hasUnit [ brick:value ?unit ] . }
+                OPTIONAL { ?sensor brick:powerComplexity [ brick:value ?power_complexity ] . }
+                OPTIONAL { ?sensor brick:powerFlow [ brick:value ?power_flow ] . }
+            }
+            ORDER BY ?meter
+            """
 
 electric_power_query_str = """
 SELECT ?meter ?sensor ?stream_id ?phase_count ?phases ?unit ?power_complexity ?power_flow
@@ -79,16 +108,28 @@ WHERE {
 ORDER BY ?meter
 """
 
-outside_air_temperature_query_str = """
-SELECT ?sensor ?stream_id 
-WHERE {
-    ?sensor rdf:type brick:Outside_Air_Temperature_Sensor .
-    ?sensor brick:isPointOf   ?loc .
-    ?loc a brick:Weather_Station .
-    ?sensor senaps:stream_id ?stream_id .
-}
-ORDER BY ?stream_id
-"""
+# outside_air_temperature_query_str = """
+# SELECT ?sensor ?stream_id 
+# WHERE {
+#     ?sensor rdf:type brick:Outside_Air_Temperature_Sensor .
+#     ?sensor brick:isPointOf   ?loc .
+#     ?loc a brick:Weather_Station .
+#     ?sensor senaps:stream_id ?stream_id .
+# }
+# ORDER BY ?stream_id
+# """
+
+def get_outside_air_temperature_query_str():
+    return """
+        SELECT ?sensor ?stream_id 
+        WHERE {
+            ?sensor rdf:type brick:Outside_Air_Temperature_Sensor .
+            ?sensor brick:isPointOf   ?loc .
+            ?loc a brick:Weather_Station .
+            ?sensor senaps:stream_id ?stream_id .
+        }
+        ORDER BY ?stream_id
+        """
 
 warnings.filterwarnings("ignore")
 
@@ -136,7 +177,7 @@ class WeatherSensitivity:
         return df
 
     def get_data_from_rdf(self):
-        df_electric_energy = self.db.query(electric_energy_query_str, return_df=True)
+        df_electric_energy = self.db.query(get_electric_energy_query_str(), return_df=True)
         df_electric_power = self.db.query(electric_power_query_str, return_df=True)
         df_gas = self.db.query(gas_query_str, return_df=True)
         df_water = self.db.query(water_query_str, return_df=True)
@@ -144,7 +185,7 @@ class WeatherSensitivity:
         df_boiler = self.db.query(boiler_query_str, return_df=True)
 
         df_outside_air_temp = self.db.query(
-            outside_air_temperature_query_str, return_df=True
+            get_outside_air_temperature_query_str(), return_df=True
         )
 
         self.rdf_data = {
@@ -363,6 +404,8 @@ class WeatherSensitivity:
                         },
                         "css": {
                             "padding": "10px",
+                            "width": "45%",
+                            "display": "inline-block",
                         },
                     }
                 
