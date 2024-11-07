@@ -80,50 +80,97 @@ def get_electric_power_query_str():
             }
             ORDER BY ?meter
             """
+def get_gas_query_str():
+    return """
+            SELECT ?meter ?sensor ?stream_id
+            WHERE {
+                ?sensor rdf:type brick:Usage_Sensor .
+                ?meter rdf:type brick:Building_Gas_Meter .
+                ?sensor brick:isPointOf ?meter .
+                ?sensor senaps:stream_id ?stream_id
+            }
+            ORDER BY ?meter
+            """
 
-gas_query_str = """
-SELECT ?meter ?sensor ?stream_id
-WHERE {
-    ?sensor rdf:type brick:Usage_Sensor .
-    ?meter rdf:type brick:Building_Gas_Meter .
-    ?sensor brick:isPointOf ?meter .
-    ?sensor senaps:stream_id ?stream_id
-}
-ORDER BY ?meter
-"""
+# gas_query_str = """
+# SELECT ?meter ?sensor ?stream_id
+# WHERE {
+#     ?sensor rdf:type brick:Usage_Sensor .
+#     ?meter rdf:type brick:Building_Gas_Meter .
+#     ?sensor brick:isPointOf ?meter .
+#     ?sensor senaps:stream_id ?stream_id
+# }
+# ORDER BY ?meter
+# """
 
-chiller_query_str = """
-SELECT ?meter ?sensor ?stream_id
-WHERE {
-    ?sensor rdf:type brick:Chilled_Water_Differential_Temperature_Sensor .
-    ?meter rdf:type brick:Chiller .
-    ?sensor brick:isPointOf ?meter .
-    ?sensor senaps:stream_id ?stream_id
-}
-ORDER BY ?meter
-"""
+# chiller_query_str = """
+# SELECT ?meter ?sensor ?stream_id
+# WHERE {
+#     ?sensor rdf:type brick:Chilled_Water_Differential_Temperature_Sensor .
+#     ?meter rdf:type brick:Chiller .
+#     ?sensor brick:isPointOf ?meter .
+#     ?sensor senaps:stream_id ?stream_id
+# }
+# ORDER BY ?meter
+# """
 
-water_query_str = """
-SELECT ?meter ?sensor ?stream_id
-WHERE {
-    ?sensor rdf:type brick:Usage_Sensor .
-    ?meter rdf:type brick:Building_Water_Meter .
-    ?sensor brick:isPointOf ?meter .
-    ?sensor senaps:stream_id ?stream_id
-}
-ORDER BY ?meter
-"""
+def get_chiller_query_str():
+    return """
+            SELECT ?meter ?sensor ?stream_id
+            WHERE {
+                ?sensor rdf:type brick:Chilled_Water_Differential_Temperature_Sensor .
+                ?meter rdf:type brick:Chiller .
+                ?sensor brick:isPointOf ?meter .
+                ?sensor senaps:stream_id ?stream_id
+            }
+            ORDER BY ?meter
+            """
 
-boiler_query_str = """
-SELECT ?meter ?sensor ?stream_id
-WHERE {
-    ?sensor rdf:type brick:Water_Temperature_Sensor .
-    ?meter rdf:type brick:Hot_Water_System .
-    ?sensor brick:isPointOf ?meter .
-    ?sensor senaps:stream_id ?stream_id
-}
-ORDER BY ?meter
-"""
+# water_query_str = """
+# SELECT ?meter ?sensor ?stream_id
+# WHERE {
+#     ?sensor rdf:type brick:Usage_Sensor .
+#     ?meter rdf:type brick:Building_Water_Meter .
+#     ?sensor brick:isPointOf ?meter .
+#     ?sensor senaps:stream_id ?stream_id
+# }
+# ORDER BY ?meter
+# """
+
+def get_water_query_str():
+    return """
+            SELECT ?meter ?sensor ?stream_id
+            WHERE {
+                ?sensor rdf:type brick:Usage_Sensor .
+                ?meter rdf:type brick:Building_Water_Meter .
+                ?sensor brick:isPointOf ?meter .
+                ?sensor senaps:stream_id ?stream_id
+            }
+            ORDER BY ?meter
+            """
+
+# boiler_query_str = """
+# SELECT ?meter ?sensor ?stream_id
+# WHERE {
+#     ?sensor rdf:type brick:Water_Temperature_Sensor .
+#     ?meter rdf:type brick:Hot_Water_System .
+#     ?sensor brick:isPointOf ?meter .
+#     ?sensor senaps:stream_id ?stream_id
+# }
+# ORDER BY ?meter
+# """
+
+def get_boiler_query_str():
+    return """
+            SELECT ?meter ?sensor ?stream_id
+            WHERE {
+                ?sensor rdf:type brick:Water_Temperature_Sensor .
+                ?meter rdf:type brick:Hot_Water_System .
+                ?sensor brick:isPointOf ?meter .
+                ?sensor senaps:stream_id ?stream_id
+            }
+            ORDER BY ?meter
+            """
 
 # outside_air_temperature_query_str = """
 # SELECT ?sensor ?stream_id 
@@ -195,11 +242,11 @@ class WeatherSensitivity:
 
     def get_data_from_rdf(self):
         df_electric_energy = self.db.query(get_electric_energy_query_str(), return_df=True)
-        df_electric_power = self.db.query(electric_power_query_str, return_df=True)
-        df_gas = self.db.query(gas_query_str, return_df=True)
-        df_water = self.db.query(water_query_str, return_df=True)
-        df_chiller = self.db.query(chiller_query_str, return_df=True)
-        df_boiler = self.db.query(boiler_query_str, return_df=True)
+        df_electric_power = self.db.query(get_electric_power_query_str(), return_df=True)
+        df_gas = self.db.query(get_gas_query_str(), return_df=True)
+        df_water = self.db.query(get_water_query_str(), return_df=True)
+        df_chiller = self.db.query(get_chiller_query_str(), return_df=True)
+        df_boiler = self.db.query(get_boiler_query_str(), return_df=True)
 
         df_outside_air_temp = self.db.query(
             get_outside_air_temperature_query_str(), return_df=True
