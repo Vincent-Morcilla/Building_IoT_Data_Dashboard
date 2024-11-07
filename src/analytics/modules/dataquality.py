@@ -108,28 +108,45 @@ def _preprocess_to_sensor_rows(db: DBManager):
 
 def _profile_groups(df):
     """
-    Calculate group statistics for sensor data.
+    Calculate group statistics for sensor data and flag outlier sensors.
 
     Args:
         df (pd.DataFrame): Preprocessed sensor data.
 
     Returns:
-        pd.DataFrame: Sensor data with added group statistics.
+        pd.DataFrame: Sensor data with added group statistics and flags.
     """
-    grouped = df.groupby("Label")
-
-    def calculate_group_stats(group):
-        return pd.Series(
-            {
-                "Group_Mean": group["Sensor_Mean"].mean(),
-                "Group_Std": group["Sensor_Mean"].std(),
-                "Group_Min": group["Sensor_Min"].min(),
-                "Group_Max": group["Sensor_Max"].max(),
-            }
-        )
-
-    group_stats = grouped.apply(calculate_group_stats)
-    return df.merge(group_stats, left_on="Label", right_index=True)
+    # Create a copy to avoid modifying the original
+    result = df.copy()
+    
+    # Initialize columns
+    result['Group_Mean'] = np.nan
+    result['Group_Std'] = np.nan
+    result['Flagged For Removal'] = 0  # Initialize with zeros
+    
+    # Group by Label
+    for label, group in df.groupby("Label"):
+        # Calculate group statistics
+        group_mean = group["Sensor_Mean"].mean()
+        group_std = group["Sensor_Mean"].std()
+        
+        # Store group statistics
+        result.loc[group.index, 'Group_Mean'] = group_mean
+        result.loc[group.index, 'Group_Std'] = group_std
+        
+        # Skip flagging if group_std is 0 (usually setpoints)
+        if group_std == 0:
+            continue
+            
+        # Calculate limits
+        lower_limit = group_mean - 3 * group_std
+        upper_limit = group_mean + 3 * group_std
+        
+        # Flag sensors outside the limits
+        flags = (group["Sensor_Mean"] < lower_limit) | (group["Sensor_Mean"] > upper_limit)
+        result.loc[group.index, 'Flagged For Removal'] = flags.astype(int)
+    
+    return result
 
 
 def _analyse_sensor_gaps(df):
@@ -174,7 +191,6 @@ def _analyse_sensor_gaps(df):
         medium_gap = np.sum((normalised_diffs > 3) & (normalised_diffs <= 6))
         large_gap = np.sum(normalised_diffs > 6)
         total_gaps = small_gap + medium_gap + large_gap
-
         time_delta_seconds = (timestamps.iloc[-1] - timestamps.iloc[0]).total_seconds()
         total_gap_intervals = sum(diff - 1 for diff in normalised_diffs if diff > 1.5)
         total_gap_size_seconds = total_gap_intervals * granularity_in_seconds
@@ -226,6 +242,7 @@ def _prepare_data_quality_df(df: pd.DataFrame) -> pd.DataFrame:
             "Sensor Mean": df["Sensor_Mean"].round(2),
             "Sensor Min": df["Sensor_Min"],
             "Sensor Max": df["Sensor_Max"],
+            "Flagged For Removal": df["Flagged For Removal"],
             "Start Timestamp": df["Start_Timestamp"],
             "End Timestamp": df["End_Timestamp"],
             "Flat Regions %": df["Percentage_Flat_Regions"].round(2),
@@ -942,6 +959,7 @@ def run(db: DBManager) -> dict:
                                 "Sensor Mean",
                                 "Sensor Min",
                                 "Sensor Max",
+                                "Flagged For Removal",
                                 "Start Timestamp",
                                 "End Timestamp",
                                 "Flat Regions %",
@@ -976,12 +994,12 @@ def run(db: DBManager) -> dict:
                             "whiteSpace": "normal",  # Allow text wrapping in cells
                             "height": "auto",
                             "minWidth": "100px",  # Minimum width for columns
-                            "maxWidth": "180px",  # Maximum width for columns
+                            "maxWidth": "350px",  # Maximum width for columns
                             "overflow": "hidden",
                             "textOverflow": "ellipsis",
                         },
                         "style_table": {
-                            "height": 1500,
+                            "height": 2000,
                             "overflowX": "auto",
                             "minWidth": "100%",  # Table takes full width
                         },
