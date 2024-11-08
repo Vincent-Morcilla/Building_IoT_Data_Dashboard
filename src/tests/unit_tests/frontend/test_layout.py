@@ -20,12 +20,12 @@ def mock_categories_structure(mock_plot_configs):
     return create_category_structure(mock_plot_configs.keys())
 
 
-def test_create_layout(mock_plot_configs, mock_categories_structure):
+def test_create_layout(mock_categories_structure):
     """
     Test that create_layout correctly returns an html.Div layout
     with expected components and structure.
     """
-    layout = create_layout(mock_plot_configs, mock_categories_structure)
+    layout = create_layout(mock_categories_structure)
 
     assert isinstance(layout, html.Div), "The layout should be an `html.Div` component."
     assert hasattr(layout, "children") and isinstance(

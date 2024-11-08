@@ -1,14 +1,22 @@
+"""
+Creates a global download button for exporting dataframes as CSV files.
+
+This module defines the global download button component, allowing users to
+download all the data frames used in the application as CSV files within a ZIP
+archive. It enhances user experience by providing data export functionality.
+"""
+
 from dash import dcc, html
 import dash_bootstrap_components as dbc
 
 
-def create_global_download_button():
+def create_global_download_button() -> html.Div:
     """
     Create a global download button along with its Download component and feedback message.
 
     Returns:
         html.Div: A Div containing the download button, Download component, and feedback message,
-                 styled to be fixed at the bottom right.
+                  styled to be fixed at the bottom right.
     """
     download_button = dbc.Button(
         "Download All Dataframes as CSVs",

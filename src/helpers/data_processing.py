@@ -1,11 +1,22 @@
-from typing import Dict, Any
+"""
+Functions for applying filters and transformations to pandas DataFrames.
+
+This module provides utilities for processing data frames according to specified
+filter conditions and transformation instructions. It includes functions to apply
+generic filters based on user inputs and to perform data transformations like
+aggregation, resampling, and exploding columns, which are essential for dynamic
+data visualization and interaction in the app.
+"""
+
 import pandas as pd
+
+from models.types import Filters, InputMapping, Transformation
 
 
 def apply_generic_filters(
     data_frame: pd.DataFrame,
-    filters: Dict[str, Any],
-    input_mapping: Dict[str, Any],
+    filters: Filters,
+    input_mapping: InputMapping,
 ) -> pd.DataFrame:
     """Apply generic filters to the DataFrame.
 
@@ -58,8 +69,8 @@ def apply_generic_filters(
 
 def apply_transformation(
     data_frame: pd.DataFrame,
-    transformation: Dict[str, Any],
-    input_mapping: Dict[str, Any],
+    transformation: Transformation,
+    input_mapping: InputMapping,
 ) -> pd.DataFrame:
     """Apply a transformation to the DataFrame.
 

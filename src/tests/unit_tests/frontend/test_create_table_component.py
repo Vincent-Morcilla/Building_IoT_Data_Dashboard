@@ -2,6 +2,7 @@ from dash import dash_table, html
 import pandas as pd
 from components.plot_generator import create_table_component
 
+
 # Sample DataFrame to test the create_table_component function.
 df_table = pd.DataFrame(
     {

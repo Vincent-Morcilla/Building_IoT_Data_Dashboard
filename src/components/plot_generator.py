@@ -1,24 +1,39 @@
+"""
+Generates plot components and layouts based on configuration.
+
+This module is responsible for creating the visual components of the app,
+including plots, tables, and UI elements, based on the provided configurations.
+It processes data frames, applies data mappings, and generates Plotly figures
+and Dash components dynamically, facilitating interactive and data-driven
+visualizations.
+"""
+
+from typing import Any, Dict, List
+
 from dash import dcc, html, dash_table
+import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-from typing import Dict, List
+
 from components.download_button import create_global_download_button
+from helpers.data_processing import apply_transformation
+from models.types import (
+    DataMappings,
+    DataProcessingConfig,
+    KwargsConfig,
+    PlotConfig,
+    PlotComponentConfig,
+    SpecificCategorySubcategoryPlotConfig,
+    TableComponentConfig,
+    UIComponentConfig,
+)
 
 
-def create_plot_component(component):
+def create_plot_component(component: PlotComponentConfig) -> dcc.Graph:
     """Create a Plotly-based plot component for the Dash app.
 
     Args:
-        component (dict): Configuration for the plot, including:
-            - library (str): Either 'px' (Plotly Express) or 'go' (Graph Objects).
-            - function (str): The plotting function to use.
-            - kwargs (dict): Keyword arguments for the plotting function.
-            - layout_kwargs (dict): Layout configuration for the plot.
-            - css (dict): Optional CSS styling for the plot.
-            - id (str): A unique identifier for the component.
-            - data_frame (pd.DataFrame): The data frame for the plot.
-            - data_processing (dict): Instructions for processing the data frame.
-            - trace_type (str): The type of trace for 'go' plots.
+        component (PlotComponentConfig): Configuration for plot components.
 
     Returns:
         dcc.Graph: A Dash Graph component containing the plot.
@@ -57,16 +72,18 @@ def create_plot_component(component):
     return dcc.Graph(figure=fig, id=component_id, style=css)
 
 
-def create_px_figure(func_name, data_frame, kwargs):
+def create_px_figure(
+    func_name: str, data_frame: pd.DataFrame, kwargs: KwargsConfig
+) -> go.Figure:
     """Create a Plotly Express figure.
 
     Args:
         func_name (str): The name of the Plotly Express function to use.
         data_frame (pd.DataFrame): The data frame to use.
-        kwargs (dict): Keyword arguments for the plotting function.
+        kwargs (KwargsConfig): Dictionary of keyword arguments for the plotting function.
 
     Returns:
-        plotly.graph_objects.Figure: The Plotly figure.
+        go.Figure: The Plotly figure.
     """
     plot_func = getattr(px, func_name)
     if data_frame is not None:
@@ -74,17 +91,22 @@ def create_px_figure(func_name, data_frame, kwargs):
     return plot_func(**kwargs)
 
 
-def create_go_figure(data_frame, data_processing, component, kwargs):
+def create_go_figure(
+    data_frame: pd.DataFrame,
+    data_processing: DataProcessingConfig,
+    component: PlotComponentConfig,
+    kwargs: KwargsConfig,
+) -> go.Figure:
     """Create a Plotly Graph Objects figure with flexibility for various trace types.
 
     Args:
         data_frame (pd.DataFrame): The data frame to use.
-        data_processing (dict): Instructions for processing the data frame.
-        component (dict): The component configuration containing trace_type.
-        kwargs (dict): Keyword arguments for the trace.
+        data_processing (DataProcessingConfig): Instructions for processing the data frame.
+        component (PlotComponentConfig): The component configuration containing trace_type.
+        kwargs (KwargsConfig): Dictionary of keyword arguments for the trace.
 
     Returns:
-        plotly.graph_objects.Figure: The Plotly figure with the appropriate trace.
+        go.Figure: The Plotly figure with the appropriate trace.
     """
     # Determine the trace type (e.g., Heatmap, Pie, Bar, etc.)
     trace_type = component.get("trace_type")
@@ -138,19 +160,21 @@ def create_go_figure(data_frame, data_processing, component, kwargs):
     return fig
 
 
-def process_data_frame(data_frame, data_processing):
-    """Process the data frame according to the data_processing instructions.
+def process_data_frame(
+    data_frame: pd.DataFrame, data_processing: Dict[str, Any]
+) -> pd.DataFrame:
+    """Process the data frame by applying filters, grouping/aggregation, and transformations.
 
     Args:
         data_frame (pd.DataFrame): The data frame to process.
-        data_processing (dict): Instructions for processing the data frame.
+        data_processing (Dict): Instructions for processing, including filters, groupby, and transformations.
 
     Returns:
         pd.DataFrame: The processed data frame.
     """
     df = data_frame.copy()
 
-    # Apply filtering
+    # Step 1: Apply filtering
     filters = data_processing.get("filter", {})
     for column, value in filters.items():
         if column not in df.columns:
@@ -162,9 +186,9 @@ def process_data_frame(data_frame, data_processing):
 
     if df.empty:
         print("Warning: DataFrame is empty after filtering.")
-        return df  # Return the empty DataFrame
+        return df  # Return the empty DataFrame if no data remains after filtering
 
-    # Apply grouping and aggregation
+    # Step 2: Apply grouping and aggregation
     groupby_columns = data_processing.get("groupby", [])
     aggregations = data_processing.get("aggregation", {})
     if groupby_columns and aggregations:
@@ -185,7 +209,7 @@ def process_data_frame(data_frame, data_processing):
             return df
         df = df.groupby(groupby_columns).agg(**agg_dict).reset_index()
 
-    # Apply explode transformation
+    # Step 3: Apply transformations
     transformations = data_processing.get("transformations", [])
     for transformation in transformations:
         if transformation["type"] == "explode":
@@ -196,19 +220,20 @@ def process_data_frame(data_frame, data_processing):
                     raise ValueError(
                         f"Column '{column}' cannot be exploded. Ensure it contains lists."
                     )
-
     return df
 
 
-def create_traces(data_frame, component):
+def create_traces(
+    data_frame: pd.DataFrame, component: PlotComponentConfig
+) -> List[go.Trace]:
     """Create Plotly traces based on the processed data frame and component configuration.
 
     Args:
         data_frame (pd.DataFrame): The processed data frame.
-        component (dict): The component configuration.
+        component (PlotComponentConfig): The component configuration.
 
     Returns:
-        list: A list of Plotly graph objects traces.
+        List[go.Trace]: A list of Plotly graph objects traces.
     """
     if data_frame.empty:
         print("Warning: DataFrame is empty. No traces will be created.")
@@ -253,16 +278,24 @@ def create_traces(data_frame, component):
     return traces
 
 
-def map_data_to_trace(data_frame, data_mappings):
+def map_data_to_trace(
+    data_frame: pd.DataFrame, data_mappings: DataMappings
+) -> Dict[str, Any]:
     """Map data frame columns to trace arguments.
 
     Args:
         data_frame (pd.DataFrame): The data frame to use.
-        data_mappings (dict): Mapping of trace arguments to data frame columns or values.
+        data_mappings (DataMappings): Mapping of trace arguments to data frame columns or values.
 
     Returns:
-        dict: Keyword arguments for the trace.
+        Dict[str, Any]: Keyword arguments for the trace.
+
+    Raises:
+        ValueError: If `data_mappings` is not a dictionary.
     """
+    if not isinstance(data_mappings, dict):
+        raise ValueError("`data_mappings` must be a dictionary.")
+
     trace_kwargs = {}
     for arg, col in data_mappings.items():
         if col in data_frame.columns:
@@ -272,19 +305,11 @@ def map_data_to_trace(data_frame, data_mappings):
     return trace_kwargs
 
 
-def create_table_component(component):
-    """
-    Create a table component using Dash DataTable with an optional title.
+def create_table_component(component: TableComponentConfig) -> html.Div:
+    """Create a table component using Dash DataTable with an optional title.
 
     Args:
-        component (dict): Configuration for the table, including:
-            - dataframe: The data to display in the table.
-            - kwargs: Keyword arguments for the DataTable.
-            - css: Optional CSS styling for the container Div.
-            - id: A unique identifier for the component.
-            - title: Optional title text for the table.
-            - title_element: Optional HTML element for the title (e.g., 'H1', 'H2').
-            - title_kwargs: Optional keyword arguments for the title component.
+        component (TableComponentConfig): Configuration for the table.
 
     Returns:
         html.Div: A Div containing the title (if any) and the DataTable.
@@ -331,18 +356,11 @@ def create_table_component(component):
     return html.Div(children, style=css)
 
 
-def create_ui_component(component):
-    """
-    Create a generic UI component (input, dropdown, etc.) for the Dash app.
+def create_ui_component(component: UIComponentConfig) -> html.Div:
+    """Create a generic UI component (input, dropdown, etc.) for the Dash app.
 
     Args:
-        component (dict): A dictionary containing configuration for the UI element, including:
-                          - element: the type of UI component (e.g., Input, Dropdown).
-                          - kwargs: keyword arguments for the UI component.
-                          - css: optional CSS styling for the outer component wrapper.
-                          - id: a unique identifier for the component.
-                          - label: optional label text for the component.
-                          - label_position: where to place the label ('above' or 'next').
+        component (UIComponentConfig): Configuration for the UI element.
 
     Returns:
         html.Div: A Dash component, optionally wrapped in a Div with CSS and label.
@@ -408,30 +426,32 @@ def create_ui_component(component):
     return html.Div(children, style=css)
 
 
-def create_layout_for_category(category_key: str, plot_config: Dict) -> List:
+def create_layout_for_category(
+    selected_plot_config: SpecificCategorySubcategoryPlotConfig,
+) -> List[html.Div]:
     """
-    Generate the layout for a category based on the provided plot configuration.
+    Generate the layout for a category based on the provided specific category-subcategory plot configuration.
 
     Args:
-        category_key (str): The key representing the category.
-        plot_config (dict): Configuration dictionary for the category's layout, containing:
+        selected_plot_config (SpecificCategorySubcategoryPlotConfig): Configuration dictionary for the layout of a specific
+            category and subcategory, containing:
             title (str): The section title.
             title_element (str): The HTML element for the title (e.g., 'H2').
             title_style (dict): Styling for the title, such as font size and alignment.
             components (list): List of components (plot, table, UI) to include in the layout.
 
     Returns:
-        list: A list of Dash components representing the category's layout, including:
+        List[html.Div]: A list of Dash components representing the layout for the specific category-subcategory pair, including:
             - Section title component.
-            - Specified UI, plot, table, separator and placeholder components.
+            - Specified UI, plot, table, separator, and placeholder components.
             - A global download button for downloading data.
     """
     components = []
 
     # Create the section title
-    title_text = plot_config.get("title", "")
-    title_element = plot_config.get("title_element", "H2")
-    title_style = plot_config.get(
+    title_text = selected_plot_config.get("title", "")
+    title_element = selected_plot_config.get("title_element", "H2")
+    title_style = selected_plot_config.get(
         "title_style",
         {
             "fontSize": "28px",
@@ -446,7 +466,7 @@ def create_layout_for_category(category_key: str, plot_config: Dict) -> List:
     components.append(title_component)
 
     # Add components (UI, plots, tables) to the layout
-    for component in plot_config.get("components", []):
+    for component in selected_plot_config.get("components", []):
         comp_type = component.get("type")
         if comp_type == "UI":
             components.append(create_ui_component(component))
@@ -473,15 +493,18 @@ def create_layout_for_category(category_key: str, plot_config: Dict) -> List:
     return components
 
 
-def find_component_by_id(component_id, plot_configs):
+def find_component_by_id(
+    component_id: str, plot_configs: PlotConfig
+) -> PlotComponentConfig:
     """
     Find and return a component by its ID from the plot configuration.
 
     Args:
         component_id (str): The ID of the component to find.
+        plot_configs (PlotConfig): A dictionary of plot configurations.
 
     Returns:
-        dict: The component's configuration dictionary.
+        PlotComponentConfig: The component's configuration dictionary.
 
     Raises:
         ValueError: If no component with the given ID is found.

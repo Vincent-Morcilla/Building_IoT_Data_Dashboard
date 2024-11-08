@@ -2,8 +2,7 @@ import pytest
 from unittest.mock import patch
 from dash import html
 import pandas as pd
-
-from callbacks.plot_callbacks import (
+from actions.update_components_based_on_table_selection import (
     update_components_based_on_table_selection_action,
 )
 
@@ -62,11 +61,11 @@ def test_valid_input(setup_data):
     input_values = [[0]]  # Simulate selecting the first row
 
     with patch(
-        "callbacks.plot_callbacks.create_plot_component"
+        "actions.update_components_based_on_table_selection.create_plot_component"
     ) as mock_create_plot_component, patch(
-        "callbacks.plot_callbacks.create_ui_component"
+        "actions.update_components_based_on_table_selection.create_ui_component"
     ) as mock_create_ui_component, patch(
-        "callbacks.plot_callbacks.create_table_component"
+        "actions.update_components_based_on_table_selection.create_table_component"
     ) as mock_create_table_component:
         # Mock the component creation functions
         mock_create_plot_component.return_value = html.Div("Plot Component")
@@ -251,7 +250,7 @@ def test_component_creation_failure(setup_data):
     input_values = [[0]]  # selected_rows
 
     with patch(
-        "callbacks.plot_callbacks.create_plot_component"
+        "actions.update_components_based_on_table_selection.create_plot_component"
     ) as mock_create_plot_component:
         # Simulate an exception during component creation
         mock_create_plot_component.side_effect = Exception("Mocked exception")
