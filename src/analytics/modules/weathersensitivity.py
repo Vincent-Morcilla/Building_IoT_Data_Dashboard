@@ -16,16 +16,15 @@ how outside temperature may impact building system usage.
 
 
 def get_electric_energy_query_str():
-    
     """
-    Returns a SPARQL query string to retrieve information about electrical energy sensors 
-    and their associated meters in the building model. 
+    Returns a SPARQL query string to retrieve information about electrical energy sensors
+    and their associated meters in the building model.
 
     Returns:
-        str: A SPARQL query string that retrieves information about electrical energy sensors 
+        str: A SPARQL query string that retrieves information about electrical energy sensors
              and meters, ordered by meter.
     """
-    
+
     return """
             SELECT ?meter ?sensor ?stream_id ?phase_count ?phases ?unit ?power_complexity ?power_flow
             WHERE {
@@ -42,17 +41,17 @@ def get_electric_energy_query_str():
             ORDER BY ?meter
             """
 
+
 def get_electric_power_query_str():
-    
     """
-    Returns a SPARQL query string to retrieve information about electrical power sensors 
+    Returns a SPARQL query string to retrieve information about electrical power sensors
     and their associated meters in the building model.
 
     Returns:
-        str: A SPARQL query string that retrieves information about electrical power sensors 
+        str: A SPARQL query string that retrieves information about electrical power sensors
              and meters, ordered by meter.
     """
-    
+
     return """
             SELECT ?meter ?sensor ?stream_id ?phase_count ?phases ?unit ?power_complexity ?power_flow
             WHERE {
@@ -68,17 +67,18 @@ def get_electric_power_query_str():
             }
             ORDER BY ?meter
             """
+
+
 def get_gas_query_str():
-    
     """
-    Returns a SPARQL query string to retrieve information about gas usage sensors 
+    Returns a SPARQL query string to retrieve information about gas usage sensors
     and their associated gas meters in the building model.
 
     Returns:
-        str: A SPARQL query string that retrieves information about gas usage sensors 
+        str: A SPARQL query string that retrieves information about gas usage sensors
              and their associated meters, ordered by meter.
     """
-    
+
     return """
             SELECT ?meter ?sensor ?stream_id
             WHERE {
@@ -93,14 +93,14 @@ def get_gas_query_str():
 
 def get_chiller_query_str():
     """
-    Returns a SPARQL query string to retrieve information about chilled water 
+    Returns a SPARQL query string to retrieve information about chilled water
     differential temperature sensors and their associated chillers in the building model.
 
     Returns:
-        str: A SPARQL query string that retrieves information about chilled water differential 
+        str: A SPARQL query string that retrieves information about chilled water differential
              temperature sensors and their associated chillers, ordered by chiller.
     """
-    
+
     return """
             SELECT ?meter ?sensor ?stream_id
             WHERE {
@@ -114,16 +114,15 @@ def get_chiller_query_str():
 
 
 def get_water_query_str():
-    
     """
-    Returns a SPARQL query string to retrieve information about water usage sensors 
+    Returns a SPARQL query string to retrieve information about water usage sensors
     and their associated water meters in the building model.
 
     Returns:
-        str: A SPARQL query string that retrieves information about water usage sensors 
+        str: A SPARQL query string that retrieves information about water usage sensors
              and their associated meters, ordered by meter.
     """
-    
+
     return """
             SELECT ?meter ?sensor ?stream_id
             WHERE {
@@ -137,16 +136,15 @@ def get_water_query_str():
 
 
 def get_boiler_query_str():
-    
     """
-        Returns a SPARQL query string to retrieve information about water temperature sensors 
+        Returns a SPARQL query string to retrieve information about water temperature sensors
     and their associated hot water systems (boilers) in the building model.
 
     Returns:
-        str: A SPARQL query string that retrieves information about water temperature sensors 
+        str: A SPARQL query string that retrieves information about water temperature sensors
     and their associated hot water systems, ordered by meter.
     """
-    
+
     return """
             SELECT ?meter ?sensor ?stream_id
             WHERE {
@@ -158,17 +156,17 @@ def get_boiler_query_str():
             ORDER BY ?meter
             """
 
+
 def get_outside_air_temperature_query_str():
-    
     """
-    Returns a SPARQL query string to retrieve information about outside air temperature sensors 
+    Returns a SPARQL query string to retrieve information about outside air temperature sensors
     and their associated weather stations in the building model.
 
     Returns:
-    str: A SPARQL query string that retrieves information about outside air temperature sensors 
+    str: A SPARQL query string that retrieves information about outside air temperature sensors
     and their associated weather stations, ordered by stream ID.
     """
-    
+
     return """
         SELECT ?sensor ?stream_id 
         WHERE {
@@ -179,6 +177,7 @@ def get_outside_air_temperature_query_str():
         }
         ORDER BY ?stream_id
         """
+
 
 warnings.filterwarnings("ignore")
 
@@ -193,18 +192,18 @@ class WeatherSensitivity:
         """
         Load sensor data from the database for each stream ID in the provided DataFrame.
 
-        This method uses the DBManager instance to retrieve sensor data for each stream ID in the 
-        DataFrame `df`. For each stream ID, the corresponding sensor information, including sensor 
+        This method uses the DBManager instance to retrieve sensor data for each stream ID in the
+        DataFrame `df`. For each stream ID, the corresponding sensor information, including sensor
         type, timestamps, and values, is fetched and stored in a new `sensor_data` column in `df`.
 
         Args:
-            df (pd.DataFrame): A DataFrame containing a column named 'stream_id', where each stream ID 
+            df (pd.DataFrame): A DataFrame containing a column named 'stream_id', where each stream ID
                             corresponds to a sensor in the database.
 
         Returns:
-            pd.DataFrame: The input DataFrame `df` with an added `sensor_data` column, where each entry 
-                        contains a dictionary of sensor information (`streamid`, `sensor_type`, 
-                        `timestamps`, `values`) or `None` if the sensor data is missing or could not 
+            pd.DataFrame: The input DataFrame `df` with an added `sensor_data` column, where each entry
+                        contains a dictionary of sensor information (`streamid`, `sensor_type`,
+                        `timestamps`, `values`) or `None` if the sensor data is missing or could not
                         be retrieved.
         """
         # Ensure that both StreamID columns are strings
@@ -240,7 +239,6 @@ class WeatherSensitivity:
         return df
 
     def get_data_from_rdf(self):
-        
         """
         Retrieves data from the RDF database and stores it in a dictionary.
 
@@ -253,15 +251,19 @@ class WeatherSensitivity:
         - Boiler operation data
         - Outside air temperature
 
-        The data is retrieved as Pandas DataFrames and stored in the `self.rdf_data` dictionary, 
+        The data is retrieved as Pandas DataFrames and stored in the `self.rdf_data` dictionary,
         with the keys corresponding to the data types.
 
         Returns:
             None
         """
-        
-        df_electric_energy = self.db.query(get_electric_energy_query_str(), return_df=True)
-        df_electric_power = self.db.query(get_electric_power_query_str(), return_df=True)
+
+        df_electric_energy = self.db.query(
+            get_electric_energy_query_str(), return_df=True
+        )
+        df_electric_power = self.db.query(
+            get_electric_power_query_str(), return_df=True
+        )
         df_gas = self.db.query(get_gas_query_str(), return_df=True)
         df_water = self.db.query(get_water_query_str(), return_df=True)
         df_chiller = self.db.query(get_chiller_query_str(), return_df=True)
@@ -288,7 +290,7 @@ class WeatherSensitivity:
         This method iterates through the data stored in `self.rdf_data` and uses the
         `load_sensors_from_db()` method to load the sensor data for each data type.
 
-        The sensor data is stored in a dictionary, where the keys correspond to the 
+        The sensor data is stored in a dictionary, where the keys correspond to the
         data types (e.g., "electric_energy", "electric_power", "gas", "water", "chiller",
         "boiler", "outside_temp") and the values are the corresponding sensor data.
 
@@ -304,16 +306,16 @@ class WeatherSensitivity:
         """
         Calculates the daily median outside air temperature from the provided data.
 
-        This function takes a dictionary of outside air temperature data, which is 
+        This function takes a dictionary of outside air temperature data, which is
         expected to have a "sensor_data" key that contains a list of dictionaries,
         each with "timestamps" and "values" keys.
 
         Args:
-            df_outside_air_temp_data (dict): A dictionary containing the outside 
+            df_outside_air_temp_data (dict): A dictionary containing the outside
             air temperature data, with a "sensor_data" key.
 
         Returns:
-            pd.DataFrame: A DataFrame with two columns: "date" and "outside_temp", 
+            pd.DataFrame: A DataFrame with two columns: "date" and "outside_temp",
             containing the daily median outside air temperature.
         """
         df_outside_temperature = pd.DataFrame(
@@ -334,10 +336,10 @@ class WeatherSensitivity:
 
     def get_daily_median_sensor_data(df_sensors_data):
         """
-        Calculates the daily median values for multiple sensors and combines 
+        Calculates the daily median values for multiple sensors and combines
         the results into a single DataFrame.
 
-        This function takes a dictionary of sensor data, which is expected to 
+        This function takes a dictionary of sensor data, which is expected to
         have a "sensor_data" key that contains a list of dictionaries, each with
         "timestamps" and "values" keys.
 
@@ -346,7 +348,7 @@ class WeatherSensitivity:
             a "sensor_data" key.
 
         Returns:
-            pd.DataFrame: A DataFrame with columns for the daily median values of 
+            pd.DataFrame: A DataFrame with columns for the daily median values of
             each sensor, indexed by date.
         """
         sensor_data = []
@@ -379,13 +381,13 @@ class WeatherSensitivity:
 
     def combine_meter_outside_temp_data(df_meters_data, df_outside_temp):
         """
-        Combines meter data with outside temperature data, merging the data on 
+        Combines meter data with outside temperature data, merging the data on
         the "date" column.
-        
+
         Args:
-            df_meters_data (pd.DataFrame): A DataFrame containing meter data, 
+            df_meters_data (pd.DataFrame): A DataFrame containing meter data,
             with a "date" column.
-            df_outside_temp (pd.DataFrame): A DataFrame containing outside 
+            df_outside_temp (pd.DataFrame): A DataFrame containing outside
             temperature data, with a "date" column.
 
         Returns:
@@ -404,16 +406,16 @@ class WeatherSensitivity:
         """
         Calculates the monthly Spearman correlation between sensor data and outside temperature.
 
-        This function takes a DataFrame containing sensor data and outside temperature data, 
-        with a 'date' column. It calculates the monthly Spearman correlation between each 
+        This function takes a DataFrame containing sensor data and outside temperature data,
+        with a 'date' column. It calculates the monthly Spearman correlation between each
         sensor column and the outside temperature column, and returns a DataFrame with the results.
 
         Args:
-            df_sensor_outside_data (pd.DataFrame): A DataFrame containing sensor data and outside 
+            df_sensor_outside_data (pd.DataFrame): A DataFrame containing sensor data and outside
             temperature data, with a 'date' column.
 
         Returns:
-            pd.DataFrame: A DataFrame with columns for each sensor, containing the monthly 
+            pd.DataFrame: A DataFrame with columns for each sensor, containing the monthly
             Spearman correlation between the sensor data and outside temperature.
         """
         # Create the year_month column
@@ -451,7 +453,7 @@ class WeatherSensitivity:
 
     def get_daily_median_data(sensors_data):
         """
-        Calculates the daily median values for each sensor and outside temperature 
+        Calculates the daily median values for each sensor and outside temperature
         data by calling two functions.
 
         Args:
@@ -459,7 +461,7 @@ class WeatherSensitivity:
             and sensor data as values.
 
         Returns:
-            dict: A dictionary containing the daily median data for each sensor, with 
+            dict: A dictionary containing the daily median data for each sensor, with
             sensor names as keys and DataFrames as values.
         """
         sensors_daily_median_data = {}
@@ -482,14 +484,14 @@ class WeatherSensitivity:
 
         Args:
         sensors_data : dict
-            A dictionary containing sensor data 
+            A dictionary containing sensor data
 
         Returns
         dict
             A dictionary where:
             - Keys are the original meter keys (excluding 'outside_temp')
             - Values are DataFrames containing combined meter and temperature data
-        
+
         """
         df_outside_temp = sensors_data["outside_temp"]
         combine_meter_outside_data = {}
@@ -535,7 +537,7 @@ class WeatherSensitivity:
 
         Args:
         df : pandas.DataFrame
-            
+
         Returns
         pandas.DataFrame
             Transformed DataFrame with columns:
@@ -569,63 +571,62 @@ class WeatherSensitivity:
         Returns:
             dict: Plotly heatmap configuration dictionary
         """
-        df['Sensor ID'] = df['Sensor ID'].str.replace(r'sensor(\d+)', r'\1', regex=True)
-        return  {
-                        "type": "plot",
-                        "library": "go",
-                        "function": "Heatmap",
-                        "id": f"ws-heatmap-{meter}",
-                        "data_frame": df,
-                        "trace_type": "Heatmap",  
-                        "data_mappings": {
-                            "x": "Date",
-                            "y": "Sensor ID",
-                            "z": "Correlation",
-                        },
-                        "kwargs": {  
-                            "colorscale": "Viridis",
-                            "colorbar": {
-                                "title": "Weather Sensitivity",
-                                "orientation": "h",
-                                "yanchor": "bottom",
-                                "y": -0.7,
-                                "xanchor": "center",
-                                "x": 0.5,
-                                "title_side": "bottom",
-                            },
-                        },
-                        "layout_kwargs": {
-                            "title": {
-                                "text": title,
-                                "x": 0.5,
-                                "xanchor": "center",
-                            },
-                            "xaxis_title": "Date",
-                            "yaxis_title": f"{meter.title().replace('_',' ')} Sensor",
-                            "font_color": "black",
-                            "plot_bgcolor": "white",
-                            "xaxis": {
-                                "mirror": True,
-                                "ticks": "outside",
-                                "showline": True,
-                                "linecolor": "black",
-                                "gridcolor": "lightgrey",
-                            },
-                            "yaxis": {
-                                "mirror": True,
-                                "ticks": "outside",
-                                "showline": True,
-                                "linecolor": "black",
-                                "gridcolor": "lightgrey",
-                            },
-                        },
-                        "css": {
-                            "padding": "10px",
-                            "width": "45%",
-                            "display": "inline-block",
-                        },
-                    }
-                
+        df["Sensor ID"] = df["Sensor ID"].str.replace(r"sensor(\d+)", r"\1", regex=True)
+        return {
+            "type": "plot",
+            "library": "go",
+            "function": "Heatmap",
+            "id": f"ws-heatmap-{meter}",
+            "data_frame": df,
+            "trace_type": "Heatmap",
+            "data_mappings": {
+                "x": "Date",
+                "y": "Sensor ID",
+                "z": "Correlation",
+            },
+            "kwargs": {
+                "colorscale": "Viridis",
+                "colorbar": {
+                    "title": "Weather Sensitivity",
+                    "orientation": "h",
+                    "yanchor": "bottom",
+                    "y": -0.7,
+                    "xanchor": "center",
+                    "x": 0.5,
+                    "title_side": "bottom",
+                },
+            },
+            "layout_kwargs": {
+                "title": {
+                    "text": title,
+                    "x": 0.5,
+                    "xanchor": "center",
+                },
+                "xaxis_title": "Date",
+                "yaxis_title": f"{meter.title().replace('_',' ')} Sensor",
+                "font_color": "black",
+                "plot_bgcolor": "white",
+                "xaxis": {
+                    "mirror": True,
+                    "ticks": "outside",
+                    "showline": True,
+                    "linecolor": "black",
+                    "gridcolor": "lightgrey",
+                },
+                "yaxis": {
+                    "mirror": True,
+                    "ticks": "outside",
+                    "showline": True,
+                    "linecolor": "black",
+                    "gridcolor": "lightgrey",
+                },
+            },
+            "css": {
+                "padding": "10px",
+                "width": "45%",
+                "display": "inline-block",
+            },
+        }
 
     def get_data_for_dash(weather_sensitivity_results):
         """
@@ -653,8 +654,8 @@ class WeatherSensitivity:
         data_for_vis[("WeatherSensitivity", "Correlation Analysis")] = {
             "title": f"Correlation between Usage Sensor and Outside Temperature",
             # "title": None,
-            "components": result
-        }           
+            "components": result,
+        }
         return data_for_vis
 
     def get_weather_sensitivity_data(self):
@@ -684,4 +685,3 @@ def run(db):
     ws = WeatherSensitivity(db)
     data = ws.get_weather_sensitivity_data()
     return data
-
