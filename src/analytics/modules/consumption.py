@@ -163,7 +163,7 @@ def run(db: DBManager) -> dict:
                     "Usage": combined_data.sum(
                         axis=1
                     ),  # Sum across all columns to get total usage per timestamp
-                    "Sensor": f"{meter_type} Combined ({unit})",
+                    "Sensor": f"{meter_type.replace('_', ' ')} Combined ({unit})",
                 }
             )
 
@@ -181,20 +181,18 @@ def run(db: DBManager) -> dict:
             },
             "layout_kwargs": {
                 "title": {
-                    "text": f"Aggregated {meter_type.replace('_', ' ')} - {sensor_type.replace('_', ' ')} Usage",
+                    "text": f"Aggregated {meter_type.replace('_', ' ')} - {sensor_type.replace('_', ' ')}",
                     "x": 0.5,
                     "xanchor": "center",
                 },
                 "font_color": "black",
                 "plot_bgcolor": "white",
-                "font": {"size": 15},
                 "legend": {
                     "orientation": "h",
                     "yanchor": "top",
                     "y": -0.3,
                     "xanchor": "center",
                     "x": 0.5,
-                    "font": {"size": 15},
                 },
                 "xaxis": {
                     "title": "Date",
@@ -225,7 +223,8 @@ def run(db: DBManager) -> dict:
         else:
             # Create a new entry for the component if the key doesn't exist
             config[config_key] = {
-                "title": f"{meter_type.replace('_', ' ')}",
+                # "title": f"{meter_type.replace('_', ' ')}",
+                "title": None,
                 "components": [component],
             }
 
