@@ -20,18 +20,18 @@ from analytics.dbmgr import DBManager  # only imported for type hinting
 
 def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:
     """
-    This function retrieves the building hierarchy data, including various 
-    relationships within a building, such as buildings, systems, equipment, 
-    levels, rooms, HVAC, and sensors. This data is represented as a 
-    parent-child structure, enabling visualization of a complete building 
+    This function retrieves the building hierarchy data, including various
+    relationships within a building, such as buildings, systems, equipment,
+    levels, rooms, HVAC, and sensors. This data is represented as a
+    parent-child structure, enabling visualization of a complete building
     hierarchy.
 
     Args:
         db (DBManager): Database manager instance to execute SPARQL queries.
 
     Returns:
-        pd.DataFrame: DataFrame containing the hierarchy of building 
-                      entities with columns for parent, parent label, child, 
+        pd.DataFrame: DataFrame containing the hierarchy of building
+                      entities with columns for parent, parent label, child,
                       child label and entity type.
     """
 
@@ -278,24 +278,24 @@ def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:
         }
     """
 
-     # Execute the SPARQL query on the specified graph and return results as a DataFrame
+    # Execute the SPARQL query on the specified graph and return results as a DataFrame
     return db.query(query, graph="schema+model", return_df=True, defrag=True)
 
 
 def _get_building_area(db: DBManager) -> pd.DataFrame:
     """
-    This function retrieves the hierarchical area structure within a 
+    This function retrieves the hierarchical area structure within a
     building, including the building itself, levels, rooms, and HVAC.
-    This function organizes building areas as a parent-child 
+    This function organizes building areas as a parent-child
     relationship for hierarchical representation.
 
     Args:
-        db (DBManager): Database manager instance used to execute SPARQL 
+        db (DBManager): Database manager instance used to execute SPARQL
         queries.
 
     Returns:
-        pd.DataFrame: DataFrame containing area hierarchy of building 
-                      elements, with columns for parent, parent label, 
+        pd.DataFrame: DataFrame containing area hierarchy of building
+                      elements, with columns for parent, parent label,
                       child, child label, and entity type.
     """
     query = """
@@ -366,8 +366,8 @@ def _get_building_area(db: DBManager) -> pd.DataFrame:
 
 def run(db: DBManager) -> dict:
     """
-    Executes the building structure analysis by generating hierarchical 
-    representations for building elements such as locations, systems, 
+    Executes the building structure analysis by generating hierarchical
+    representations for building elements such as locations, systems,
     equipment, and points. It outputs configurations for visualisations.
 
     Parameters
@@ -441,8 +441,8 @@ def run(db: DBManager) -> dict:
 
     # Custom annotations to create a legend in the plot layout
     annotations = []
-    legend_y = 1.05     # Initial y position for the legend
-    spacing = 0.03      # Vertical Spacing for each legend item
+    legend_y = 1.05  # Initial y position for the legend
+    spacing = 0.03  # Vertical Spacing for each legend item
 
     # Loop through color map to add legend items
     for category, color in color_map.items():
@@ -481,7 +481,7 @@ def run(db: DBManager) -> dict:
                     },
                     "layout_kwargs": {
                         "font_color": "black",
-                        "plot_bgcolor": "white", 
+                        "plot_bgcolor": "white",
                         "annotations": annotations,
                     },
                     "css": {
@@ -511,7 +511,7 @@ def run(db: DBManager) -> dict:
                     },
                     "layout_kwargs": {
                         "font_color": "black",
-                        "plot_bgcolor": "white",    
+                        "plot_bgcolor": "white",
                         "annotations": annotations,
                     },
                     "css": {

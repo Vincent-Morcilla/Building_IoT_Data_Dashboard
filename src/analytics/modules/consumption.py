@@ -21,8 +21,8 @@ from analytics.dbmgr import DBManager  # only imported for type hinting
 
 def _get_building_meters(db: DBManager) -> pd.DataFrame:
     """
-    This function retrieves information on building meters, specifically 
-    focusing on equipment that functions as meters and their associated 
+    This function retrieves information on building meters, specifically
+    focusing on equipment that functions as meters and their associated
     sensors. The data includes details on the equipment type, sensor type,
     unit of measurement, and stream ID for real power and usage sensors.
 
@@ -30,11 +30,11 @@ def _get_building_meters(db: DBManager) -> pd.DataFrame:
         db (DBManager): Database manager instance to execute SPARQL queries.
 
     Returns:
-        pd.DataFrame: DataFrame containing meter information with columns 
-            for equipment, equipment type, sensor, sensor type, unit, and 
+        pd.DataFrame: DataFrame containing meter information with columns
+            for equipment, equipment type, sensor, sensor type, unit, and
             stream ID.
     """
-        
+
     query = """
         SELECT  ?equipment ?equipment_type ?sensor ?sensor_type ?unit ?stream_id
         WHERE {
@@ -74,8 +74,8 @@ def _get_building_meters(db: DBManager) -> pd.DataFrame:
 
 def run(db: DBManager) -> dict:
     """
-    This function Executes the building consumption analysis, aggregating 
-    meter data for different equipment and sensor types, and prepares it 
+    This function Executes the building consumption analysis, aggregating
+    meter data for different equipment and sensor types, and prepares it
     for visualisation in the frontend.
 
     Parameters
@@ -86,7 +86,7 @@ def run(db: DBManager) -> dict:
     Returns
     -------
     dict
-        A dictionary containing configurations for the building consumption 
+        A dictionary containing configurations for the building consumption
         visualisations.
     """
 
