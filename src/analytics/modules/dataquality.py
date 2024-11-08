@@ -537,9 +537,8 @@ def _build_components(df: pd.DataFrame, stream_id: str, title: str) -> list:
     ]
 
 
-def generate_green_scale(n_colors):
+def _generate_green_scale(n_colors):
     """Generate a green color scale with the specified number of colors."""
-    import numpy as np
 
     # Create evenly spaced values between 0 and 1
     values = np.linspace(0, 1, n_colors)
@@ -698,7 +697,7 @@ def run(db: DBManager) -> dict:
                         "textinfo": "percent+label",
                         "textposition": "inside",
                         "showlegend": False,
-                        "marker": {"colors": generate_green_scale(n_classes)},
+                        "marker": {"colors": _generate_green_scale(n_classes)},
                     },
                     "layout_kwargs": {
                         "title": {
