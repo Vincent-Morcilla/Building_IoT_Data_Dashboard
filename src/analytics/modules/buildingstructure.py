@@ -1,15 +1,16 @@
 """
-This module interprets and structures this hierarchy of locations, systems, equipment, and points of a building 
-in order to create an interactive visualization of the layout of a building. This hierarchy goes from the general 
-down through the levels of rooms and equipment to the systems they are connected with. Points will also be mapped 
-to their respective rooms, equipment, or systems in order for one to have detailed visualizations of them.
+This module interprets and structures this hierarchy of locations, systems, 
+equipment, and points of a building in order to create an interactive 
+visualization of the layout of a building. This hierarchy goes from the 
+general down through the levels of rooms and equipment to the systems they 
+are connected with. Points will also be mapped to their respective rooms, 
+equipment, or systems in order for one to have detailed visualizations of 
+them.
 
-The module returns a dictionary of configuration that could be used in a frontend sunburst chart to let users 
-explore the building structure interactively.
+The module returns a dictionary of configuration that could be used in a 
+frontend sunburst chart to let users explore the building structure 
+interactively.
 
-@bassel: TODO:
-    - Handle potential issues with missing or incomplete data in the hierarchy
-    - Implement comprehensive tests to validate hierarchy extraction
 """
 
 import pandas as pd
@@ -18,10 +19,26 @@ from analytics.dbmgr import DBManager  # only imported for type hinting
 
 
 def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:
+    """
+    This function retrieves the building hierarchy data, including various
+    relationships within a building, such as buildings, systems, equipment,
+    levels, rooms, HVAC, and sensors. This data is represented as a
+    parent-child structure, enabling visualization of a complete building
+    hierarchy.
+
+    Args:
+        db (DBManager): Database manager instance to execute SPARQL queries.
+
+    Returns:
+        pd.DataFrame: DataFrame containing the hierarchy of building
+                      entities with columns for parent, parent label, child,
+                      child label and entity type.
+    """
+
     query = """
-        SELECT DISTINCT ?parent ?parentLabel ?child ?childLabel ?building ?buildingLabel ?system ?systemLabel ?entityType
+        SELECT DISTINCT ?parent ?parentLabel ?child ?childLabel ?entityType
         WHERE {
-            # Define the building
+            # Define the building itself as the root
             ?building a brick:Building . 
             ?building a ?buildingLabel .
             BIND('' AS ?parent)
@@ -31,7 +48,7 @@ def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:
             BIND('Location' AS ?entityType)
 
             OPTIONAL {
-                # Match root node: building
+                # Match the root node for the building
                 {
                     ?building a brick:Building .
                     ?building a ?buildingLabel .
@@ -43,7 +60,7 @@ def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:
                     BIND('Location' AS ?entityType)
                 }
 
-                # Match System entities connected to building
+                # Match System entities connected to the building
                 UNION
                 {
                     ?building a brick:Building . 
@@ -58,7 +75,7 @@ def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:
                     BIND('System' AS ?entityType)
                 }
 
-                # match equipments connected to building
+                # match equipments connected to the building
                 UNION {
                     ?equip brick:hasLocation ?building .
                     ?building a ?buildingLabel .
@@ -70,7 +87,7 @@ def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:
                     BIND(?equipLabel AS ?childLabel)
                     BIND('Equipment' AS ?entityType)
                 }
-                # Match all levels
+                # Match all levels within the building
                 UNION
                 {
                     ?level brick:isPartOf ?building .
@@ -82,7 +99,7 @@ def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:
                     BIND(?levelLabel AS ?childLabel)
                     BIND('Location' AS ?entityType)
                 }
-                # Match all rooms
+                # Match rooms within each level
                 UNION {
                     ?level brick:isPartOf ?building .
                     ?room brick:isPartOf ?level .
@@ -94,7 +111,7 @@ def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:
                     BIND(?roomLabel AS ?childLabel)
                     BIND('Location' AS ?entityType)
                 }
-                # match all HVAC
+                # Match HVAC connected to rooms
                 UNION {
                     ?level brick:isPartOf ?building .
                     ?room brick:isPartOf ?level .
@@ -224,20 +241,6 @@ def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:
                     BIND(?sensorLabel AS ?childLabel)
                     BIND('Point' AS ?entityType)
                 }
-                # sensors connected to equipment feeds a room
-                # UNION {
-                #     ?level brick:isPartOf ?building .
-                #     ?room brick:isPartOf ?level .
-                #     ?room a ?roomLabel .
-                #     ?equip1 brick:feeds ?room .
-                #     ?equip1 a ?equip1Label .
-                #     ?sensor brick:isPointOf ?equip1 .
-                #     ?sensor a ?sensorLabel .
-                #     BIND(?equip1 AS ?parent)
-                #     BIND(?equip1Label AS ?parentLabel)
-                #     BIND(?sensor AS ?child)
-                #     BIND(?sensorLabel AS ?childLabel)
-                # }
                 # sensors connetcted to equipment connected to another equipment by inverse (equip1 brick:feeds equip2)
                 UNION {
                     ?level brick:isPartOf ?building .
@@ -274,14 +277,31 @@ def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:
             }    
         }
     """
+
+    # Execute the SPARQL query on the specified graph and return results as a DataFrame
     return db.query(query, graph="schema+model", return_df=True, defrag=True)
 
 
 def _get_building_area(db: DBManager) -> pd.DataFrame:
+    """
+    This function retrieves the hierarchical area structure within a
+    building, including the building itself, levels, rooms, and HVAC.
+    This function organizes building areas as a parent-child
+    relationship for hierarchical representation.
+
+    Args:
+        db (DBManager): Database manager instance used to execute SPARQL
+        queries.
+
+    Returns:
+        pd.DataFrame: DataFrame containing area hierarchy of building
+                      elements, with columns for parent, parent label,
+                      child, child label, and entity type.
+    """
     query = """
         SELECT DISTINCT ?parent ?parentLabel ?child ?childLabel ?entityType
         WHERE {
-            # Define the building
+            # Define the building as the root area.
             ?building a brick:Building . 
             ?building a ?buildingLabel
             BIND(?building AS ?location)
@@ -289,7 +309,7 @@ def _get_building_area(db: DBManager) -> pd.DataFrame:
             BIND('Location' AS ?entityType)
 
             OPTIONAL {
-                # Match root node: building
+                # Match root node: the building
                 {
                     ?building a brick:Building .
                     ?building a ?buildingLabel .
@@ -299,7 +319,7 @@ def _get_building_area(db: DBManager) -> pd.DataFrame:
                     BIND(?building AS ?child)
                     BIND(?buildingLabel AS ?childLabel)
                 }
-                # Match all levels
+                # Match all levels within the building
                 UNION
                 {
                     ?level brick:isPartOf ?building .
@@ -311,7 +331,7 @@ def _get_building_area(db: DBManager) -> pd.DataFrame:
                     BIND(?levelLabel AS ?childLabel)
                     BIND('Location' AS ?entityType)
                 }
-                # Match all rooms
+                # Match all rooms within each level
                 UNION {
                     ?level brick:isPartOf ?building .
                     ?room brick:isPartOf ?level .
@@ -323,7 +343,7 @@ def _get_building_area(db: DBManager) -> pd.DataFrame:
                     BIND(?roomLabel AS ?childLabel)
                     BIND('Location' AS ?entityType)
                 }
-                # match all HVAC
+                # Match HVAC connected to rooms
                 UNION {
                     ?level brick:isPartOf ?building .
                     ?room brick:isPartOf ?level .
@@ -339,52 +359,78 @@ def _get_building_area(db: DBManager) -> pd.DataFrame:
             }    
         }
     """
+
+    # Execute the SPARQL query on the specified graph and return results as a DataFrame
     return db.query(query, graph="schema+model", return_df=True, defrag=True)
 
 
 def run(db: DBManager) -> dict:
     """
-    Run the building structure analysis.
+    Executes the building structure analysis by generating hierarchical
+    representations for building elements such as locations, systems,
+    equipment, and points. It outputs configurations for visualisations.
 
     Parameters
     ----------
     db : DBManager
-        The database manager.
+      The database manager used to execute queries on the building schema.
 
     Returns
     -------
     dict
-        A dictionary containing the analysis results.
+        A dictionary containing configurations for the building structure
+        visualizations.
     """
 
+    # Retrieve building hierarchy data
     data_hierarchy = _get_building_hierarchy(db)
 
+    # Check if data_hierarchy is empty; if so, return an empty dictionary
     if data_hierarchy.empty:
         return {}
 
+    # Extract unique ID for each child entity
     data_hierarchy["ids"] = data_hierarchy["child"].str.split("#").str[-1]
+
+    # Extract labels for child entities
     data_hierarchy["labels"] = (
         data_hierarchy["childLabel"].str.split("#").str[-1].str.replace("_", " ")
     )
+
+    # Extract unique ID for each parent entity
     data_hierarchy["parents"] = data_hierarchy["parent"].str.split("#").str[-1]
+
+    # Ensure entity types are in string format for color-map compatibility
     data_hierarchy["entityType"] = data_hierarchy["entityType"].apply(str)
 
+    # Filter out required columns for hierarchy visualisation
     data_hierarchy = data_hierarchy[["ids", "labels", "parents", "entityType"]]
 
+    # Retrieve building area data
     df_area = _get_building_area(db)
 
+    # Check if df_area is empty; if so, return an empty dictionary
     if df_area.empty:
         return {}
 
+    # Extract unique ID for each child entity in building area
     df_area["ids"] = df_area["child"].str.split("#").str[-1]
+
+    # Extract labels for child entities in building area
     df_area["labels"] = (
         df_area["childLabel"].str.split("#").str[-1].str.replace("_", " ")
     )
+
+    # Extract unique ID for each parent entity in building area
     df_area["parents"] = df_area["parent"].str.split("#").str[-1]
+
+    # Ensure entity types are in string format for color-map compatibility
     df_area["entityType"] = df_area["entityType"].apply(str)
 
+    # Filter out required columns for hierarchy visualisation
     data_area = df_area[["ids", "labels", "parents", "entityType"]]
 
+    # Define color map for different entity types
     color_map = {
         # "(?)":"black",
         "Location": "LightCoral",
@@ -393,14 +439,15 @@ def run(db: DBManager) -> dict:
         "Point": "Gold",
     }
 
-    # Custom annotations for the legend
+    # Custom annotations to create a legend in the plot layout
     annotations = []
     legend_y = 1.05  # Initial y position for the legend
-    spacing = 0.03
+    spacing = 0.03  # Vertical Spacing for each legend item
 
+    # Loop through color map to add legend items
     for category, color in color_map.items():
         annotation = {
-            "x": 1.05,
+            "x": 1.02,
             "y": legend_y,
             "xref": "paper",
             "yref": "paper",
@@ -411,6 +458,7 @@ def run(db: DBManager) -> dict:
         legend_y -= spacing
         annotations.append(annotation)
 
+    # Define visualisation configurations for both building hierarchy and building locations
     config = {
         ("BuildingStructure", "BuildingHierarchy"): {
             "title": None,
@@ -425,29 +473,15 @@ def run(db: DBManager) -> dict:
                         "parents": "parents",
                         "names": "labels",
                         "ids": "ids",
-                        "title": "Building Hierarchy",
+                        "title": None,
                         "height": 1000,
                         "width": 1000,
                         "color": "entityType",
                         "color_discrete_map": color_map,
                     },
                     "layout_kwargs": {
-                        "title": {
-                            "text": "Building Hierarchy",
-                            "x": 0.5,
-                            "xanchor": "center",
-                            "font": {"size": 35},
-                        },
                         "font_color": "black",
                         "plot_bgcolor": "white",
-                        "coloraxis_colorbar": {
-                            "title": "Level",
-                            "orientation": "h",
-                            "yanchor": "top",
-                            "y": -0.2,
-                            "xanchor": "center",
-                            "x": 0.5,
-                        },
                         "annotations": annotations,
                     },
                     "css": {
@@ -469,29 +503,15 @@ def run(db: DBManager) -> dict:
                         "parents": "parents",
                         "names": "labels",
                         "ids": "ids",
-                        "title": "Building Locations",
+                        "title": None,
                         "height": 1000,
                         "width": 1000,
                         "color": "entityType",
                         "color_discrete_map": color_map,
                     },
                     "layout_kwargs": {
-                        "title": {
-                            "text": "Building Locations",
-                            "x": 0.5,
-                            "xanchor": "center",
-                            "font": {"size": 35},
-                        },
                         "font_color": "black",
                         "plot_bgcolor": "white",
-                        "coloraxis_colorbar": {
-                            "title": "Level",
-                            "orientation": "h",
-                            "yanchor": "top",
-                            "y": -0.2,
-                            "xanchor": "center",
-                            "x": 0.5,
-                        },
                         "annotations": annotations,
                     },
                     "css": {
@@ -503,19 +523,3 @@ def run(db: DBManager) -> dict:
     }
 
     return config
-
-
-if __name__ == "__main__":
-    DATA = "../../datasets/bts_site_b_train/train.zip"
-    MAPPER = "../../datasets/bts_site_b_train/mapper_TrainOnly.csv"
-    MODEL = "../../datasets/bts_site_b_train/Site_B.ttl"
-    SCHEMA = "../../datasets/bts_site_b_train/Brick_v1.2.1.ttl"
-
-    import sys
-
-    sys.path.append("..")
-
-    db = DBManager(DATA, MAPPER, MODEL, SCHEMA)
-
-    config = run(db)
-    # print(config)
