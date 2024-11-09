@@ -80,16 +80,25 @@ def _build_components(df: pd.DataFrame, room_id: str, title: str) -> list:
             "layout_kwargs": {
                 "title": {
                     "text": title,
+                    "font": {"size": 20},
                     "x": 0.5,
                     "xanchor": "center",
+                    "subtitle": {
+                        "text": f"Room ID: {room_id}",
+                        "font": {"size": 12},
+                    },
                 },
                 "font_color": "black",
                 "plot_bgcolor": "white",
+                "height": 600,
                 "autosize": True,
+                "margin": {
+                    "t": 100,
+                },
                 "legend": {
                     "orientation": "h",
                     "yanchor": "top",
-                    "y": -0.3,
+                    "y": -0.15,
                     "xanchor": "center",
                     "x": 0.5,
                     "font": {"size": 12},
@@ -108,9 +117,6 @@ def _build_components(df: pd.DataFrame, room_id: str, title: str) -> list:
                     "linecolor": "black",
                     "gridcolor": "lightgrey",
                 },
-            },
-            "css": {
-                "padding": "10px",
             },
         },
     ]
@@ -279,7 +285,7 @@ def run(db: DBManager) -> PlotConfig:
         room_type = row["room_class"].replace("_", " ")
 
         room_id = row["room_id"]
-        title = f"{room_type} Mean Temperature<br><sup>Room ID: {room_id}</sup>"
+        title = f"{room_type} Mean Temperature"
 
         # Build the plot components for the room
         timeseries_data_dict[room_id] = _build_components(room_df, room_id, title)

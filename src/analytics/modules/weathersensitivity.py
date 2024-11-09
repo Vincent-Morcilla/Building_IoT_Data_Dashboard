@@ -587,7 +587,7 @@ class WeatherSensitivity:
             "kwargs": {
                 "colorscale": "Viridis",
                 "colorbar": {
-                    "title": "Weather Sensitivity",
+                    "title": "Correlation",
                     "orientation": "h",
                     "yanchor": "bottom",
                     "y": -0.7,
@@ -595,13 +595,17 @@ class WeatherSensitivity:
                     "x": 0.5,
                     "title_side": "bottom",
                 },
+                "zmin": -1,
+                "zmax": 1,
             },
             "layout_kwargs": {
                 "title": {
                     "text": title,
                     "x": 0.5,
+                    "y": 0.9,
                     "xanchor": "center",
                 },
+                "height": 500,
                 "xaxis_title": "Date",
                 "yaxis_title": f"{meter.title().replace('_',' ')} Sensor",
                 "font_color": "black",
@@ -622,8 +626,8 @@ class WeatherSensitivity:
                 },
             },
             "css": {
-                "padding": "10px",
-                "width": "45%",
+                # "padding": "10px",
+                "width": "49%",
                 "display": "inline-block",
             },
         }
@@ -648,12 +652,10 @@ class WeatherSensitivity:
                 transpose_df,
                 meter,
                 # f"Correlation between {meter.title().replace('_',' ')} Usage and Outside Temperature",
-                f"{meter.title().replace('_',' ')} ",
+                f"{meter.title().replace('_',' ')} Usage and Outside Temperature",
             )
             result.append(df_vis)
         data_for_vis[("WeatherSensitivity", "Correlation Analysis")] = {
-            "title": f"Correlation between Usage Sensor and Outside Temperature",
-            # "title": None,
             "components": result,
         }
         return data_for_vis

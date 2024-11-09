@@ -125,7 +125,7 @@ def _profile_groups(df):
     result["Flagged For Removal"] = 0  # Initialize with zeros
 
     # Group by Label
-    for label, group in df.groupby("Label"):
+    for _, group in df.groupby("Label"):
         # Calculate group statistics
         group_mean = group["Sensor_Mean"].mean()
         group_std = group["Sensor_Mean"].std()
@@ -253,6 +253,8 @@ def _prepare_data_quality_df(df: pd.DataFrame) -> pd.DataFrame:
         }
     )
 
+    data_quality_df.sort_values(["Brick Class", "Stream ID"], inplace=True)
+
     return data_quality_df
 
 
@@ -301,6 +303,8 @@ def _create_summary_table(data_quality_df):
         }
     )
 
+    summary_table.sort_values(["Brick Class"], inplace=True)
+
     return summary_table
 
 
@@ -316,10 +320,12 @@ def _get_data_quality_overview(data_quality_df):
         "title": "Sensors with Outliers",
         "labels": "has_outliers",
         "textinfo": "percent+label",
-        "filter": None,
         "dataframe": data_quality_df,
         "kwargs": {
             "marker": {"colors": ["#2d722c", "#3c9639"]}  # Just two colors for binary
+        },
+        "layout_kwargs": {
+            "margin": {"t": 50, "b": 50, "l": 50, "r": 50},
         },
     }
 
@@ -328,7 +334,6 @@ def _get_data_quality_overview(data_quality_df):
         "title": "Sensors with Gaps",
         "labels": "Brick Class",
         "textinfo": "percent+label",
-        "filter": None,
         "dataframe": data_quality_df,
         "kwargs": {
             "marker": {
@@ -338,6 +343,9 @@ def _get_data_quality_overview(data_quality_df):
                     [1, "#b8e4b7"],  # Lightest green
                 ]
             }
+        },
+        "layout_kwargs": {
+            "margin": {"t": 50, "b": 50, "l": 50, "r": 50},
         },
     }
 
@@ -501,16 +509,25 @@ def _build_components(df: pd.DataFrame, stream_id: str, title: str) -> list:
             "layout_kwargs": {
                 "title": {
                     "text": title,
+                    "font": {"size": 20},
                     "x": 0.5,
                     "xanchor": "center",
+                    "subtitle": {
+                        "text": f"Stream ID: {stream_id}",
+                        "font": {"size": 12},
+                    },
                 },
                 "font_color": "black",
                 "plot_bgcolor": "white",
+                "height": 500,
                 "autosize": True,
-                "legend": {  # Added legend configuration
+                "margin": {
+                    "t": 100,
+                },
+                "legend": {
                     "orientation": "h",
                     "yanchor": "top",
-                    "y": -0.3,
+                    "y": -0.25,
                     "xanchor": "center",
                     "x": 0.5,
                     "font": {"size": 12},
@@ -530,16 +547,12 @@ def _build_components(df: pd.DataFrame, stream_id: str, title: str) -> list:
                     "gridcolor": "lightgrey",
                 },
             },
-            "css": {
-                "padding": "10px",
-            },
-        }
+        },
     ]
 
 
-def generate_green_scale(n_colors):
+def _generate_green_scale(n_colors):
     """Generate a green color scale with the specified number of colors."""
-    import numpy as np
 
     # Create evenly spaced values between 0 and 1
     values = np.linspace(0, 1, n_colors)
@@ -560,7 +573,7 @@ def generate_green_scale(n_colors):
             rgb = theme_green + (2 * v) * (light_green - theme_green)
 
         # Convert to hex
-        hex_color = "#{:02x}{:02x}{:02x}".format(int(rgb[0]), int(rgb[1]), int(rgb[2]))
+        hex_color = f"#{int(rgb[0]):02x}{int(rgb[1]):02x}{int(rgb[2]):02x}"
         colors.append(hex_color)
 
     return colors
@@ -595,13 +608,12 @@ def run(db: DBManager) -> dict:
 
         stream_type = row["Brick Class"].replace("_", " ")
         stream_id = row["Stream ID"]
-        title = f"{stream_type} Timeseries Data<br><sup>Stream ID: {stream_id}</sup>"
+        title = f"{stream_type} Timeseries Data"
 
         timeseries_data_dict[stream_id] = _build_components(stream_df, stream_id, title)
 
     plot_config = {
         ("DataQuality", "Overview"): {
-            "title": "Data Quality Overview",
             "components": [
                 {
                     "type": "table",
@@ -677,13 +689,14 @@ def run(db: DBManager) -> dict:
                             "x": 0.5,
                             "xanchor": "center",
                         },
+                        "margin": {"t": 50, "b": 50, "l": 50, "r": 50},
                     },
                     "css": {
                         "width": "50%",
                         "display": "inline-block",
-                        "padding": "5px",
-                        "marginTop": "0%",
-                        "marginBottom": "5%",
+                        # "padding": "5px",
+                        # "marginTop": "0%",
+                        # "marginBottom": "5%",
                     },
                 },
                 {
@@ -698,7 +711,7 @@ def run(db: DBManager) -> dict:
                         "textinfo": "percent+label",
                         "textposition": "inside",
                         "showlegend": False,
-                        "marker": {"colors": generate_green_scale(n_classes)},
+                        "marker": {"colors": _generate_green_scale(n_classes)},
                     },
                     "layout_kwargs": {
                         "title": {
@@ -707,13 +720,14 @@ def run(db: DBManager) -> dict:
                             "x": 0.5,
                             "xanchor": "center",
                         },
+                        "margin": {"t": 50, "b": 50, "l": 50, "r": 50},
                     },
                     "css": {
                         "width": "50%",
                         "display": "inline-block",
-                        "padding": "10px",
-                        "marginTop": "0%",
-                        "marginBottom": "5%",
+                        # "padding": "10px",
+                        # "marginTop": "0%",
+                        # "marginBottom": "5%",
                     },
                 },
                 {
@@ -753,13 +767,14 @@ def run(db: DBManager) -> dict:
                             "x": 0.5,
                             "xanchor": "center",
                         },
+                        "margin": {"t": 50, "b": 50, "l": 50, "r": 50},
                     },
                     "css": {
                         "width": "50%",
                         "display": "inline-block",
-                        "padding": "5px",
-                        "marginTop": "0%",
-                        "marginBottom": "5%",
+                        # "padding": "5px",
+                        # "marginTop": "0%",
+                        # "marginBottom": "5%",
                     },
                 },
                 {
@@ -799,13 +814,14 @@ def run(db: DBManager) -> dict:
                             "x": 0.5,
                             "xanchor": "center",
                         },
+                        "margin": {"t": 50, "b": 50, "l": 50, "r": 50},
                     },
                     "css": {
                         "width": "50%",
                         "display": "inline-block",
-                        "padding": "5px",
-                        "marginTop": "0%",
-                        "marginBottom": "5%",
+                        # "padding": "5px",
+                        # "marginTop": "0%",
+                        # "marginBottom": "5%",
                     },
                 },
                 {
@@ -826,27 +842,38 @@ def run(db: DBManager) -> dict:
                             "x": 0.5,
                             "xanchor": "center",
                         },
+                        "font_color": "black",
+                        "plot_bgcolor": "white",
                         "xaxis": {
                             "title": "Class Type",
                             "tickangle": 45,  # Slant the labels by 45 degrees
                             "tickfont": {"size": 10},  # Reduce font size
                             "tickmode": "auto",
                             "automargin": True,  # Automatically adjust margins
+                            "linecolor": "black",
+                            "mirror": True,
+                        },
+                        "yaxis": {
+                            "mirror": True,
+                            "ticks": "outside",
+                            "showline": True,
+                            "linecolor": "black",
+                            "gridcolor": "lightgrey",
                         },
                         "yaxis_title": "Number of Streams",
                         "showlegend": False,
                         "bargap": 0.2,
                         "height": 600,
-                        "width": 1000,
+                        # "width": 1200,
                         "margin": {"t": 50, "b": 50, "l": 50, "r": 50},
                     },
                     "css": {
-                        "width": "60%",
+                        # "width": "60%",
                         "display": "block",
-                        "padding": "10px",
-                        "marginLeft": "10%",
+                        # "padding": "10px",
+                        # "marginLeft": "10%",
                         "marginTop": "5%",
-                        "marginBottom": "10%",
+                        # "marginBottom": "10%",
                     },
                 },
                 {
@@ -866,17 +893,35 @@ def run(db: DBManager) -> dict:
                     "layout_kwargs": {
                         "title": {
                             "text": overview_data["timeline"]["title"],
-                            "x": 0.6,
+                            "x": 0.5,
                             "xanchor": "center",
                             "font_color": "black",
-                            "font_size": 16,
+                            # "font_size": 16,
                         },
+                        "font_color": "black",
+                        "plot_bgcolor": "white",
+                        # "xaxis": {
+                        #     "title": "Class Type",
+                        #     "tickangle": 45,  # Slant the labels by 45 degrees
+                        #     "tickfont": {"size": 10},  # Reduce font size
+                        #     "tickmode": "auto",
+                        #     "automargin": True,  # Automatically adjust margins
+                        # },
+                        # "yaxis": {
+                        #     "mirror": True,
+                        #     "ticks": "outside",
+                        #     "showline": True,
+                        #     "linecolor": "black",
+                        #     "gridcolor": "lightgrey",
+                        # },
                         "xaxis": {
                             "title": overview_data["timeline"]["x-axis_label"],
                             "type": "date",
                             "tickformat": "%Y-%m-%d",
                             "tickfont": {"size": 10},
                             "automargin": True,
+                            "linecolor": "black",
+                            "mirror": True,
                             "range": [
                                 overview_data["timeline"]["dataframe"][
                                     "Start Timestamp"
@@ -886,11 +931,17 @@ def run(db: DBManager) -> dict:
                                 ].max(),
                             ],
                         },
-                        "yaxis": {"tickfont": {"size": 8}, "automargin": True},
+                        "yaxis": {
+                            "tickfont": {"size": 8},
+                            "automargin": True,
+                            "linecolor": "black",
+                            "mirror": True,
+                            "side": "right",
+                        },
                         "showlegend": False,
                         "height": 600,
-                        "width": 1000,
-                        "margin": {"t": 50, "b": 50, "l": 200, "r": 50, "pad": 4},
+                        # "width": 1000,
+                        "margin": {"t": 50, "b": 50, "l": 50, "r": 50},
                         "hovermode": "closest",
                         "hoverlabel": {
                             "bgcolor": "white",
@@ -917,18 +968,17 @@ def run(db: DBManager) -> dict:
                         ],
                     },
                     "css": {
-                        "width": "100%",
+                        # "width": "100%",
                         "display": "block",
-                        "padding": "10px",
-                        "marginLeft": "0%",
-                        "marginTop": "0%",
-                        "marginBottom": "15%",
+                        # "padding": "10px",
+                        # "marginLeft": "0%",
+                        "marginTop": "5%",
+                        # "marginBottom": "15%",
                     },
                 },
             ],
         },
         ("DataQuality", "ByClass"): {
-            "title": "Data Quality by Stream Class",
             "components": [
                 # Plot placeholder first
                 {
@@ -954,7 +1004,11 @@ def run(db: DBManager) -> dict:
                         "row_selectable": "single",
                         "selected_rows": [0],
                         "export_format": "csv",
+                        "filter_action": (
+                            "native" if len(summary_table_df) > 20 else "none"
+                        ),
                         "fixed_rows": {"headers": True},
+                        # "fixed_columns": {"headers": True, "data": 1},
                         "sort_action": "native",
                         "sort_mode": "multi",
                         "style_header": {
@@ -965,7 +1019,6 @@ def run(db: DBManager) -> dict:
                             "whiteSpace": "normal",  # Allow text wrapping in headers
                             "height": "auto",  # Adjust height automatically
                             "minWidth": "100px",  # Minimum width for columns
-                            "textAlign": "center",
                         },
                         "style_cell": {
                             "textAlign": "center",
@@ -989,6 +1042,14 @@ def run(db: DBManager) -> dict:
                                 "backgroundColor": "#ddf2dc",
                             }
                         ],
+                        "tooltip_data": [
+                            {
+                                column: {"value": str(value), "type": "markdown"}
+                                for column, value in row.items()
+                            }
+                            for row in df.to_dict("records")
+                        ],
+                        "tooltip_duration": None,
                     },
                 },
             ],
@@ -1018,7 +1079,6 @@ def run(db: DBManager) -> dict:
             ],
         },
         ("DataQuality", "ByStream"): {
-            "title": "Data Quality Metrics by Stream",
             "components": [
                 {
                     "type": "placeholder",
@@ -1032,8 +1092,6 @@ def run(db: DBManager) -> dict:
                     "type": "table",
                     "dataframe": data_quality_df,
                     "id": "data-quality-metrics-table",
-                    "title": "Data Quality Metrics",
-                    "title_element": "H5",
                     "kwargs": {
                         "columns": [
                             {"name": col, "id": col}
@@ -1065,7 +1123,11 @@ def run(db: DBManager) -> dict:
                             ]
                         ],
                         "export_format": "csv",
+                        "filter_action": (
+                            "native" if len(summary_table_df) > 20 else "none"
+                        ),
                         "fixed_rows": {"headers": True},
+                        # "fixed_columns": {"headers": True, "data": 2},
                         "row_selectable": "single",
                         "selected_rows": [0],
                         "sort_action": "native",
@@ -1105,6 +1167,14 @@ def run(db: DBManager) -> dict:
                             "minWidth": "100%",  # Table takes full width
                         },
                         "style_data": {"textAlign": "center"},  # Center all cell data
+                        "tooltip_data": [
+                            {
+                                column: {"value": str(value), "type": "markdown"}
+                                for column, value in row.items()
+                            }
+                            for row in df.to_dict("records")
+                        ],
+                        "tooltip_duration": None,
                     },
                 },
             ],
@@ -1136,22 +1206,3 @@ def run(db: DBManager) -> dict:
     }
 
     return plot_config
-
-
-if __name__ == "__main__":
-
-    DATA = "../datasets/bts_site_b_train/train.zip"
-    MAPPER = "../datasets/bts_site_b_train/mapper_TrainOnly.csv"
-    MODEL = "../datasets/bts_site_b_train/Site_B.ttl"
-    SCHEMA = "../datasets/bts_site_b_train/Brick_v1.2.1.ttl"
-
-    import sys
-
-    sys.path.append("..")
-
-    from dbmgr import DBManager
-
-    db = DBManager(DATA, MAPPER, MODEL, SCHEMA)
-
-    results = run(db)
-    print(results)
