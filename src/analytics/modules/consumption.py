@@ -182,17 +182,24 @@ def run(db: DBManager) -> dict:
             "layout_kwargs": {
                 "title": {
                     "text": f"Aggregated {meter_type.replace('_', ' ')} - {sensor_type.replace('_', ' ')}",
+                    "font": {"size": 20},
                     "x": 0.5,
                     "xanchor": "center",
+                },
+                "height": 600,
+                "autosize": True,
+                "margin": {
+                    "t": 100,
                 },
                 "font_color": "black",
                 "plot_bgcolor": "white",
                 "legend": {
                     "orientation": "h",
                     "yanchor": "top",
-                    "y": -0.3,
+                    "y": -0.15,
                     "xanchor": "center",
                     "x": 0.5,
+                    "font": {"size": 12},
                 },
                 "xaxis": {
                     "title": "Date",

@@ -69,6 +69,53 @@ def _generate_id(
     return f"{category}-{subcategory}-{component}-{suffix}"
 
 
+def _generate_green_scale_colour_map(labels: list) -> dict:
+    """
+    Generate a colour map for the labels based on a green scale.
+
+    Parameters
+    ----------
+    labels : list
+        The unique labels to generate colours for.
+
+    Returns
+    -------
+    dict
+        A dictionary mapping labels to colours.
+    """
+
+    n_colors = len(labels)
+
+    if n_colors == 1:
+        return {labels[0]: "#3c9639"}  # theme green
+    elif n_colors == 2:
+        return {labels[0]: "#3c9639", labels[1]: "#2d722c"}
+
+    # Create evenly spaced values between 0 and 1
+    values = np.linspace(0, 1, n_colors)
+
+    # Define our green scale endpoints
+    dark_green = np.array([30, 76, 29])  # #1e4c1d
+    theme_green = np.array([60, 150, 57])  # #3c9639
+    light_green = np.array([184, 228, 183])  # #b8e4b7
+
+    colour_map = {}
+    for label, v in zip(labels, values):
+        if v <= 0.5:
+            # Interpolate between dark and theme green
+            rgb = dark_green + (2 * v) * (theme_green - dark_green)
+        else:
+            # Interpolate between theme and light green
+            v = v - 0.5
+            rgb = theme_green + (2 * v) * (light_green - theme_green)
+
+        # Convert to hex
+        hex_color = f"#{int(rgb[0]):02x}{int(rgb[1]):02x}{int(rgb[2]):02x}"
+        colour_map[label] = hex_color
+
+    return colour_map
+
+
 def _build_pie_chart_component(
     title: str, component_id: str, df: pd.DataFrame, label: str
 ) -> PlotComponentConfig:
@@ -106,6 +153,11 @@ def _build_pie_chart_component(
             "textinfo": "percent+label",
             "textposition": "inside",
             "showlegend": False,
+            "marker": {
+                "colors": df[label].map(
+                    _generate_green_scale_colour_map(df[label].unique())
+                ),
+            },
         },
         "layout_kwargs": {
             "title": {
@@ -114,6 +166,7 @@ def _build_pie_chart_component(
                 "x": 0.5,
                 "xanchor": "center",
             },
+            "margin": {"t": 50, "b": 50, "l": 50, "r": 50},
         },
         "css": {
             "width": "50%",
@@ -666,7 +719,7 @@ def _class_consistency_analysis(master_df: pd.DataFrame) -> PlotConfig:
 
     # Configure the Proportion of Data Sources pie chart
     pie_config_1 = _build_pie_chart_component(
-        "Proportion of Data Sources",
+        "Brick Class Consistency of Data Sources",
         _generate_id(CATEGORY, subcategory, "pie-1"),
         df,
         "consistency",
