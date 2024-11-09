@@ -374,8 +374,8 @@ def _get_data_quality_overview(data_quality_df):
     )
     timeline_data["End Timestamp"] = timeline_data["End Timestamp"].dt.tz_localize(None)
 
-    # Sort the data by start timestamp
-    timeline_data = timeline_data.sort_values("Start Timestamp")
+    # Sort the data by start Brick Class
+    timeline_data = timeline_data.sort_values("Brick Class", ascending=False)
 
     sensor_timeline = {
         "title": "Sensor Time Coverage by Brick Class",
@@ -1171,12 +1171,6 @@ def run(db: DBManager) -> dict:
                                 "selector": ".dash-table-container td:first-child",  # Add this block
                                 "rule": "white-space: nowrap !important;",
                             },
-                        ],
-                        "style_data_conditional": [
-                            {
-                                "if": {"row_index": "odd"},
-                                "backgroundColor": "#ddf2dc",
-                            }
                         ],
                         "tooltip_data": [
                             {
