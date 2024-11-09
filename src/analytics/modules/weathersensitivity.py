@@ -1,7 +1,3 @@
-import pandas as pd
-import warnings
-from scipy import stats
-
 """
 This module identifies systems in the building model that have an associated 
 usage metric (energy, power, gas, water, chiller, and boiler). For each system,
@@ -11,8 +7,12 @@ between outside air temperature and the system's usage over time.
 The module returns a dictionary containing the weather sensitivity analysis 
 results, which include the correlation values for each system and insights into 
 how outside temperature may impact building system usage.
-
 """
+
+import warnings
+
+import pandas as pd
+from scipy import stats
 
 
 def get_electric_energy_query_str():
