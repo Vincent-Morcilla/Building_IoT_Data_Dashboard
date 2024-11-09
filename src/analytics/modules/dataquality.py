@@ -961,7 +961,7 @@ def run(db: DBManager) -> dict:
                             "whiteSpace": "normal",  # Allow text wrapping in cells
                             "height": "auto",
                             "minWidth": "100px",  # Minimum width for columns
-                            "maxWidth": "180px",  # Maximum width for columns
+                            "maxWidth": "350px",  # Maximum width for columns
                             "overflow": "hidden",
                             "textOverflow": "ellipsis",
                         },
@@ -994,14 +994,17 @@ def run(db: DBManager) -> dict:
                             },
                             {
                                 "selector": "input[type=radio]:checked",
-                                "rule": "border: 2px solid #3c9639;",  # Increased from 6px
+                                "rule": """
+                                    border: 2px solid #3c9639;
+                                    background-color: #3c9639;  
+                                """,
                             },
                             {
-                                "selector": ".dash-filter input",  # Add this for filter input
+                                "selector": ".dash-filter input",
                                 "rule": "color: white !important;",
                             },
                             {
-                                "selector": ".dash-table-container td:first-child",  # Add this block
+                                "selector": ".dash-table-container td:first-child",
                                 "rule": "white-space: nowrap !important;",
                             },
                         ],
@@ -1155,7 +1158,10 @@ def run(db: DBManager) -> dict:
                             },
                             {
                                 "selector": "input[type=radio]:checked",
-                                "rule": "border: 2px solid #3c9639;",  # Increased from 6px
+                                "rule": """
+                                    border: 2px solid #3c9639;
+                                    background-color: #3c9639;  
+                                """,
                             },
                             {
                                 "selector": ".dash-filter input",  # Add this for filter input
