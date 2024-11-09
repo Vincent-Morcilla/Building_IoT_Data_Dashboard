@@ -314,41 +314,7 @@ def _get_data_quality_overview(data_quality_df):
     """
     # Create a 'has_outliers' column
     data_quality_df["has_outliers"] = data_quality_df["Outliers"] > 0
-
-    # Pie chart for outliers
-    outliers_pie = {
-        "title": "Sensors with Outliers",
-        "labels": "has_outliers",
-        "textinfo": "percent+label",
-        "dataframe": data_quality_df,
-        "kwargs": {
-            "marker": {"colors": ["#2d722c", "#3c9639"]}  # Just two colors for binary
-        },
-        "layout_kwargs": {
-            "margin": {"t": 50, "b": 50, "l": 50, "r": 50},
-        },
-    }
-
-    # Pie chart for gaps
-    gaps_pie = {
-        "title": "Sensors with Gaps",
-        "labels": "Brick Class",
-        "textinfo": "percent+label",
-        "dataframe": data_quality_df,
-        "kwargs": {
-            "marker": {
-                "colorscale": [
-                    [0, "#1e4c1d"],  # Darkest green
-                    [0.5, "#3c9639"],  # Medium green (your theme color)
-                    [1, "#b8e4b7"],  # Lightest green
-                ]
-            }
-        },
-        "layout_kwargs": {
-            "margin": {"t": 50, "b": 50, "l": 50, "r": 50},
-        },
-    }
-
+    
     # Create stats DataFrame
     stats_df = pd.DataFrame(
         {
@@ -387,19 +353,6 @@ def _get_data_quality_overview(data_quality_df):
         "dataframe": stats_df,
     }
 
-    # Add histogram configuration
-    stream_histogram = {
-        "title": "Stream Counts by Label Type",
-        "type": "Histogram",  # Match existing plot type pattern
-        "x-axis": "Brick Class",
-        "y-axis": "Stream_Count",  # Using the column name from summary table
-        "x-axis_label": "Label Type",
-        "y-axis_label": "Number of Streams",
-        "dataframe": data_quality_df.groupby("Brick Class")
-        .size()
-        .reset_index(name="Stream_Count"),
-    }
-
     # Add timeline configuration
     timeline_data = (
         data_quality_df.groupby("Brick Class")
@@ -436,9 +389,9 @@ def _get_data_quality_overview(data_quality_df):
     }
 
     return {
-        "pie_charts": [outliers_pie, gaps_pie],
+        # "pie_charts": [outliers_pie, gaps_pie],
         "tables": [overall_stats],
-        "histogram": stream_histogram,
+        # "histogram": stream_histogram,
         "timeline": sensor_timeline,
     }
 
@@ -512,10 +465,10 @@ def _build_components(df: pd.DataFrame, stream_id: str, title: str) -> list:
                     "font": {"size": 20},
                     "x": 0.5,
                     "xanchor": "center",
-                    "subtitle": {
-                        "text": f"Stream ID: {stream_id}",
-                        "font": {"size": 12},
-                    },
+                    # "subtitle": {
+                    #     "text": f"Stream ID: {stream_id}",
+                    #     "font": {"size": 12},
+                    # },
                 },
                 "font_color": "black",
                 "plot_bgcolor": "white",
@@ -666,10 +619,17 @@ def run(db: DBManager) -> dict:
                     "library": "go",
                     "function": "Figure",
                     "id": "data-quality-outliers-pie",
-                    "data_frame": data_quality_df,
+                    "data_frame": pd.DataFrame({
+                        "Status": ["No Outliers", "Has Outliers"],  # Better labels
+                        "Count": [
+                            len(data_quality_df[data_quality_df["has_outliers"] == False]),
+                            len(data_quality_df[data_quality_df["has_outliers"] == True]),
+                        ]
+                    }),
                     "trace_type": "Pie",
                     "data_mappings": {
-                        "labels": "has_outliers",
+                        "labels": "Status",
+                        "values": "Count"
                     },
                     "kwargs": {
                         "textinfo": "percent+label",
@@ -694,9 +654,6 @@ def run(db: DBManager) -> dict:
                     "css": {
                         "width": "50%",
                         "display": "inline-block",
-                        # "padding": "5px",
-                        # "marginTop": "0%",
-                        # "marginBottom": "5%",
                     },
                 },
                 {
@@ -725,9 +682,6 @@ def run(db: DBManager) -> dict:
                     "css": {
                         "width": "50%",
                         "display": "inline-block",
-                        # "padding": "10px",
-                        # "marginTop": "0%",
-                        # "marginBottom": "5%",
                     },
                 },
                 {
@@ -772,9 +726,6 @@ def run(db: DBManager) -> dict:
                     "css": {
                         "width": "50%",
                         "display": "inline-block",
-                        # "padding": "5px",
-                        # "marginTop": "0%",
-                        # "marginBottom": "5%",
                     },
                 },
                 {
@@ -819,9 +770,6 @@ def run(db: DBManager) -> dict:
                     "css": {
                         "width": "50%",
                         "display": "inline-block",
-                        # "padding": "5px",
-                        # "marginTop": "0%",
-                        # "marginBottom": "5%",
                     },
                 },
                 {
@@ -868,12 +816,8 @@ def run(db: DBManager) -> dict:
                         "margin": {"t": 50, "b": 50, "l": 50, "r": 50},
                     },
                     "css": {
-                        # "width": "60%",
                         "display": "block",
-                        # "padding": "10px",
-                        # "marginLeft": "10%",
                         "marginTop": "5%",
-                        # "marginBottom": "10%",
                     },
                 },
                 {
@@ -896,24 +840,9 @@ def run(db: DBManager) -> dict:
                             "x": 0.5,
                             "xanchor": "center",
                             "font_color": "black",
-                            # "font_size": 16,
                         },
                         "font_color": "black",
                         "plot_bgcolor": "white",
-                        # "xaxis": {
-                        #     "title": "Class Type",
-                        #     "tickangle": 45,  # Slant the labels by 45 degrees
-                        #     "tickfont": {"size": 10},  # Reduce font size
-                        #     "tickmode": "auto",
-                        #     "automargin": True,  # Automatically adjust margins
-                        # },
-                        # "yaxis": {
-                        #     "mirror": True,
-                        #     "ticks": "outside",
-                        #     "showline": True,
-                        #     "linecolor": "black",
-                        #     "gridcolor": "lightgrey",
-                        # },
                         "xaxis": {
                             "title": overview_data["timeline"]["x-axis_label"],
                             "type": "date",
@@ -968,12 +897,8 @@ def run(db: DBManager) -> dict:
                         ],
                     },
                     "css": {
-                        # "width": "100%",
                         "display": "block",
-                        # "padding": "10px",
-                        # "marginLeft": "0%",
                         "marginTop": "5%",
-                        # "marginBottom": "15%",
                     },
                 },
             ],
@@ -1008,7 +933,6 @@ def run(db: DBManager) -> dict:
                             "native" if len(summary_table_df) > 20 else "none"
                         ),
                         "fixed_rows": {"headers": True},
-                        # "fixed_columns": {"headers": True, "data": 1},
                         "sort_action": "native",
                         "sort_mode": "multi",
                         "style_header": {
@@ -1016,9 +940,13 @@ def run(db: DBManager) -> dict:
                             "backgroundColor": "#3c9639",
                             "color": "white",
                             "textAlign": "center",
-                            "whiteSpace": "normal",  # Allow text wrapping in headers
-                            "height": "auto",  # Adjust height automatically
-                            "minWidth": "100px",  # Minimum width for columns
+                            "whiteSpace": "normal",
+                            "height": "auto",
+                            "minWidth": "100px",
+                        },
+                        "style_filter": {
+                            "backgroundColor": "#3c9639",
+                            "color": "white !important"  # Force white color with !important
                         },
                         "style_cell": {
                             "textAlign": "center",
@@ -1035,7 +963,41 @@ def run(db: DBManager) -> dict:
                             "overflowX": "auto",
                             "minWidth": "100%",  # Table takes full width
                         },
-                        "style_data": {"textAlign": "center"},  # Center all cell data
+                        "style_data": {
+                            "textAlign": "center",
+                            "cursor": "pointer",
+                        },
+                        "css": [
+                            {
+                                "selector": "input[type=radio]",
+                                "rule": """
+                                    appearance: none;
+                                    -webkit-appearance: none;
+                                    border: 2px solid #3c9639;
+                                    border-radius: 50%;
+                                    width: 6px; 
+                                    height: 6px;
+                                    transition: 0.2s all linear;
+                                    outline: none;
+                                    margin-right: 5px;
+                                    position: relative;
+                                    top: 4px;
+                                    vertical-align: middle;
+                                """,
+                            },
+                            {
+                                "selector": "input[type=radio]:checked",
+                                "rule": "border: 2px solid #3c9639;",  # Increased from 6px
+                            },
+                            {
+                                "selector": ".dash-filter input",  # Add this for filter input
+                                "rule": "color: white !important;"
+                            },
+                            {
+                                "selector": ".dash-table-container td:first-child",  # Add this block
+                                "rule": "white-space: nowrap !important;"
+                            },
+                        ],           
                         "style_data_conditional": [
                             {
                                 "if": {"row_index": "odd"},
@@ -1127,7 +1089,6 @@ def run(db: DBManager) -> dict:
                             "native" if len(summary_table_df) > 20 else "none"
                         ),
                         "fixed_rows": {"headers": True},
-                        # "fixed_columns": {"headers": True, "data": 2},
                         "row_selectable": "single",
                         "selected_rows": [0],
                         "sort_action": "native",
@@ -1167,6 +1128,43 @@ def run(db: DBManager) -> dict:
                             "minWidth": "100%",  # Table takes full width
                         },
                         "style_data": {"textAlign": "center"},  # Center all cell data
+                        "css": [
+                            {
+                                "selector": "input[type=radio]",
+                                "rule": """
+                                    appearance: none;
+                                    -webkit-appearance: none;
+                                    border: 2px solid #3c9639;
+                                    border-radius: 50%;
+                                    width: 6px; 
+                                    height: 6px;
+                                    transition: 0.2s all linear;
+                                    outline: none;
+                                    margin-right: 5px;
+                                    position: relative;
+                                    top: 4px;
+                                    vertical-align: middle;
+                                """,
+                            },
+                            {
+                                "selector": "input[type=radio]:checked",
+                                "rule": "border: 2px solid #3c9639;",  # Increased from 6px
+                            },
+                            {
+                                "selector": ".dash-filter input",  # Add this for filter input
+                                "rule": "color: white !important;"
+                            },
+                            {
+                                "selector": ".dash-table-container td:first-child",  # Add this block
+                                "rule": "white-space: nowrap !important;"
+                            },
+                        ],           
+                        "style_data_conditional": [
+                            {
+                                "if": {"row_index": "odd"},
+                                "backgroundColor": "#ddf2dc",
+                            }
+                        ],
                         "tooltip_data": [
                             {
                                 column: {"value": str(value), "type": "markdown"}
