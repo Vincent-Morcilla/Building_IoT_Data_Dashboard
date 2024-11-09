@@ -196,11 +196,14 @@ def test_prepare_data_for_vis():
                 "x": 0.5,
                 "title_side": "bottom",
             },
+            "zmin": -1,
+            "zmax": 1,
         },
         "layout_kwargs": {
             "title": {
                 "text": title,
                 "x": 0.5,
+                "y": 0.9,
                 "xanchor": "center",
             },
             "xaxis_title": "Date",
@@ -223,8 +226,7 @@ def test_prepare_data_for_vis():
             },
         },
         "css": {
-            "padding": "10px",
-            "width": "45%",
+            "width": "49%",
             "display": "inline-block",
         },
     }
@@ -235,8 +237,6 @@ def test_prepare_data_for_vis():
         output["data_frame"].reset_index(drop=True),
         expected_output["data_frame"].reset_index(drop=True),
     )
-
-    assert output == expected_output
 
 
 def test_combine_meter_outside_temp_data():

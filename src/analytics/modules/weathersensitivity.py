@@ -613,7 +613,6 @@ class WeatherSensitivity:
                     "y": 0.9,
                     "xanchor": "center",
                 },
-                "height": 500,
                 "xaxis_title": "Date",
                 "yaxis_title": f"{meter.title().replace('_',' ')} Sensor",
                 "font_color": "black",
