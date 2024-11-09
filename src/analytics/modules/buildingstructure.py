@@ -441,19 +441,20 @@ def run(db: DBManager) -> dict:
 
     # Custom annotations to create a legend in the plot layout
     annotations = []
-    legend_y = 1.05  # Initial y position for the legend
+    legend_y = 1.02  # Initial y position for the legend
     spacing = 0.03  # Vertical Spacing for each legend item
 
     # Loop through color map to add legend items
     for category, color in color_map.items():
         annotation = {
-            "x": 1.02,
+            "x": 0.85,
             "y": legend_y,
             "xref": "paper",
             "yref": "paper",
             "showarrow": False,
             "text": f"<span style='font-size:30px; color:{color};'>■</span> <span style='font-size:12px;'>{category}</span>",
             "font": {"size": 12},
+            "xanchor": "left",
         }
         legend_y -= spacing
         annotations.append(annotation)
@@ -475,7 +476,6 @@ def run(db: DBManager) -> dict:
                         "ids": "ids",
                         "title": None,
                         "height": 1000,
-                        "width": 1000,
                         "color": "entityType",
                         "color_discrete_map": color_map,
                     },
@@ -483,9 +483,10 @@ def run(db: DBManager) -> dict:
                         "font_color": "black",
                         "plot_bgcolor": "white",
                         "annotations": annotations,
+                        "margin": {"t": 0, "b": 0, "l": 0, "r": 0},
                     },
                     "css": {
-                        "padding": "10px",
+                        "marginLeft": "3%",
                     },
                 },
             ],
@@ -505,7 +506,6 @@ def run(db: DBManager) -> dict:
                         "ids": "ids",
                         "title": None,
                         "height": 1000,
-                        "width": 1000,
                         "color": "entityType",
                         "color_discrete_map": color_map,
                     },
@@ -513,9 +513,10 @@ def run(db: DBManager) -> dict:
                         "font_color": "black",
                         "plot_bgcolor": "white",
                         "annotations": annotations,
+                        "margin": {"t": 0, "b": 0, "l": 0, "r": 0},
                     },
                     "css": {
-                        "padding": "10px",
+                        "marginLeft": "3%",
                     },
                 },
             ],
