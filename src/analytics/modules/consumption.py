@@ -182,6 +182,7 @@ def run(db: DBManager) -> dict:
             "layout_kwargs": {
                 "title": {
                     "text": f"Aggregated {meter_type.replace('_', ' ')} - {sensor_type.replace('_', ' ')}",
+                    "font": {"size": 20},
                     "x": 0.5,
                     "xanchor": "center",
                 },

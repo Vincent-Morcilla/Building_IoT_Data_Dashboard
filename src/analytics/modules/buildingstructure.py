@@ -486,7 +486,7 @@ def run(db: DBManager) -> dict:
                         "margin": {"t": 0, "b": 0, "l": 0, "r": 0},
                     },
                     "css": {
-                        "marginLeft": "3%",
+                        "marginLeft": "2%",
                     },
                 },
             ],
@@ -516,7 +516,7 @@ def run(db: DBManager) -> dict:
                         "margin": {"t": 0, "b": 0, "l": 0, "r": 0},
                     },
                     "css": {
-                        "marginLeft": "3%",
+                        "marginLeft": "2%",
                     },
                 },
             ],
