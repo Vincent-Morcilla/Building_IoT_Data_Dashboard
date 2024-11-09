@@ -7,6 +7,7 @@ detecting outliers, and generating summary statistics and visualizations.
 
 import numpy as np
 import pandas as pd
+import datetime
 
 from analytics.dbmgr import DBManager
 
@@ -374,8 +375,8 @@ def _get_data_quality_overview(data_quality_df):
     )
     timeline_data["End Timestamp"] = timeline_data["End Timestamp"].dt.tz_localize(None)
 
-    # Sort the data by start timestamp
-    timeline_data = timeline_data.sort_values("Start Timestamp")
+    # Sort the data by start Brick Class
+    timeline_data = timeline_data.sort_values("Brick Class", ascending=False)
 
     sensor_timeline = {
         "title": "Sensor Time Coverage by Brick Class",
@@ -532,6 +533,21 @@ def _generate_green_scale(n_colors):
     return colors
 
 
+def get_column_type(value):
+    """Determine the column type based on Python type."""
+    python_type = type(value)
+    if python_type == str:
+        return "text"
+    elif python_type in (int, float):
+        return "numeric"
+    elif python_type == bool:
+        return "boolean"
+    elif python_type in (pd.Timestamp, datetime.datetime):
+        return "datetime"
+    else:
+        return "any"
+
+
 def run(db: DBManager) -> dict:
     """Run all analyses and return the results."""
     df = _preprocess_to_sensor_rows(db)
@@ -575,7 +591,10 @@ def run(db: DBManager) -> dict:
                     "title": "Overall Data Quality Statistics",
                     "title_element": "H5",
                     "kwargs": {
-                        "columns": [{"name": i, "id": i} for i in ["Metric", "Value"]],
+                        "columns": [
+                            {"name": i, "id": i, "type": "text"}
+                            for i in ["Metric", "Value"]
+                        ],
                         "export_format": "csv",
                         "fixed_rows": {"headers": True},
                         "style_header": {
@@ -931,7 +950,23 @@ def run(db: DBManager) -> dict:
                     "title_element": "H5",
                     "kwargs": {
                         "columns": [
-                            {"name": i, "id": i} for i in summary_table_df.columns
+                            {
+                                "name": i,
+                                "id": i,
+                                "type": (
+                                    "text"
+                                    if isinstance(summary_table_df[i].iloc[0], str)
+                                    else (
+                                        "datetime"
+                                        if isinstance(
+                                            summary_table_df[i].iloc[0],
+                                            (pd.Timestamp, datetime.datetime),
+                                        )
+                                        else "numeric"
+                                    )
+                                ),
+                            }
+                            for i in summary_table_df.columns
                         ],
                         "row_selectable": "single",
                         "selected_rows": [0],
@@ -1066,7 +1101,22 @@ def run(db: DBManager) -> dict:
                     "id": "data-quality-metrics-table",
                     "kwargs": {
                         "columns": [
-                            {"name": col, "id": col}
+                            {
+                                "name": col,
+                                "id": col,
+                                "type": (
+                                    "text"
+                                    if isinstance(data_quality_df[col].iloc[0], str)
+                                    else (
+                                        "datetime"
+                                        if isinstance(
+                                            data_quality_df[col].iloc[0],
+                                            (pd.Timestamp, datetime.datetime),
+                                        )
+                                        else "numeric"
+                                    )
+                                ),
+                            }
                             for col in [
                                 "Stream ID",
                                 "Brick Class",
@@ -1171,12 +1221,6 @@ def run(db: DBManager) -> dict:
                                 "selector": ".dash-table-container td:first-child",  # Add this block
                                 "rule": "white-space: nowrap !important;",
                             },
-                        ],
-                        "style_data_conditional": [
-                            {
-                                "if": {"row_index": "odd"},
-                                "backgroundColor": "#ddf2dc",
-                            }
                         ],
                         "tooltip_data": [
                             {
