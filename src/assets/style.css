@@ -310,6 +310,18 @@ input[type="checkbox"] {
   color: #000000 !important;
 }
 
+/* Table Filter Styling */
+input.dash-filter--case--sensitive {
+  border-color: #ffffff !important;
+  color: #ffffff !important;
+}
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner th.dash-filter input.dash-filter--case--sensitive {
+  border-color: #ffffff !important;
+  /* color: #ffffff !important; */
+}
+.dash-filter input {
+  color: #ffffff !important;
+}
 
 /* Mobile Responsiveness */
 @media (max-width: 992px) {
