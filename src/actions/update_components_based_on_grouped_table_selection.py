@@ -165,7 +165,7 @@ def update_components_based_on_grouped_table_selection_action(
                         ),
                         "labels": {"time": "Date", "value": "Value"},
                         "color_discrete_sequence": colors,
-                        "line_dash_sequence": dash_patterns                 
+                        "line_dash_sequence": dash_patterns,
                     },
                     "layout_kwargs": {
                         "title": {

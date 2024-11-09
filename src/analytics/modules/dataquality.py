@@ -314,7 +314,7 @@ def _get_data_quality_overview(data_quality_df):
     """
     # Create a 'has_outliers' column
     data_quality_df["has_outliers"] = data_quality_df["Outliers"] > 0
-    
+
     # Create stats DataFrame
     stats_df = pd.DataFrame(
         {
@@ -619,18 +619,25 @@ def run(db: DBManager) -> dict:
                     "library": "go",
                     "function": "Figure",
                     "id": "data-quality-outliers-pie",
-                    "data_frame": pd.DataFrame({
-                        "Status": ["No Outliers", "Has Outliers"],  # Better labels
-                        "Count": [
-                            len(data_quality_df[data_quality_df["has_outliers"] == False]),
-                            len(data_quality_df[data_quality_df["has_outliers"] == True]),
-                        ]
-                    }),
+                    "data_frame": pd.DataFrame(
+                        {
+                            "Status": ["No Outliers", "Has Outliers"],  # Better labels
+                            "Count": [
+                                len(
+                                    data_quality_df[
+                                        data_quality_df["has_outliers"] == False
+                                    ]
+                                ),
+                                len(
+                                    data_quality_df[
+                                        data_quality_df["has_outliers"] == True
+                                    ]
+                                ),
+                            ],
+                        }
+                    ),
                     "trace_type": "Pie",
-                    "data_mappings": {
-                        "labels": "Status",
-                        "values": "Count"
-                    },
+                    "data_mappings": {"labels": "Status", "values": "Count"},
                     "kwargs": {
                         "textinfo": "percent+label",
                         "textposition": "inside",
@@ -946,7 +953,7 @@ def run(db: DBManager) -> dict:
                         },
                         "style_filter": {
                             "backgroundColor": "#3c9639",
-                            "color": "white !important"  # Force white color with !important
+                            "color": "white !important",  # Force white color with !important
                         },
                         "style_cell": {
                             "textAlign": "center",
@@ -991,13 +998,13 @@ def run(db: DBManager) -> dict:
                             },
                             {
                                 "selector": ".dash-filter input",  # Add this for filter input
-                                "rule": "color: white !important;"
+                                "rule": "color: white !important;",
                             },
                             {
                                 "selector": ".dash-table-container td:first-child",  # Add this block
-                                "rule": "white-space: nowrap !important;"
+                                "rule": "white-space: nowrap !important;",
                             },
-                        ],           
+                        ],
                         "style_data_conditional": [
                             {
                                 "if": {"row_index": "odd"},
@@ -1152,13 +1159,13 @@ def run(db: DBManager) -> dict:
                             },
                             {
                                 "selector": ".dash-filter input",  # Add this for filter input
-                                "rule": "color: white !important;"
+                                "rule": "color: white !important;",
                             },
                             {
                                 "selector": ".dash-table-container td:first-child",  # Add this block
-                                "rule": "white-space: nowrap !important;"
+                                "rule": "white-space: nowrap !important;",
                             },
-                        ],           
+                        ],
                         "style_data_conditional": [
                             {
                                 "if": {"row_index": "odd"},
