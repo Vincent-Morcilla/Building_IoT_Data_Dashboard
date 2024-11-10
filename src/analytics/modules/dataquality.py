@@ -5,9 +5,10 @@ It includes functions for preprocessing sensor data, analyzing gaps,
 detecting outliers, and generating summary statistics and visualizations.
 """
 
+import datetime
+
 import numpy as np
 import pandas as pd
-import datetime
 
 from analytics.dbmgr import DBManager
 
@@ -101,7 +102,7 @@ def _preprocess_to_sensor_rows(db: DBManager):
                 "Is_Step_Function": step_info["is_step_function"],
             }
             sensor_data.append(row)
-        except Exception:
+        except KeyError:
             continue
 
     return pd.DataFrame(sensor_data)
