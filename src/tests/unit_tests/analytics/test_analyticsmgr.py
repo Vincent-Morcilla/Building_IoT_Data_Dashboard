@@ -60,9 +60,6 @@ def test_run_analytics_collects_plot_configs(mock_db, mocker):
             raise ImportError(f"Module {name} not found")
 
     mocker.patch("importlib.import_module", side_effect=import_module_side_effect)
-    # mock_tqdm = mocker.patch(
-    #     "analytics.analyticsmgr.tqdm", side_effect=lambda x, desc: x
-    # )  # Mock tqdm to bypass progress bar
 
     manager = AnalyticsManager(mock_db)
     plot_configs = manager.run_analytics()
