@@ -293,11 +293,9 @@ class WeatherSensitivity:
             dict: A dictionary containing the sensor data for each data type.
         """
         sensor_data = {}
-        # for sensor in self.rdf_data.keys():
-        #     sensor_data[sensor] = self.load_sensors_from_db(self.rdf_data[sensor])
-
-        for sensor, data in self.rdf_data.items():
-            sensor_data[sensor] = self.load_sensors_from_db(data)
+        if self.rdf_data:
+            for sensor, data in self.rdf_data.items():
+                sensor_data[sensor] = self.load_sensors_from_db(data)
 
         return sensor_data
 

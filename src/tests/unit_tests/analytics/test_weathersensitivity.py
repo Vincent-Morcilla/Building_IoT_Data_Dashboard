@@ -1,5 +1,10 @@
 """All the functions for Weather Sensitivity"""
 
+import sys
+import pandas as pd
+from analytics.dbmgr import DBManager
+
+
 from analytics.modules.weathersensitivity import (
     get_electric_energy_query_str,
     get_electric_power_query_str,
@@ -10,12 +15,6 @@ from analytics.modules.weathersensitivity import (
     get_outside_air_temperature_query_str,
     WeatherSensitivity,
 )
-
-
-import pandas as pd
-import sys
-import pytest
-
 
 sys.path.append("src/analytics/modules")
 
@@ -63,7 +62,7 @@ def test_get_electric_power_query_str():
 
 
 def test_get_gas_query_str():
-
+    """test get_gas_query_str function"""
     expected = """
             SELECT ?meter ?sensor ?stream_id
             WHERE {
@@ -312,3 +311,54 @@ def test_get_daily_median_sensor_data():
     pd.testing.assert_frame_equal(
         result.reset_index(drop=True), expected_result.reset_index(drop=True)
     )
+
+
+def test_load_sensors_from_db(mocker):
+    """
+    Unit test for the load_sensors_from_db method to ensure it loads sensor data
+    from the database based on stream IDs in the provided DataFrame.
+    """
+    mock_db = mocker.Mock(spec=DBManager)
+
+    sample_df = pd.DataFrame({"stream_id": ["stream1", "stream2"]})
+
+    ws = WeatherSensitivity(mock_db)
+
+    # Call the load_sensors_from_db method
+    result_df = ws.load_sensors_from_db(sample_df)
+    assert isinstance(result_df, pd.DataFrame), "Expected a DataFrame result"
+    assert "sensor_data" in result_df.columns, "sensor_data column expected"
+
+
+def test_get_data_from_rdf(mocker):
+    """
+    Unit test for the get_data_from_rdf method to verify that it retrieves and
+    stores data in the rdf_data dictionary.
+    """
+    mock_db = mocker.Mock(spec=DBManager)
+
+    ws = WeatherSensitivity(db=mock_db)
+
+    ws.get_data_from_rdf()
+
+    assert isinstance(ws.rdf_data, dict)
+    keys = ws.rdf_data.keys()
+    assert "electric_energy" in keys, "electric_energy data expected"
+    assert "electric_power" in keys, "electric_power data expected"
+    assert "gas" in keys, "gas data expected"
+    assert "water" in keys, "water data expected"
+    assert "chiller" in keys, "chiller data expected"
+    assert "boiler" in keys, "boiler data expected"
+    assert "outside_temp" in keys, "outside_temp data expected"
+
+
+def test_get_sensor_data(mocker):
+    """
+    Unit test for the get_sensor_data method to verify that it loads sensor data
+    for each type of data in rdf_data.
+    """
+    mock_db = mocker.Mock(spec=DBManager)
+
+    ws = WeatherSensitivity(db=mock_db)
+    sensor_data = ws.get_sensor_data()
+    assert isinstance(sensor_data, dict)
