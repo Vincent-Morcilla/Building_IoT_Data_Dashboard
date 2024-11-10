@@ -231,12 +231,12 @@ class DBManager:
             rdflib.query.Result | pd.DataFrame: The query results.
 
         Raises:
-            ValueError: If the graph is not found.
+            KeyError: If the graph is not found.
         """
         try:
             graph = self._g[graph]
         except KeyError as exc:
-            raise ValueError(f"Unknown graph: {graph}") from exc
+            raise KeyError(f"Unknown graph: {graph}") from exc
 
         results = graph.query(query_str, **kwargs)
 
