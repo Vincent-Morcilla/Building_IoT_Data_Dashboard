@@ -71,6 +71,9 @@ def _preprocess_to_sensor_rows(db: DBManager):
     sensor_data = []
     all_streams = db.get_all_streams()
 
+    if all_streams == {}:
+        return {}
+
     for stream_id, df in all_streams.items():
         try:
             label = db.get_label(stream_id)
@@ -551,6 +554,10 @@ def get_column_type(value):
 def run(db: DBManager) -> dict:
     """Run all analyses and return the results."""
     df = _preprocess_to_sensor_rows(db)
+
+    # Return empty result if no data
+    if df.empty:
+        return {}
 
     df = _profile_groups(df)
 
