@@ -8,6 +8,7 @@ import pytest
 from analytics.dbmgr import DBManager
 import analytics.modules.dataquality as dq
 
+
 @pytest.fixture
 def mock_db(mocker):
     """Create a mock database manager."""
