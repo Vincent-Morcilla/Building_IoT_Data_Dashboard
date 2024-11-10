@@ -249,8 +249,8 @@ class DBManager:
                 for col in df.columns:
                     df[col] = df[col].apply(DBManager.defrag_uri)
             return df
-        else:
-            return results
+
+        return results
 
     def get_stream(self, stream_id: str) -> pd.DataFrame:
         """Get the stream data for a given stream ID.
@@ -385,6 +385,6 @@ class DBManager:
         if isinstance(uri, rdflib.term.URIRef):
             if "#" in uri:
                 return uri.fragment
-            elif "/" in uri:
+            if "/" in uri:
                 return uri.split("/")[-1]
         return uri

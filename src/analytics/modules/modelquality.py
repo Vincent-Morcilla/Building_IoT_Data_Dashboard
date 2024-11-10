@@ -10,7 +10,6 @@ quality.  In particular:
 """
 
 # @tim: TODO: Consider making tables filterable, where appropriate
-# @tim: TODO: Whatever revisions were discussed in the meeting
 
 import numpy as np
 import pandas as pd
@@ -88,7 +87,7 @@ def _generate_green_scale_colour_map(labels: list) -> dict:
 
     if n_colors == 1:
         return {labels[0]: "#3c9639"}  # theme green
-    elif n_colors == 2:
+    if n_colors == 2:
         return {labels[0]: "#3c9639", labels[1]: "#2d722c"}
 
     # Create evenly spaced values between 0 and 1
