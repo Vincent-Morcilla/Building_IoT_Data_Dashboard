@@ -99,6 +99,21 @@ options:
   -t, --test-mode       Run the app using built-in sample data (default: False)
 ```
 
+## Testing
+
+A comprehensive test suite is provided, requiring additional dependencies to be 
+installed:
+
+```sh
+pip install -r src/tests/requirements.txt
+```
+
+Once installed, all tests can be run:
+
+```sh
+pytest src
+```
+
 ---
 
 
