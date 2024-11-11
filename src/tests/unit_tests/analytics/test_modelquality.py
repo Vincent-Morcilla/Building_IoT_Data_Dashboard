@@ -1,6 +1,6 @@
 """Unit tests for the modelquality module in the analytics package."""
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 import pandas as pd
 import pytest
 from rdflib import URIRef
@@ -106,40 +106,16 @@ def test_build_table_component(sample_table_df):
 
 
 def test_missing_labels_in_pie_chart():
+    """
+    Unit test for the _build_pie_chart_component function in the modelquality
+    module with a DataFrame missing the label column.
+    """
     # Missing label column in the dataframe
     sample_df = pd.DataFrame({"value": [10, 20, 30]})
     with pytest.raises(KeyError):
         mq._build_pie_chart_component(
             "Test Pie Chart", "test-pie-chart", sample_df, "label"
         )
-
-
-# # Define the mock_db_manager fixture
-# @pytest.fixture
-# def mock_db_manager():
-#     # Create a MagicMock for the DBManager class
-#     mock_db_manager = MagicMock(spec=DBManager)
-
-#     # Create mock data with expected columns and types
-#     mock_data = {
-#         "Building": ["Building1", "Building2", "Building3"],
-#         "StreamID": [1, 2, 3],
-#         "Filename": ["file1", "file2", "file3"],
-#         "strBrickLabel": ["label1", "label2", "label3"],
-#         "brick_class": [
-#             URIRef("http://example.org/class1"),
-#             URIRef("http://example.org/class2"),
-#             URIRef("http://example.org/class3"),
-#         ],
-#     }
-
-#     # Convert mock data into a DataFrame
-#     mock_df = pd.DataFrame(mock_data)
-
-#     # Mock the mapper to return the mock data when called
-#     mock_db_manager.mapper.__getitem__.return_value = mock_df
-
-#     return mock_db_manager
 
 
 @pytest.fixture
@@ -199,6 +175,9 @@ def mock_db_manager():
                 else:
                     self.fragment = uri
 
+            def __bool__(self):
+                return self.fragment != None
+
             def __eq__(self, other):
                 return self.fragment == other
 
@@ -206,6 +185,10 @@ def mock_db_manager():
                 return hash(self.fragment)
 
             def __lt__(self, other):
+                if self.fragment == None:
+                    return False
+                if other == None:
+                    return True
                 return self.fragment < other.fragment
 
             def __str__(self):
@@ -287,10 +270,16 @@ def test_build_master_df(mock_db_manager):
 
 
 def test_recognised_entity_analysis(mock_db_manager):
-    # Test _recognised_entity_analysis function
+    """
+    Unit test for the _recognised_entity_analysis function in the modelquality
+    module using a mock Database Manager.
+    """
+    # Set up the test
     df = mq._build_master_df(mock_db_manager)
+
+    # Run the function under test
     result = mq._recognised_entity_analysis(df)
-    print(result)
+
     category = ("ModelQuality", "RecognisedEntities")
     # Check that result contains correct keys
     assert category in result
@@ -305,3 +294,173 @@ def test_recognised_entity_analysis(mock_db_manager):
 
     table_config = [comp for comp in components if "table" in comp["id"]]
     assert len(table_config) > 0
+
+
+def test_associated_units_analysis(mock_db_manager):
+    """
+    Unit test for the _associated_units_analysis function in the modelquality
+    module using a mock Database Manager.
+    """
+    # Set up the test
+    df = mq._build_master_df(mock_db_manager)
+
+    # Run the function under test
+    result = mq._associated_units_analysis(df)
+
+    category = ("ModelQuality", "AssociatedUnits")
+    # Check that result contains correct keys
+    assert category in result
+    assert "title" in result[category]
+
+    components = result[category]["components"]
+    assert len(components) > 0  # Check that components list is populated
+
+    # Check for pie chart and table components
+    pie_chart_1 = [comp for comp in components if "pie-1" in comp["id"]]
+    assert len(pie_chart_1) > 0
+
+    table_config = [comp for comp in components if "table" in comp["id"]]
+    assert len(table_config) > 0
+
+
+def test_associated_timeseries_data_analysis(mock_db_manager):
+    """
+    Unit test for the _associated_timeseries_data_analysis function in the
+    modelquality module using a mock Database Manager.
+    """
+    # Set up the test
+    df = mq._build_master_df(mock_db_manager)
+
+    # Run the function under test
+    result = mq._associated_timeseries_data_analysis(df)
+
+    category = ("ModelQuality", "TimeseriesData")
+    # Check that result contains correct keys
+    assert category in result
+    assert "title" in result[category]
+
+    components = result[category]["components"]
+    assert len(components) > 0  # Check that components list is populated
+
+    # Check for pie chart and table components
+    pie_chart_1 = [comp for comp in components if "pie-1" in comp["id"]]
+    assert len(pie_chart_1) > 0
+
+    table_config = [comp for comp in components if "table" in comp["id"]]
+    assert len(table_config) > 0
+
+
+def test_class_consistency_analysis(mock_db_manager):
+    """
+    Unit test for the _class_consistency_analysis function in the modelquality
+    module using a mock Database Manager.
+    """
+    # Set up the test
+    df = mq._build_master_df(mock_db_manager)
+
+    # Run the function under test
+    result = mq._class_consistency_analysis(df)
+
+    category = ("ModelQuality", "ClassConsistency")
+    # Check that result contains correct keys
+    assert category in result
+    assert "title" in result[category]
+
+    components = result[category]["components"]
+    assert len(components) > 0  # Check that components list is populated
+
+    # Check for pie chart and table components
+    pie_chart_1 = [comp for comp in components if "pie-1" in comp["id"]]
+    assert len(pie_chart_1) > 0
+
+    table_config = [comp for comp in components if "table" in comp["id"]]
+    assert len(table_config) > 0
+
+
+def test_run_with_empty_db(mocker):
+    """
+    Unit test for the run function in the modelquality module with an empty
+    database response.
+    """
+    mock_db = mocker.Mock(spec=DBManager)
+
+    # Mock _build_master_df to return an empty DataFrame
+    mocker.patch(
+        "analytics.modules.modelquality._build_master_df",
+        return_value=pd.DataFrame(),
+    )
+
+    result = mq.run(mock_db)
+    assert not result
+
+
+def test_run_with_sample_data(mocker, mock_db_manager):
+    """
+    Unit test for the run function in the modelquality module with a database
+    response containing data.
+    """
+    # Mock _build_master_df to return a sample DataFrame
+    mocker.patch(
+        "analytics.modules.modelquality._build_master_df",
+        return_value=pd.DataFrame(
+            {
+                "entity_id": ["e1", "e2", "e3"],
+                "brick_class": ["ClassA", "ClassB", "ClassC"],
+                "stream_id": ["s1", "s2", "s3"],
+                "named_unit": ["KWh", None, None],
+                "anonymous_unit": [None, "MWh", None],
+                "class_in_brick_schema": ["Recognised", "Unrecognised", "Recognised"],
+                "unit": ["KWh", "MWh", None],
+                "unit_is_named": [True, False, None],
+                "stream_exists_in_mapping": [True, True, False],
+                "brick_class_in_mapper": ["ClassA", "NotClassB", None],
+                "brick_class_is_consistent": [True, False, None],
+            }
+        ),
+    )
+
+    # Run the function under test
+    result = mq.run(mock_db_manager)
+
+    # Assertions
+    assert result is not None
+    assert len(result) > 0
+    assert isinstance(result, dict)
+
+    # Check the keys in the result
+    assert ("ModelQuality", "RecognisedEntities") in result
+    assert ("ModelQuality", "AssociatedUnits") in result
+    assert ("ModelQuality", "TimeseriesData") in result
+    assert ("ModelQuality", "ClassConsistency") in result
+
+    # Check the components in the result
+    assert len(result[("ModelQuality", "RecognisedEntities")]["components"]) > 0
+    assert len(result[("ModelQuality", "AssociatedUnits")]["components"]) > 0
+    assert len(result[("ModelQuality", "TimeseriesData")]["components"]) > 0
+    assert len(result[("ModelQuality", "ClassConsistency")]["components"]) > 0
+
+
+def test_run_with_mock_db(mock_db_manager):
+    """
+    Unit test for the run function in the modelquality module with a mock
+    Database Manager.
+    """
+    # Run the function under test
+    result = mq.run(mock_db_manager)
+
+    # Assertions
+    assert result is not None
+    assert len(result) > 0
+    assert isinstance(result, dict)
+
+    # Check the keys in the result
+    assert ("ModelQuality", "RecognisedEntities") in result
+    assert ("ModelQuality", "AssociatedUnits") in result
+    assert ("ModelQuality", "TimeseriesData") in result
+    assert ("ModelQuality", "ClassConsistency") in result
+
+    # Check the components in the result
+    assert len(result[("ModelQuality", "RecognisedEntities")]["components"]) > 0
+    assert len(result[("ModelQuality", "AssociatedUnits")]["components"]) > 0
+    assert len(result[("ModelQuality", "TimeseriesData")]["components"]) > 0
+    assert len(result[("ModelQuality", "ClassConsistency")]["components"]) > 0
