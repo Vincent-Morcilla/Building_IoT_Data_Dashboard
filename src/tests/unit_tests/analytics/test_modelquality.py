@@ -11,6 +11,7 @@ import analytics.modules.modelquality as mq
 # Suppress pylint warnings for fixtures
 # pylint: disable=protected-access
 # pylint: disable=redefined-outer-name
+# pylint: disable=singleton-comparison
 
 
 def test_generate_id():
@@ -145,38 +146,41 @@ def test_missing_labels_in_pie_chart():
 def mock_db_manager():
     """Fixture to provide a mock Database Manager."""
     mock_db = MagicMock(spec=DBManager)
+
+    # When query is called, return a DataFrame with mock data for 3 entities
     mock_db.query.return_value = pd.DataFrame(
         [
             {
-                "entity_id": URIRef("brick#e1"),
+                "entity_id": "e1",
                 "brick_class": URIRef("brick#ClassA"),
-                "stream_id": URIRef("brick#s1"),
+                "stream_id": "s1",
                 "named_unit": URIRef("unit#KWh"),
-                # "anonymous_unit": URIRef("unit#KWh"),
                 "anonymous_unit": None,
             },
             {
-                "entity_id": URIRef("brick#e2"),
+                "entity_id": "e2",
                 "brick_class": URIRef("brick#ClassB"),
-                "stream_id": URIRef("brick#s2"),
-                # "named_unit": URIRef("unit#MWh"),
+                "stream_id": "s2",
                 "named_unit": None,
-                # "anonymous_unit": URIRef("unit#MWh"),
                 "anonymous_unit": "MWh",
             },
-            # {
-            #     "entity_id": "e2",
-            #     "brick_class": "brick:ClassB",
-            #     "stream_id": "s2",
-            #     "named_unit": None,
-            #     "anonymous_unit": "unit:MWh",
-            # },
+            {
+                "entity_id": "e3",
+                "brick_class": URIRef("brick#ClassC"),
+                "stream_id": "s3",
+                "named_unit": None,
+                "anonymous_unit": None,
+            },
         ]
     )
+
+    # Mock the schema to include only two of the above classes
     mock_db.schema = {
-        (URIRef("brick:ClassA"), None, None),
-        (URIRef("brick:ClassB"), None, None),
+        (URIRef("brick#ClassA"), None, None),
+        (URIRef("brick#ClassC"), None, None),
     }
+
+    # Mock the mapper to include only two of the above streams
     mock_db.mapper = pd.DataFrame(
         {"StreamID": ["s1", "s2"], "strBrickLabel": ["ClassA", "NotClassB"]}
     )
@@ -198,6 +202,15 @@ def mock_db_manager():
             def __eq__(self, other):
                 return self.fragment == other
 
+            def __hash__(self):
+                return hash(self.fragment)
+
+            def __lt__(self, other):
+                return self.fragment < other.fragment
+
+            def __str__(self):
+                return str(self.fragment)
+
         return URIRefMock(uri)
 
     mock_db.defrag_uri = fake_defrag_uri
@@ -215,56 +228,80 @@ def test_build_master_df(mock_db_manager):
 
     # Assertions
     assert df is not None
-    assert len(df) == 2
+    assert len(df) == 3
 
     assert "entity_id" in df.columns
-    assert df["entity_id"].iloc[0] == "e1"  # Fragment of the URIRef
-    assert df["entity_id"].iloc[1] == "e2"  # Fragment of the URIRef
+    assert df["entity_id"].iloc[0] == "e1"
+    assert df["entity_id"].iloc[1] == "e2"
+    assert df["entity_id"].iloc[2] == "e3"
 
     assert "brick_class" in df.columns
     assert df["brick_class"].iloc[0] == "ClassA"  # Fragment of the URIRef
     assert df["brick_class"].iloc[1] == "ClassB"  # Fragment of the URIRef
+    assert df["brick_class"].iloc[2] == "ClassC"  # Fragment of the URIRef
 
     assert "stream_id" in df.columns
-    assert df["stream_id"].iloc[0] == "s1"  # Fragment of the URIRef
-    assert df["stream_id"].iloc[1] == "s2"  # Fragment of the URIRef
+    assert df["stream_id"].iloc[0] == "s1"
+    assert df["stream_id"].iloc[1] == "s2"
+    assert df["stream_id"].iloc[2] == "s3"
+
+    assert "named_unit" in df.columns
+    assert df["named_unit"].iloc[0] == "KWh"  # Fragment of the URIRef
+    assert df["named_unit"].iloc[1] == None
+    assert df["named_unit"].iloc[2] == None
+
+    assert "anonymous_unit" in df.columns
+    assert df["anonymous_unit"].iloc[0] == None
+    assert df["anonymous_unit"].iloc[1] == "MWh"
+    assert df["anonymous_unit"].iloc[2] == None
+
+    assert "class_in_brick_schema" in df.columns
+    assert df["class_in_brick_schema"].iloc[0] == "Recognised"
+    assert df["class_in_brick_schema"].iloc[1] == "Unrecognised"
+    assert df["class_in_brick_schema"].iloc[2] == "Recognised"
+
+    assert "unit" in df.columns
+    assert df["unit"].iloc[0] == "KWh"
+    assert df["unit"].iloc[1] == "MWh"
+    assert df["unit"].iloc[2] == None
+
+    assert "unit_is_named" in df.columns
+    assert df["unit_is_named"].iloc[0] == True
+    assert df["unit_is_named"].iloc[1] == False
+    assert df["unit_is_named"].iloc[2] == None
+
+    assert "stream_exists_in_mapping" in df.columns
+    assert df["stream_exists_in_mapping"].iloc[0] == True
+    assert df["stream_exists_in_mapping"].iloc[1] == True
+    assert df["stream_exists_in_mapping"].iloc[2] == False
+
+    assert "brick_class_in_mapper" in df.columns
+    assert df["brick_class_in_mapper"].iloc[0] == "ClassA"
+    assert df["brick_class_in_mapper"].iloc[1] == "NotClassB"
+    assert df["brick_class_in_mapper"].iloc[2] == None
+
+    assert "brick_class_is_consistent" in df.columns
+    assert df["brick_class_is_consistent"].iloc[0] == True
+    assert df["brick_class_is_consistent"].iloc[1] == False
+    assert df["brick_class_is_consistent"].iloc[2] == None
 
 
-# # Mock Data for Testing
-# @pytest.fixture
-# def mock_db_manager():
-#     db_mock = MagicMock(spec=DBManager)
-#     db_mock.query.return_value = pd.DataFrame(
-#         {
-#             "brick_class": ["Class1", "Class2", "Class1"],
-#             "entity_id": ["E1", "E2", "E3"],
-#             "class_in_brick_schema": ["Recognised", "Unrecognised", "Recognised"],
-#             "stream_id": ["S1", "S2", "S3"],
-#             "unit": [None, "Unit1", "Unit2"],
-#             "unit_is_named": [True, False, True],
-#             "stream_exists_in_mapping": [True, False, True],
-#             "brick_class_in_mapper": ["Class1", "Class2", "Class1"],
-#             "brick_class_is_consistent": [True, False, True],
-#         }
-#     )
-#     return db_mock
+def test_recognised_entity_analysis(mock_db_manager):
+    # Test _recognised_entity_analysis function
+    df = mq._build_master_df(mock_db_manager)
+    result = mq._recognised_entity_analysis(df)
+    print(result)
+    category = ("ModelQuality", "RecognisedEntities")
+    # Check that result contains correct keys
+    assert category in result
+    assert "title" in result[category]
 
+    components = result[category]["components"]
+    assert len(components) > 0  # Check that components list is populated
 
-# def test_recognised_entity_analysis(mock_db_manager):
-#     # Test _recognised_entity_analysis function
-#     df = mq._build_master_df(mock_db_manager)
-#     result = mq._recognised_entity_analysis(df)
+    # Check for pie chart and table components
+    pie_chart_1 = [comp for comp in components if "pie-1" in comp["id"]]
+    assert len(pie_chart_1) > 0
 
-#     # Check that result contains correct keys
-#     assert "RecognisedEntities" in result
-#     assert "title" in result[("RecognisedEntities")]
-
-#     components = result[("RecognisedEntities")]["components"]
-#     assert len(components) > 0  # Check that components list is populated
-
-#     # Check for pie chart and table components
-#     pie_chart_1 = [comp for comp in components if "pie-1" in comp["id"]]
-#     assert len(pie_chart_1) > 0
-
-#     table_config = [comp for comp in components if "table" in comp["id"]]
-#     assert len(table_config) > 0
+    table_config = [comp for comp in components if "table" in comp["id"]]
+    assert len(table_config) > 0
