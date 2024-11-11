@@ -9,8 +9,6 @@ quality.  In particular:
   data.
 """
 
-# @tim: TODO: Consider making tables filterable, where appropriate
-
 import numpy as np
 import pandas as pd
 
@@ -213,6 +211,7 @@ def _build_table_component(
         "kwargs": {
             "columns": columns,
             "export_format": "csv",
+            "filter_action": "native" if len(df) > 20 else "none",
             "fixed_rows": {"headers": True},
             "sort_action": "native",
             "sort_mode": "multi",
