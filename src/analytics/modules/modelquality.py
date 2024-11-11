@@ -341,6 +341,11 @@ def _build_master_df(db: DBManager) -> pd.DataFrame:
         right_on="StreamID",
     )
 
+    # Replace NaN values with None, for consistency with the rest of the DataFrame
+    df["strBrickLabel"] = df["strBrickLabel"].apply(
+        lambda x: None if pd.isna(x) else x.strip()
+    )
+
     # Rename the 'strBrickLabel' column to 'brick_class_in_mapper'
     df.rename(columns={"strBrickLabel": "brick_class_in_mapper"}, inplace=True)
 
