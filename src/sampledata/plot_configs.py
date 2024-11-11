@@ -274,6 +274,7 @@ sample_plot_configs = {
                 "data_source": {
                     "table_data": table_data_frame,
                     "data_dict": timeseries_data_dict,  # Pass the dictionary of components
+                    "include_data_dict_in_download": True,  # Download all dataframes in data_dict
                 },
                 "index_column": "Stream_IDs",  # The column used as index as it's known in the dataframe not as it's known in the datatable
             },
