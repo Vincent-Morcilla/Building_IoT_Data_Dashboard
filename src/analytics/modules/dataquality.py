@@ -324,15 +324,15 @@ def _get_data_quality_overview(data_quality_df):
     stats_df = pd.DataFrame(
         {
             "Metric": [
-                "Total Sensors",
-                "Sensors with Outliers",
-                "Sensors with Gaps",
+                "Total Data Sources",
+                "Data Sources with Outliers",
+                "Data Sources with Gaps",
                 "Total Small Gaps",
                 "Total Medium Gaps",
                 "Total Large Gaps",
                 "Average Gap Percentage",
-                "Sensors Flagged For Removal",
-                "Step Function Sensors",
+                "Data Sources Flagged For Removal",
+                "Step Function Data Sources",
             ],
             "Value": [
                 len(data_quality_df),
@@ -678,7 +678,7 @@ def run(db: DBManager) -> dict:
                     },
                     "layout_kwargs": {
                         "title": {
-                            "text": "Sensors with Outliers",
+                            "text": "Data Sources with Outliers",
                             "font_color": "black",
                             "x": 0.5,
                             "xanchor": "center",
@@ -750,7 +750,7 @@ def run(db: DBManager) -> dict:
                     },
                     "layout_kwargs": {
                         "title": {
-                            "text": "Flagged Sensors Distribution",
+                            "text": "Flagged Data Sources Distribution",
                             "font_color": "black",
                             "x": 0.5,
                             "xanchor": "center",
