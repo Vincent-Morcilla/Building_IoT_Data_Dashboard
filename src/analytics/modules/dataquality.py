@@ -951,8 +951,8 @@ def run(db: DBManager) -> dict:
                 },
                 # Table second
                 {
-                    "type": "table",
-                    "dataframe": summary_table_df,
+                    "type": "UI",
+                    "element": "DataTable",
                     "id": "data-quality-by-class-table",
                     "title": "Data Quality Summary by Label",
                     "title_element": "H5",
@@ -976,13 +976,14 @@ def run(db: DBManager) -> dict:
                             }
                             for i in summary_table_df.columns
                         ],
-                        "row_selectable": "single",
-                        "selected_rows": [0],
+                        "data": summary_table_df.to_dict("records"),
                         "export_format": "csv",
                         "filter_action": (
                             "native" if len(summary_table_df) > 20 else "none"
                         ),
                         "fixed_rows": {"headers": True},
+                        "row_selectable": "single",
+                        "selected_rows": [0],
                         "sort_action": "native",
                         "sort_mode": "multi",
                         "style_header": {
@@ -1088,6 +1089,7 @@ def run(db: DBManager) -> dict:
                         "table_data": data_quality_df,
                         "grouped_table_data": summary_table_df,
                         "db": db,
+                        "include_data_dict_in_download": False,
                     },
                     "index_column": "Brick Class",
                 }
@@ -1104,8 +1106,8 @@ def run(db: DBManager) -> dict:
                     "style": {"margin": "20px 0"},
                 },
                 {
-                    "type": "table",
-                    "dataframe": data_quality_df,
+                    "type": "UI",
+                    "element": "DataTable",
                     "id": "data-quality-metrics-table",
                     "kwargs": {
                         "columns": [
@@ -1152,9 +1154,10 @@ def run(db: DBManager) -> dict:
                                 "Is Step Function",
                             ]
                         ],
+                        "data": data_quality_df.to_dict("records"),
                         "export_format": "csv",
                         "filter_action": (
-                            "native" if len(summary_table_df) > 20 else "none"
+                            "native" if len(data_quality_df) > 20 else "none"
                         ),
                         "fixed_rows": {"headers": True},
                         "row_selectable": "single",
@@ -1235,7 +1238,7 @@ def run(db: DBManager) -> dict:
                                 column: {"value": str(value), "type": "markdown"}
                                 for column, value in row.items()
                             }
-                            for row in df.to_dict("records")
+                            for row in data_quality_df.to_dict("records")
                         ],
                         "tooltip_duration": None,
                     },
@@ -1260,7 +1263,7 @@ def run(db: DBManager) -> dict:
                     "data_source": {
                         "table_data": data_quality_df,
                         "data_dict": timeseries_data_dict,
-                        "db": db,
+                        "include_data_dict_in_download": False,
                     },
                     "index_column": "Stream ID",
                 },

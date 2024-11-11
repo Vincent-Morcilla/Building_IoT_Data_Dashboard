@@ -146,6 +146,8 @@ def update_components_based_on_grouped_table_selection_action(
                         colors.append("#808080" if should_highlight else None)
                         dash_patterns.append("solid")  # or "dash" if needed
 
+                selected_value_title = selected_value.replace("_", " ")
+
                 plot_component = {
                     "type": "plot",
                     "library": "px",
@@ -159,17 +161,13 @@ def update_components_based_on_grouped_table_selection_action(
                             for col in streams_df.columns
                             if col.startswith("Stream_")
                         ],
-                        "title": (
-                            f"All {selected_value} Streams "
-                            f"(Step Function Percentage: {step_function_pct}%)"
-                        ),
                         "labels": {"time": "Date", "value": "Value"},
                         "color_discrete_sequence": colors,
                         "line_dash_sequence": dash_patterns,
                     },
                     "layout_kwargs": {
                         "title": {
-                            "text": f"{selected_value} Timeseries Data<br><span style='font-size:12px'>Step Function Percentage: {step_function_pct}%</span>",
+                            "text": f"{selected_value_title} Timeseries Data<br><span style='font-size:12px'>Step Function Percentage: {step_function_pct}%</span>",
                             "font": {"size": 20},
                             "x": 0.5,
                             "xanchor": "center",
