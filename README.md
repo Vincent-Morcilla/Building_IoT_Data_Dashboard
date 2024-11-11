@@ -1,5 +1,15 @@
 # Building Time Series Visualization
 
+- [Building Time Series Visualization](#building-time-series-visualization)
+  - [Installation Manual](#installation-manual)
+    - [Git Large File Storage](#git-large-file-storage)
+    - [Clone the Repository](#clone-the-repository)
+    - [Run in Docker](#run-in-docker)
+    - [Run Natively](#run-natively)
+    - [App Usage](#app-usage)
+  - [Testing](#testing)
+
+
 ## Installation Manual
 
 ### Git Large File Storage
