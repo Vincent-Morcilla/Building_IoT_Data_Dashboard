@@ -19,14 +19,16 @@ def test_get_building_meters_success(mocker):
     mock_db = mocker.Mock(spec=DBManager)
 
     # Sample data simulating a database response
-    expected_df = pd.DataFrame({
-        'equipment': ['meter1', 'meter2'],
-        'equipment_type': ['ElectricalMeter', 'GasMeter'],
-        'sensor': ['sensor1', 'sensor2'],
-        'sensor_type': ['ElectricalPowerSensor', 'UsageSensor'],
-        'unit': ['kWh', 'cubic meters'],
-        'stream_id': ['stream1', 'stream2']
-    })
+    expected_df = pd.DataFrame(
+        {
+            "equipment": ["meter1", "meter2"],
+            "equipment_type": ["ElectricalMeter", "GasMeter"],
+            "sensor": ["sensor1", "sensor2"],
+            "sensor_type": ["ElectricalPowerSensor", "UsageSensor"],
+            "unit": ["kWh", "cubic meters"],
+            "stream_id": ["stream1", "stream2"],
+        }
+    )
 
     # Configure the mock DBManager to return the sample data
     mock_db.query.return_value = expected_df
@@ -44,6 +46,7 @@ def test_get_building_meters_success(mocker):
     # Verify the database query was called as expected
     mock_db.query.assert_called_once()
 
+
 def test_get_building_meters_empty_result(mocker):
     """
     Unit test for the `_get_building_meters` function to handle an empty
@@ -56,10 +59,10 @@ def test_get_building_meters_empty_result(mocker):
 
     # Empty DataFrame as query result
     mock_db.query.return_value = pd.DataFrame()
-    
+
     # Call the function
     result_df = cons._get_building_meters(mock_db)
-    
+
     # Check if the returned DataFrame is empty
     assert result_df.empty
 
@@ -86,6 +89,7 @@ def test_run_empty_db(mocker):
     # Assertion: Check that the function returns an empty dictionary
     assert not result
 
+
 def test_run_with_meters(mocker):
     """
     Integration test for the `run` function in the consumption module with
@@ -97,24 +101,28 @@ def test_run_with_meters(mocker):
     mock_db = mocker.Mock(spec=DBManager)
 
     # Mock data_meters with two types of meters
-    meter_data = pd.DataFrame({
-        'equipment': ['meter1', 'meter2'],
-        'equipment_type': ['ElectricalMeter', 'GasMeter'],
-        'sensor': ['sensor1', 'sensor2'],
-        'sensor_type': ['ElectricalPowerSensor', 'UsageSensor'],
-        'unit': ['kWh', 'cubic meters'],
-        'stream_id': ['stream1', 'stream2']
-    })
+    meter_data = pd.DataFrame(
+        {
+            "equipment": ["meter1", "meter2"],
+            "equipment_type": ["ElectricalMeter", "GasMeter"],
+            "sensor": ["sensor1", "sensor2"],
+            "sensor_type": ["ElectricalPowerSensor", "UsageSensor"],
+            "unit": ["kWh", "cubic meters"],
+            "stream_id": ["stream1", "stream2"],
+        }
+    )
 
     # Configure the mock DBManager to return sample meter data
     mock_db.query.return_value = meter_data
 
     # Mock get_stream to return time series data
-    mock_db.get_stream.return_value = pd.DataFrame({
-        'time': pd.date_range(start='2024-01-01', periods=10, freq='10min'),
-        'brick_class': ['value'] * 10,
-        'value': range(10)
-    })
+    mock_db.get_stream.return_value = pd.DataFrame(
+        {
+            "time": pd.date_range(start="2024-01-01", periods=10, freq="10min"),
+            "brick_class": ["value"] * 10,
+            "value": range(10),
+        }
+    )
 
     # Run the function
     config = cons.run(mock_db)

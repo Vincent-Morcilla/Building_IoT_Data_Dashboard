@@ -234,9 +234,9 @@ def run(db: DBManager) -> dict:
                     "title": None,
                     "components": [component],
                 }
-        
+
         else:
-        # Skip or log a warning if there is no combined data for this group
+            # Skip or log a warning if there is no combined data for this group
             continue
 
     return config
