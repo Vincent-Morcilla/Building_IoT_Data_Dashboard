@@ -780,6 +780,9 @@ def run(db: DBManager) -> PlotConfig:
     """
     df = _build_master_df(db)
 
+    if df.empty:
+        return {}
+
     analyses = {}
     analyses |= _recognised_entity_analysis(df)
     analyses |= _associated_units_analysis(df)
