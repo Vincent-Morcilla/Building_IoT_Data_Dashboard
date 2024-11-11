@@ -373,11 +373,19 @@ def register_download_callbacks(app: Dash, plot_configs: PlotConfig) -> None:
             # Process Interactions
             for interaction in config.get("interactions", []):
                 data_source = interaction.get("data_source", {})
+
                 if not data_source:
                     continue
 
+                include_data_dict_in_download = data_source.get(
+                    "include_data_dict_in_download", False
+                )
+
+                if not include_data_dict_in_download:
+                    continue
+
                 data_dict = data_source.get("data_dict")
-                if data_dict:
+                if data_dict is not None:
                     # Loop through each item in data_dict
                     for index_value, components in data_dict.items():
                         index_value_sanitized = sanitise_filename(str(index_value))

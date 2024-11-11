@@ -202,6 +202,7 @@ def _build_plot_config(table: pd.DataFrame, timeseries_data_dict: dict) -> PlotC
                     "data_source": {
                         "table_data": table,
                         "data_dict": timeseries_data_dict,
+                        "include_data_dict_in_download": True,
                     },
                     "index_column": "room_id",
                 },
