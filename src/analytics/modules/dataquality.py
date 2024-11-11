@@ -470,10 +470,10 @@ def _build_components(df: pd.DataFrame, stream_id: str, title: str) -> list:
                     "font": {"size": 20},
                     "x": 0.5,
                     "xanchor": "center",
-                    # "subtitle": {
-                    #     "text": f"Stream ID: {stream_id}",
-                    #     "font": {"size": 12},
-                    # },
+                    "subtitle": {
+                        "text": f"Stream ID: {stream_id}",
+                        "font": {"size": 12},
+                    },
                 },
                 "font_color": "black",
                 "plot_bgcolor": "white",
