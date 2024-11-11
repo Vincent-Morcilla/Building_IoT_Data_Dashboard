@@ -16,7 +16,6 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 from components.download_button import create_global_download_button
-from helpers.data_processing import apply_transformation
 from models.types import (
     DataMappings,
     DataProcessingConfig,
@@ -43,6 +42,9 @@ def create_plot_component(component: PlotComponentConfig) -> dcc.Graph:
         raise ValueError("Plot component must have an 'id' field.")
 
     library = component.get("library", "px")
+    if library is None:
+        raise ValueError("Plot component must have a 'library' field.")
+
     func_name = component.get("function")
     kwargs = component.get("kwargs", {}).copy()
     layout_kwargs = component.get("layout_kwargs", {})
@@ -64,7 +66,7 @@ def create_plot_component(component: PlotComponentConfig) -> dcc.Graph:
     # Generate the figure based on library
     if library == "px":
         fig = create_px_figure(func_name, data_frame, kwargs)
-    elif library == "go":
+    else:
         fig = create_go_figure(data_frame, data_processing, component, kwargs)
 
     # Update layout and return the figure as a Dash Graph
@@ -167,7 +169,8 @@ def process_data_frame(
 
     Args:
         data_frame (pd.DataFrame): The data frame to process.
-        data_processing (Dict): Instructions for processing, including filters, groupby, and transformations.
+        data_processing (Dict): Instructions for processing, including filters, groupby,
+        and transformations.
 
     Returns:
         pd.DataFrame: The processed data frame.
@@ -430,18 +433,20 @@ def create_layout_for_category(
     selected_plot_config: SpecificCategorySubcategoryPlotConfig,
 ) -> List[html.Div]:
     """
-    Generate the layout for a category based on the provided specific category-subcategory plot configuration.
+    Generate the layout for a category based on the provided specific category-subcategory
+    plot configuration.
 
     Args:
-        selected_plot_config (SpecificCategorySubcategoryPlotConfig): Configuration dictionary for the layout of a specific
-            category and subcategory, containing:
+        selected_plot_config (SpecificCategorySubcategoryPlotConfig): Configuration
+        dictionary for the layout of a specific category and subcategory, containing:
             title (str): The section title.
             title_element (str): The HTML element for the title (e.g., 'H2').
             title_style (dict): Styling for the title, such as font size and alignment.
             components (list): List of components (plot, table, UI) to include in the layout.
 
     Returns:
-        List[html.Div]: A list of Dash components representing the layout for the specific category-subcategory pair, including:
+        List[html.Div]: A list of Dash components representing the layout for the specific
+        category-subcategory pair, including:
             - Section title component.
             - Specified UI, plot, table, separator, and placeholder components.
             - A global download button for downloading data.

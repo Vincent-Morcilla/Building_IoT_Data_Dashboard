@@ -1,5 +1,15 @@
 # Building Time Series Visualization
 
+- [Building Time Series Visualization](#building-time-series-visualization)
+  - [Installation Manual](#installation-manual)
+    - [Git Large File Storage](#git-large-file-storage)
+    - [Clone the Repository](#clone-the-repository)
+    - [Run in Docker](#run-in-docker)
+    - [Run Natively](#run-natively)
+    - [App Usage](#app-usage)
+  - [Testing](#testing)
+
+
 ## Installation Manual
 
 ### Git Large File Storage
@@ -97,6 +107,21 @@ options:
   -b BUILDING, --building BUILDING
                         Filter mapper and data based on building (default: None)
   -t, --test-mode       Run the app using built-in sample data (default: False)
+```
+
+## Testing
+
+A comprehensive test suite is provided, requiring additional dependencies to be 
+installed:
+
+```sh
+pip install -r src/tests/requirements.txt
+```
+
+Once installed, all tests can be run:
+
+```sh
+pytest src
 ```
 
 ---

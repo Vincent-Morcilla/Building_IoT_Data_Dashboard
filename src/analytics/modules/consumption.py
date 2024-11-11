@@ -167,72 +167,76 @@ def run(db: DBManager) -> dict:
                 }
             )
 
-        # Define the configuration structure for the frontend based on meter_type and sensor_type
-        component = {
-            "type": "plot",
-            "library": "px",
-            "function": "line",
-            "id": f"{meter_type.lower()}-{sensor_type.lower()}-aggregated-line-plot",
-            "kwargs": {
-                "data_frame": plot_data,
-                "x": "Timestamp",
-                "y": "Usage",
-                "color": "Sensor",
-            },
-            "layout_kwargs": {
-                "title": {
-                    "text": f"Aggregated {meter_type.replace('_', ' ')} - {sensor_type.replace('_', ' ')}",
-                    "font": {"size": 20},
-                    "x": 0.5,
-                    "xanchor": "center",
+            # Define the configuration structure for the frontend based on meter_type and sensor_type
+            component = {
+                "type": "plot",
+                "library": "px",
+                "function": "line",
+                "id": f"{meter_type.lower()}-{sensor_type.lower()}-aggregated-line-plot",
+                "kwargs": {
+                    "data_frame": plot_data,
+                    "x": "Timestamp",
+                    "y": "Usage",
+                    "color": "Sensor",
                 },
-                "height": 600,
-                "autosize": True,
-                "margin": {
-                    "t": 100,
+                "layout_kwargs": {
+                    "title": {
+                        "text": f"Aggregated {meter_type.replace('_', ' ')} - {sensor_type.replace('_', ' ')}",
+                        "font": {"size": 20},
+                        "x": 0.5,
+                        "xanchor": "center",
+                    },
+                    "height": 600,
+                    "autosize": True,
+                    "margin": {
+                        "t": 100,
+                    },
+                    "font_color": "black",
+                    "plot_bgcolor": "white",
+                    "legend": {
+                        "orientation": "h",
+                        "yanchor": "top",
+                        "y": -0.15,
+                        "xanchor": "center",
+                        "x": 0.5,
+                        "font": {"size": 12},
+                    },
+                    "xaxis": {
+                        "title": "Date",
+                        "mirror": True,
+                        "ticks": "outside",
+                        "showline": True,
+                        "linecolor": "black",
+                        "gridcolor": "lightgrey",
+                    },
+                    "yaxis": {
+                        "title": "Total Usage",
+                        "mirror": True,
+                        "ticks": "outside",
+                        "showline": True,
+                        "linecolor": "black",
+                        "gridcolor": "lightgrey",
+                    },
                 },
-                "font_color": "black",
-                "plot_bgcolor": "white",
-                "legend": {
-                    "orientation": "h",
-                    "yanchor": "top",
-                    "y": -0.15,
-                    "xanchor": "center",
-                    "x": 0.5,
-                    "font": {"size": 12},
+                "css": {
+                    "padding": "10px",
                 },
-                "xaxis": {
-                    "title": "Date",
-                    "mirror": True,
-                    "ticks": "outside",
-                    "showline": True,
-                    "linecolor": "black",
-                    "gridcolor": "lightgrey",
-                },
-                "yaxis": {
-                    "title": "Total Usage",
-                    "mirror": True,
-                    "ticks": "outside",
-                    "showline": True,
-                    "linecolor": "black",
-                    "gridcolor": "lightgrey",
-                },
-            },
-            "css": {
-                "padding": "10px",
-            },
-        }
-
-        # Check if config_key already exists in config
-        if config_key in config:
-            # Append the new component if the key exists
-            config[config_key]["components"].append(component)
-        else:
-            # Create a new entry for the component if the key doesn't exist
-            config[config_key] = {
-                # "title": f"{meter_type.replace('_', ' ')}",
-                "title": None,
-                "components": [component],
             }
+
+            # Check if config_key already exists in config
+            if config_key in config:
+                # Append the new component if the key exists
+                config[config_key]["components"].append(component)
+            else:
+                # Create a new entry for the component if the key doesn't exist
+                config[config_key] = {
+                    # "title": f"{meter_type.replace('_', ' ')}",
+                    "title": None,
+                    "components": [component],
+                }
+
+        else:
+            # Skip or log a warning if there is no combined data for this group
+            continue
 
     return config
