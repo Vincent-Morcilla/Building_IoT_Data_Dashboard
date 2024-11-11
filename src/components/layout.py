@@ -58,7 +58,8 @@ def home_page_content(categories_structure: CategoriesStructure) -> html.Div:
     Create the homepage content for the Dash application.
 
     Args:
-        categories_structure (CategoriesStructure): Contains categories, category key mapping, and subcategory key mapping.
+        categories_structure (CategoriesStructure): Contains categories, category key mapping,
+        and subcategory key mapping.
 
     Returns:
         html.Div: A Div component containing the homepage content.
