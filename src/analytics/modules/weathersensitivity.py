@@ -8,6 +8,8 @@ results, which include the correlation values for each system and insights into
 how outside temperature may impact building system usage.
 """
 
+import sys
+
 import pandas as pd
 from scipy import stats
 
@@ -207,26 +209,28 @@ class WeatherSensitivity:
         # Function to retrieve sensor data from the database for a given stream ID
         def get_sensor_data_for_stream(stream_id):
             if pd.isna(stream_id):  # Handle missing stream_id
-                # print(f"Stream ID is missing: {stream_id}")
                 return None
 
             # Fetch the sensor data from the database using the provided stream ID
             try:
                 sensor_df = self.db.get_stream(stream_id).dropna()
-                if not sensor_df.empty:
-                    return {
-                        "streamid": stream_id,
-                        "sensor_type": sensor_df["brick_class"].iloc[
-                            0
-                        ],  # Assuming label is the sensor type
-                        "timestamps": pd.to_datetime(sensor_df["time"]),
-                        "values": sensor_df["value"],
-                    }
-                else:
-                    print(f"No data found for Stream ID: {stream_id}")
+                if sensor_df.empty:
+                    print(f"No data found for Stream ID: {stream_id}", file=sys.stderr)
                     return None
-            except Exception as e:
-                print(f"Error loading data for Stream ID {stream_id}: {e}")
+
+                return {
+                    "streamid": stream_id,
+                    "sensor_type": sensor_df["brick_class"].iloc[
+                        0
+                    ],  # Assuming label is the sensor type
+                    "timestamps": pd.to_datetime(sensor_df["time"]),
+                    "values": sensor_df["value"],
+                }
+            except KeyError as e:
+                print(
+                    f"Error loading data for Stream ID {stream_id}: {e}",
+                    file=sys.stderr,
+                )
                 return None
 
         # Apply the function to load sensor data for each stream ID

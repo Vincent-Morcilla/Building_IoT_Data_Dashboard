@@ -14,7 +14,7 @@ from analytics.dbmgr import DBManager
 
 
 def _detect_step_function_behavior(
-    values, percentage_threshold=0.1, constant_diff=1, unique_values_threshold=5
+    values, percentage_threshold=0.1, unique_values_threshold=5
 ):
     """
     Detect if a time series behaves like a step function.
@@ -22,7 +22,6 @@ def _detect_step_function_behavior(
     Args:
         values (np.array): Array of sensor values
         percentage_threshold (float): Threshold for relative change (default: 0.1)
-        constant_diff (float): Value for divide-by-zero cases (default: 1)
         unique_values_threshold (int): Threshold for unique values (default: 5)
 
     Returns:
@@ -422,14 +421,13 @@ def _deduce_granularity(timestamps):
     # Upgrade granularity
     if granularity % 86400 == 0:  # 86400 seconds = 1 day
         return f"{granularity // 86400} days"
-    elif granularity % 3600 == 0:  # 3600 seconds = 1 hour
+    if granularity % 3600 == 0:  # 3600 seconds = 1 hour
         return f"{granularity // 3600} hours"
-    elif 0 <= granularity % 60 < 5:  # 60 seconds = 1 minute
+    if 0 <= granularity % 60 < 5:  # 60 seconds = 1 minute
         return f"{granularity // 60} minutes"
-    elif granularity % 60 > 55:
+    if granularity % 60 > 55:
         return f"{1 + granularity // 60} minutes"
-    else:
-        return f"{granularity} seconds"
+    return f"{granularity} seconds"
 
 
 def _detect_outliers(values):
@@ -535,14 +533,13 @@ def get_column_type(value):
     python_type = type(value)
     if python_type == str:
         return "text"
-    elif python_type in (int, float):
+    if python_type in (int, float):
         return "numeric"
-    elif python_type == bool:
+    if python_type == bool:
         return "boolean"
-    elif python_type in (pd.Timestamp, datetime.datetime):
+    if python_type in (pd.Timestamp, datetime.datetime):
         return "datetime"
-    else:
-        return "any"
+    return "any"
 
 
 def run(db: DBManager) -> dict:
@@ -582,6 +579,7 @@ def run(db: DBManager) -> dict:
 
         timeseries_data_dict[stream_id] = _build_components(stream_df, stream_id, title)
 
+    # pylint: disable=singleton-comparison
     plot_config = {
         ("DataQuality", "Overview"): {
             "components": [
