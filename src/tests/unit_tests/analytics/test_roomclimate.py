@@ -121,18 +121,6 @@ def test_run_empty_db(mocker):
 
     result = rc.run(mock_db)
 
-    D = {
-        ("RoomClimate", "Error"): {
-            "components": [
-                {
-                    "css": {"color": "#a93932", "font-weight": "bold"},
-                    "message": "Model contains no rooms with air temperature sensors and setpoints.",
-                    "type": "error",
-                }
-            ]
-        }
-    }
-
     assert ("RoomClimate", "Error") in result
     assert "components" in result[("RoomClimate", "Error")]
     assert len(result[("RoomClimate", "Error")]["components"]) == 1

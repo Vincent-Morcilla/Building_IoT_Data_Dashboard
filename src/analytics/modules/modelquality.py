@@ -284,6 +284,9 @@ def _build_master_df(db: DBManager) -> pd.DataFrame:
     # Execute the query and return the results as a DataFrame
     df = db.query(query, return_df=True)
 
+    if df.empty:
+        return df
+
     # ------------------------  RECOGNISED ENTITIES  ------------------------- #
 
     # Check if all entities in the provided model are in the Brick schema
@@ -781,7 +784,17 @@ def run(db: DBManager) -> PlotConfig:
     df = _build_master_df(db)
 
     if df.empty:
-        return {}
+        return {
+            (CATEGORY, "Error"): {
+                "components": [
+                    {
+                        "type": "error",
+                        "message": "Unable to identify any entities in the building model.",
+                        "css": {"color": "#a93932", "font-weight": "bold"},
+                    }
+                ],
+            }
+        }
 
     analyses = {}
     analyses |= _recognised_entity_analysis(df)

@@ -237,7 +237,7 @@ def run(db: DBManager) -> PlotConfig:
                 "components": [
                     {
                         "type": "error",
-                        "message": "Model contains no rooms with air temperature sensors and setpoints.",
+                        "message": "Unable to identify any rooms with air temperature sensors and setpoints in the building model.",
                         "css": {"color": "#a93932", "font-weight": "bold"},
                     }
                 ],
