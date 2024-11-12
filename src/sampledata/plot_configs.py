@@ -938,11 +938,11 @@ sample_plot_configs = {
             },
         ],
     },
-    ("Error", "Error"): {
+    ("Failed Analysis", "Error"): {
         "components": [
             {
                 "type": "error",
-                "message": "I couldn't produce my analysis, I should tell the user why.",
+                "message": "I couldn't produce my analysis, here's where I would tell the user why.",
                 "css": {"color": "#a93932", "font-weight": "bold"},
             }
         ],
