@@ -31,6 +31,7 @@ from sampledata.plot_configs import sample_plot_configs
 APP_NAME = "Green Insight"
 
 
+# pylint: disable=redefined-outer-name
 def create_app(plot_configs: PlotConfig) -> Dash:
     """
     Initialize and configure the Dash application.
