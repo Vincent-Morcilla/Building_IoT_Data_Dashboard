@@ -8,12 +8,17 @@ visualizations and interactive components.
 """
 
 import argparse
+import sys
 
 from dash import Dash
 import dash_bootstrap_components as dbc
 
 from analytics.analyticsmgr import AnalyticsManager
 from analytics.dbmgr import DBManager
+from analytics.dbmgr import DBManagerFileNotFoundError
+from analytics.dbmgr import DBManagerBadCsvFile
+from analytics.dbmgr import DBManagerBadRdfFile
+from analytics.dbmgr import DBManagerBadZipFile
 from callbacks.download_button_callbacks import register_download_callbacks
 from callbacks.general_callbacks import register_general_callbacks
 from callbacks.plot_callbacks import register_plot_callbacks
@@ -127,7 +132,18 @@ if __name__ == "__main__":
     if args.test_mode:
         plot_configs = sample_plot_configs
     else:
-        db = DBManager(args.data, args.mapper, args.model, args.schema, args.building)
+        try:
+            db = DBManager(
+                args.data, args.mapper, args.model, args.schema, args.building
+            )
+        except (
+            DBManagerFileNotFoundError,
+            DBManagerBadCsvFile,
+            DBManagerBadRdfFile,
+            DBManagerBadZipFile,
+        ) as e:
+            sys.exit(f"Error: {e}")
+
         am = AnalyticsManager(db)
         plot_configs = am.run_analytics()
 

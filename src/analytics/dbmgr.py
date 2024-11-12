@@ -15,6 +15,22 @@ import rdflib
 from tqdm import tqdm
 
 
+class DBManagerFileNotFoundError(FileNotFoundError):
+    """Raised when a required file is not found by DBManager."""
+
+
+class DBManagerBadCsvFile(pd.errors.ParserError):
+    """Raised when DBManager encounters an invalid CSV file."""
+
+
+class DBManagerBadRdfFile(AttributeError):
+    """Raised when DBManager encounters an invalid RDF file."""
+
+
+class DBManagerBadZipFile(zipfile.BadZipFile):
+    """Raised when DBManager encounters an invalid zip file."""
+
+
 class DBManager:
     """Class for managing the dataset of time series data, the building model,
     the mapping file between the time series data and building model, and the
@@ -32,10 +48,10 @@ class DBManager:
             to None.
 
     Raises:
-        FileNotFoundError: If the data zip file is not found.
-        FileNotFoundError: If the mapping file is not found.
-        FileNotFoundError: If the model file is not found.
-        FileNotFoundError: If the schema file is not found.
+        DBManagerFileNotFoundError: If the data zip file is not found.
+        DBManagerFileNotFoundError: If the mapping file is not found.
+        DBManagerFileNotFoundError: If the model file is not found.
+        DBManagerFileNotFoundError: If the schema file is not found.
     """
 
     def __init__(
@@ -55,28 +71,41 @@ class DBManager:
                 to None.
 
         Raises:
-            FileNotFoundError: If the data zip file is not found.
-            FileNotFoundError: If the mapping file is not found.
-            FileNotFoundError: If the model file is not found.
-            FileNotFoundError: If the schema file is not found.
+            DBManagerFileNotFoundError: If the data zip file is not found.
+            DBManagerFileNotFoundError: If the mapping file is not found.
+            DBManagerFileNotFoundError: If the model file is not found.
+            DBManagerFileNotFoundError: If the schema file is not found.
         """
         self._data_zip_path = Path(data_zip_path)
         self._mapper_path = Path(mapper_path)
         self._model_path = Path(model_path)
         self._schema_path = None if schema_path is None else Path(schema_path)
         if not self._data_zip_path.is_file():
-            raise FileNotFoundError(f"Data zip file not found: {self._data_zip_path}")
+            raise DBManagerFileNotFoundError(
+                f"Data zip file not found: {self._data_zip_path}"
+            )
 
         if not self._mapper_path.is_file():
-            raise FileNotFoundError(f"Mapping file not found: {self._mapper_path}")
+            raise DBManagerFileNotFoundError(
+                f"Mapping file not found: {self._mapper_path}"
+            )
 
         if not self._model_path.is_file():
-            raise FileNotFoundError(f"Model file not found: {self._model_path}")
+            raise DBManagerFileNotFoundError(
+                f"Model file not found: {self._model_path}"
+            )
 
         if self._schema_path is not None and not self._schema_path.is_file():
-            raise FileNotFoundError(f"Schema file not found: {self._schema_path}")
+            raise DBManagerFileNotFoundError(
+                f"Schema file not found: {self._schema_path}"
+            )
 
-        self._mapper = pd.read_csv(self._mapper_path, index_col=0)
+        try:
+            self._mapper = pd.read_csv(self._mapper_path, index_col=0)
+        except pd.errors.ParserError as exc:
+            raise DBManagerBadCsvFile(
+                f"Error reading CSV file: {self._mapper_path}"
+            ) from exc
 
         # Filter the mapper to only include streams from the specified building
         if building is not None:
@@ -93,12 +122,26 @@ class DBManager:
         # Brick schema, the "schema+model" graph is the combination of the
         # model and schema, and the "expanded_model" graph is the model with
         # the schema expanded
-        self._g = {"model": brickschema.Graph().load_file(self._model_path)}
+        try:
+            self._g = {"model": brickschema.Graph().load_file(self._model_path)}
+        except AttributeError as exc:
+            raise DBManagerBadRdfFile(
+                f"Error reading RDF file: {self._model_path}"
+            ) from exc
 
         if self._schema_path is not None:
-            self._g["schema"] = brickschema.Graph().load_file(self._schema_path)
-            self._g["schema+model"] = brickschema.Graph().load_file(self._schema_path)
-            self._g["expanded_model"] = brickschema.Graph().load_file(self._schema_path)
+            try:
+                self._g["schema"] = brickschema.Graph().load_file(self._schema_path)
+                self._g["schema+model"] = brickschema.Graph().load_file(
+                    self._schema_path
+                )
+                self._g["expanded_model"] = brickschema.Graph().load_file(
+                    self._schema_path
+                )
+            except AttributeError as exc:
+                raise DBManagerBadRdfFile(
+                    f"Error reading RDF file: {self._schema_path}"
+                ) from exc
         else:
             self._g["schema"] = brickschema.Graph(load_brick_nightly=True)
             self._g["schema+model"] = brickschema.Graph(load_brick_nightly=True)
@@ -341,36 +384,41 @@ class DBManager:
     def _load_db(self) -> None:
         """Load the stream data from the zip file into the database."""
 
-        with zipfile.ZipFile(self._data_zip_path, "r") as db_zip:
-            # iterate through the files in the zip file
-            for path in tqdm(db_zip.namelist(), desc="Reading stream data      "):
-                # ignore non-pickle files
-                if not path.endswith(".pkl"):
-                    continue
+        try:
+            with zipfile.ZipFile(self._data_zip_path, "r") as db_zip:
+                # iterate through the files in the zip file
+                for path in tqdm(db_zip.namelist(), desc="Reading stream data      "):
+                    # ignore non-pickle files
+                    if not path.endswith(".pkl"):
+                        continue
 
-                # get the stream ID from the mapper
-                filename = Path(path).name
-                record = self._mapper.loc[
-                    self._mapper["Filename"] == filename, "StreamID"
-                ]
+                    # get the stream ID from the mapper
+                    filename = Path(path).name
+                    record = self._mapper.loc[
+                        self._mapper["Filename"] == filename, "StreamID"
+                    ]
 
-                # ignore streams that don't have a mapping
-                if record.empty:
-                    continue
+                    # ignore streams that don't have a mapping
+                    if record.empty:
+                        continue
 
-                stream_id = record.iloc[0]
+                    stream_id = record.iloc[0]
 
-                # load the stream data from the pickle file
-                pkl_data = db_zip.read(path)
-                data = pickle.loads(pkl_data)
-                data_df = pd.DataFrame(data)
-                data_df.rename(
-                    columns={"t": "time", "v": "value", "y": "brick_class"},
-                    inplace=True,
-                )
+                    # load the stream data from the pickle file
+                    pkl_data = db_zip.read(path)
+                    data = pickle.loads(pkl_data)
+                    data_df = pd.DataFrame(data)
+                    data_df.rename(
+                        columns={"t": "time", "v": "value", "y": "brick_class"},
+                        inplace=True,
+                    )
 
-                # set the stream data in the database
-                self._db[stream_id] = data_df
+                    # set the stream data in the database
+                    self._db[stream_id] = data_df
+        except zipfile.BadZipFile as exc:
+            raise DBManagerBadZipFile(
+                f"Error reading zip file: {self._data_zip_path}"
+            ) from exc
 
     @staticmethod
     def defrag_uri(uri: rdflib.term.URIRef | str) -> str:
