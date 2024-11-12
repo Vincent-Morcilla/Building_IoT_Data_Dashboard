@@ -442,13 +442,13 @@ def create_layout_for_category(
             title (str): The section title.
             title_element (str): The HTML element for the title (e.g., 'H2').
             title_style (dict): Styling for the title, such as font size and alignment.
-            components (list): List of components (plot, table, UI) to include in the layout.
+            components (list): List of components (plot, table, UI, error) to include in the layout.
 
     Returns:
         List[html.Div]: A list of Dash components representing the layout for the specific
         category-subcategory pair, including:
             - Section title component.
-            - Specified UI, plot, table, separator, and placeholder components.
+            - Specified UI, plot, table, separator, error, and placeholder components.
             - A global download button for downloading data.
     """
     components = []
