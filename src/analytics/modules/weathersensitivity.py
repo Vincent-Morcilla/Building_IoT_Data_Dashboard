@@ -425,9 +425,15 @@ class WeatherSensitivity:
         ].dt.to_period("M")
 
         def calculate_monthly_correlation(dataframe, sensor_column):
-            return dataframe.groupby("year_month").apply(
-                lambda x: stats.spearmanr(x["outside_temp"], x[sensor_column])[0]
-            )
+            def correlation_or_nan(sub_df):
+                if (
+                    sub_df["outside_temp"].nunique() <= 1
+                    or sub_df[sensor_column].nunique() <= 1
+                ):
+                    return float("nan")
+                return stats.spearmanr(sub_df["outside_temp"], sub_df[sensor_column])[0]
+
+            return dataframe.groupby("year_month").apply(correlation_or_nan)
 
         sensor_columns = {}
         for i in range(1, df_sensor_outside_data.shape[1] - 2):
