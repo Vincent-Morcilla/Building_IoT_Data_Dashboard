@@ -209,7 +209,6 @@ class WeatherSensitivity:
         # Function to retrieve sensor data from the database for a given stream ID
         def get_sensor_data_for_stream(stream_id):
             if pd.isna(stream_id):  # Handle missing stream_id
-                # print(f"Stream ID is missing: {stream_id}")
                 return None
 
             # Fetch the sensor data from the database using the provided stream ID
@@ -228,7 +227,10 @@ class WeatherSensitivity:
                     "values": sensor_df["value"],
                 }
             except KeyError as e:
-                print(f"Error loading data for Stream ID {stream_id}: {e}")
+                print(
+                    f"Error loading data for Stream ID {stream_id}: {e}",
+                    file=sys.stderr,
+                )
                 return None
 
         # Apply the function to load sensor data for each stream ID
