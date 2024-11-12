@@ -232,7 +232,17 @@ def run(db: DBManager) -> PlotConfig:
     df = _get_rooms_with_temp(db)
 
     if df.empty:
-        return {}
+        return {
+            (CATEGORY, "Error"): {
+                "components": [
+                    {
+                        "type": "error",
+                        "message": "Model contains no rooms with air temperature sensors and setpoints.",
+                        "css": {"color": "#a93932", "font-weight": "bold"},
+                    }
+                ],
+            }
+        }
 
     # Get the outside air temperature sensor
     outside_air_temp = _get_outside_air_temp(db)

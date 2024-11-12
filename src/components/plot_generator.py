@@ -487,6 +487,11 @@ def create_layout_for_category(
             placeholder_id = component.get("id")
             placeholder_css = component.get("css", {})
             components.append(html.Div(id=placeholder_id, style=placeholder_css))
+        elif comp_type == "error":
+            error_message = component.get("message", "An error occurred.")
+            error_css = component.get("css", {})
+            error_component = html.Div(f"Error: {error_message}", style=error_css)
+            components.append(error_component)
         else:
             raise ValueError(f"Unsupported component type '{comp_type}'")
 
