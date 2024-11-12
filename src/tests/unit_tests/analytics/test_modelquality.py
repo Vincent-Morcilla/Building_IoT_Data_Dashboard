@@ -391,7 +391,12 @@ def test_run_with_empty_db(mocker):
     )
 
     result = mq.run(mock_db)
-    assert not result
+
+    assert ("ModelQuality", "Error") in result
+    assert "components" in result[("ModelQuality", "Error")]
+    assert len(result[("ModelQuality", "Error")]["components"]) == 1
+    assert "type" in result[("ModelQuality", "Error")]["components"][0]
+    assert result[("ModelQuality", "Error")]["components"][0]["type"] == "error"
 
 
 def test_run_with_sample_data(mocker, mock_db_manager):
