@@ -475,21 +475,14 @@ def _build_components(df: pd.DataFrame, stream_id: str, title: str) -> list:
                         "font": {"size": 12},
                     },
                 },
+                "autosize": True,
                 "font_color": "black",
                 "plot_bgcolor": "white",
                 "height": 500,
-                "autosize": True,
                 "margin": {
                     "t": 100,
                 },
-                "legend": {
-                    "orientation": "h",
-                    "yanchor": "top",
-                    "y": -0.25,
-                    "xanchor": "center",
-                    "x": 0.5,
-                    "font": {"size": 12},
-                },
+                "showlegend": False,
                 "xaxis": {
                     "mirror": True,
                     "ticks": "outside",
@@ -954,8 +947,6 @@ def run(db: DBManager) -> dict:
                     "type": "UI",
                     "element": "DataTable",
                     "id": "data-quality-by-class-table",
-                    "title": "Data Quality Summary by Label",
-                    "title_element": "H5",
                     "kwargs": {
                         "columns": [
                             {
