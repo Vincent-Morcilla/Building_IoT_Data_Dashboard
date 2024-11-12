@@ -120,7 +120,24 @@ def test_run_empty_db(mocker):
     )
 
     result = rc.run(mock_db)
-    assert not result
+
+    D = {
+        ("RoomClimate", "Error"): {
+            "components": [
+                {
+                    "css": {"color": "#a93932", "font-weight": "bold"},
+                    "message": "Model contains no rooms with air temperature sensors and setpoints.",
+                    "type": "error",
+                }
+            ]
+        }
+    }
+
+    assert ("RoomClimate", "Error") in result
+    assert "components" in result[("RoomClimate", "Error")]
+    assert len(result[("RoomClimate", "Error")]["components"]) == 1
+    assert "type" in result[("RoomClimate", "Error")]["components"][0]
+    assert result[("RoomClimate", "Error")]["components"][0]["type"] == "error"
 
 
 def test_run_with_rooms_no_outside_air(mocker):
