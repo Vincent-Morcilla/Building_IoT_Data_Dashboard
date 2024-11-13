@@ -31,13 +31,48 @@ from sampledata.plot_configs import sample_plot_configs
 APP_NAME = "Green Insight"
 
 
-def main() -> None:
+def main(arg_list: list[str] | None = None) -> None:
     """
     Main function for running the 'Green Insight' Building Time Series
     Visualisation application.
 
     Parses command-line arguments, initialises the dashboard, and runs
     the app.
+    """
+    args = parse_args(arg_list)
+
+    if args.test_mode:
+        plot_configs = sample_plot_configs
+    else:
+        try:
+            db = DBManager(
+                args.data, args.mapper, args.model, args.schema, args.building
+            )
+        except (
+            DBManagerFileNotFoundError,
+            DBManagerBadCsvFile,
+            DBManagerBadRdfFile,
+            DBManagerBadZipFile,
+        ) as e:
+            sys.exit(f"Error: {e}")
+
+        am = AnalyticsManager(db)
+        plot_configs = am.run_analytics()
+
+    create_app(plot_configs).run(debug=args.debug, host=args.host, port=args.port)
+
+
+# pylint: disable=unused-argument
+def parse_args(arg_list: list[str] | None):
+    """
+    Parse command-line arguments.
+
+    Args:
+        arg_list (list[str] | None): List of command-line arguments to parse.
+            If None, uses sys.argv.
+
+    Returns:
+        argparse.Namespace: Parsed command-line arguments.
     """
 
     # Parse command-line arguments
@@ -106,28 +141,9 @@ def main() -> None:
                 "Data, mapper, and model file paths are required if --test-mode is not enabled."
             )
 
-    if args.test_mode:
-        plot_configs = sample_plot_configs
-    else:
-        try:
-            db = DBManager(
-                args.data, args.mapper, args.model, args.schema, args.building
-            )
-        except (
-            DBManagerFileNotFoundError,
-            DBManagerBadCsvFile,
-            DBManagerBadRdfFile,
-            DBManagerBadZipFile,
-        ) as e:
-            sys.exit(f"Error: {e}")
-
-        am = AnalyticsManager(db)
-        plot_configs = am.run_analytics()
-
-    create_app(plot_configs).run(debug=args.debug, host=args.host, port=args.port)
+    return args
 
 
-# pylint: disable=redefined-outer-name
 def create_app(plot_configs: PlotConfig) -> Dash:
     """
     Initialize and configure the Dash application.

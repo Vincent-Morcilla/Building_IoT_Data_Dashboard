@@ -464,12 +464,6 @@ def test_query_keyerror(db_manager):
         _ = db_manager.query("SELECT * WHERE { ?s ?p ?o }", graph=graph)
 
 
-# def test_defrag_uri():
-#     """Test the defrag_uri function of the DBManager class."""
-#     uri = rdflib.URIRef("http://example.com#fragment")
-#     assert DBManager.defrag_uri(uri) == "fragment"
-
-
 def test_defrag_uri_with_fragment():
     """
     Test the defrag_uri function of the DBManager class with a URI with a
