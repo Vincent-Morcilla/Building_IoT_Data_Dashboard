@@ -31,42 +31,18 @@ from sampledata.plot_configs import sample_plot_configs
 APP_NAME = "Green Insight"
 
 
-# pylint: disable=redefined-outer-name
-def create_app(plot_configs: PlotConfig) -> Dash:
+def main() -> None:
     """
-    Initialize and configure the Dash application.
+    Main function for running the 'Green Insight' Building Time Series
+    Visualisation application.
 
-    Returns:
-        Dash: Configured Dash application instance.
+    Parses command-line arguments, initialises the dashboard, and runs
+    the app.
     """
-    # Initialize the Dash app with Bootstrap styling
-    app = Dash(
-        __name__,
-        external_stylesheets=[dbc.themes.BOOTSTRAP],
-        suppress_callback_exceptions=True,
-    )
-    app.title = APP_NAME
 
-    # Create category structure for tabs and retrieve mappings
-    categories, category_key_mapping, subcategory_key_mapping = (
-        create_category_structure(plot_configs.keys())
-    )
-    categories_structure = (categories, category_key_mapping, subcategory_key_mapping)
-
-    # Set the app layout
-    app.layout = create_layout(categories_structure)
-
-    # Register download, general and plot-related callbacks
-    register_download_callbacks(app, plot_configs)
-    register_general_callbacks(app, plot_configs, categories_structure)
-    register_plot_callbacks(app, plot_configs)
-
-    return app
-
-
-if __name__ == "__main__":
+    # Parse command-line arguments
     parser = argparse.ArgumentParser(
-        description="Building Time Series Visualization",
+        description="Building Time Series Visualisation",
     )
     # By enabling debug mode, the server will automatically reload if code changes,
     # and will show an interactive debugger in the browser if an error occurs
@@ -149,3 +125,40 @@ if __name__ == "__main__":
         plot_configs = am.run_analytics()
 
     create_app(plot_configs).run(debug=args.debug, host=args.host, port=args.port)
+
+
+# pylint: disable=redefined-outer-name
+def create_app(plot_configs: PlotConfig) -> Dash:
+    """
+    Initialize and configure the Dash application.
+
+    Returns:
+        Dash: Configured Dash application instance.
+    """
+    # Initialize the Dash app with Bootstrap styling
+    app = Dash(
+        __name__,
+        external_stylesheets=[dbc.themes.BOOTSTRAP],
+        suppress_callback_exceptions=True,
+    )
+    app.title = APP_NAME
+
+    # Create category structure for tabs and retrieve mappings
+    categories, category_key_mapping, subcategory_key_mapping = (
+        create_category_structure(plot_configs.keys())
+    )
+    categories_structure = (categories, category_key_mapping, subcategory_key_mapping)
+
+    # Set the app layout
+    app.layout = create_layout(categories_structure)
+
+    # Register download, general and plot-related callbacks
+    register_download_callbacks(app, plot_configs)
+    register_general_callbacks(app, plot_configs, categories_structure)
+    register_plot_callbacks(app, plot_configs)
+
+    return app
+
+
+if __name__ == "__main__":
+    main()

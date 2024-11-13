@@ -180,3 +180,62 @@ def test_run_with_rooms_no_outside_air(mocker):
             "data_dict"
         ]
     )
+
+
+def test_run_with_outside_air(mocker):
+    """
+    Unit test for the run function in the roomclimate module with a database
+    response containing room data and outside air temperature data.
+    """
+    # Mock DBManager instance
+    mock_db = mocker.Mock(spec=DBManager)
+
+    # Sample room data
+    sample_rooms = pd.DataFrame(
+        {
+            "room_id": ["room1"],
+            "room_class": ["office"],
+            "ats": ["sensor1"],
+            "ats_stream": ["stream1"],
+            "atsp": ["setpoint1"],
+            "atsp_stream": ["stream2"],
+        }
+    )
+
+    # Mock _get_rooms_with_temp to return sample room data
+    mocker.patch(
+        "analytics.modules.roomclimate._get_rooms_with_temp",
+        return_value=sample_rooms,
+    )
+
+    # Sample outside air temperature data
+    sample_oats = pd.DataFrame(
+        {"oats": ["sensor_outside"], "oats_stream": ["stream_outside"]}
+    )
+
+    # Mock _get_outside_air_temp to return sample outside air temperature data
+    mocker.patch(
+        "analytics.modules.roomclimate._get_outside_air_temp",
+        return_value=sample_oats,
+    )
+
+    # Configure the mock DBManager to return some sample timeseries data
+    mock_db.get_stream.side_effect = lambda stream_id: pd.DataFrame(
+        {
+            "time": pd.date_range("2023-01-01", periods=3, freq="h"),
+            "brick_class": [f"{stream_id}_class"] * 3,
+            "value": [20.5, 21.0, 22.0],
+        }
+    )
+
+    # Run the function under test
+    result = rc.run(mock_db)
+
+    # Assertions
+    assert isinstance(result, dict)
+    assert (
+        "room1"
+        in result[("RoomClimate", "RoomClimate")]["interactions"][0]["data_source"][
+            "data_dict"
+        ]
+    )

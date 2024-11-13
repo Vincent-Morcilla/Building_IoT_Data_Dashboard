@@ -7,7 +7,7 @@ specifies the layout, styling, data mappings, and interactivity for a given
 plot or component, organized by category and subcategory. 
 
 These sample configurations serve as examples for defining and structuring
-visualizations, including timeseries plots, histograms, heatmaps, and
+visualisations, including timeseries plots, histograms, heatmaps, and
 interactive tables. They also illustrate how to specify component properties,
 data sources, and actions, facilitating the creation of complex, interactive
 visuals within the app.
