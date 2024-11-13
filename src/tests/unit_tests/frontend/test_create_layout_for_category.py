@@ -1,6 +1,5 @@
 import pytest
 from dash import html, dcc
-import dash_bootstrap_components as dbc
 from components.plot_generator import create_layout_for_category
 
 
@@ -41,8 +40,8 @@ def test_create_layout_for_category_positive():
     # Validate overall structure
     assert isinstance(layout_components, list), "Output should be a list."
     expected_count = (
-        len(selected_plot_config["components"]) + 3
-    )  # title + two separators + download button
+        len(selected_plot_config["components"]) + 1
+    )  # title + one separator
     assert (
         len(layout_components) == expected_count
     ), f"Expected {expected_count} components, got {len(layout_components)}."
@@ -111,28 +110,6 @@ def test_create_layout_for_category_positive():
     assert (
         placeholder_component.style["height"] == "100px"
     ), "Placeholder style mismatch."
-
-    # Validate download button component structure
-    download_button_component = layout_components[-1]
-    assert isinstance(
-        download_button_component, html.Div
-    ), "Download button should be wrapped in a `html.Div`."
-    assert (
-        download_button_component.id == "global-download-container"
-    ), "Download button container ID mismatch."
-
-    # Check for the presence of the button and download components within download_button_component
-    button, download, feedback = download_button_component.children
-    assert isinstance(button, dbc.Button), "First child should be a `dbc.Button`."
-    assert button.id == "global-download-button", "Download button ID mismatch."
-    assert isinstance(
-        download, dcc.Download
-    ), "Second child should be a `dcc.Download`."
-    assert download.id == "global-download-data", "Download component ID mismatch."
-    assert isinstance(
-        feedback, html.Div
-    ), "Third child should be an `html.Div` for feedback."
-    assert feedback.id == "download-feedback", "Feedback Div ID mismatch."
 
 
 def test_create_layout_for_category_missing_title():
