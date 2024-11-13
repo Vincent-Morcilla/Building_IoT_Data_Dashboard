@@ -23,7 +23,7 @@ def pascal_to_words(text: str) -> str:
     Returns:
         str: A space-separated version of the input string.
     """
-    return " ".join(re.findall(r"[A-Za-z][^A-Z]*", text))
+    return " ".join(re.findall(r"[A-Za-z0-9][^A-Z]*", text))
 
 
 def sanitise_filename(text: str) -> str:
