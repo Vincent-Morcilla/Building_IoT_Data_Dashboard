@@ -10,6 +10,7 @@ navigation through the app's visualizations and components.
 from dash import html
 import dash_bootstrap_components as dbc
 
+from components.download_button import create_global_download_button
 from components.plot_generator import create_layout_for_category
 from models.types import (
     PlotConfig,
@@ -103,7 +104,8 @@ def create_tab_layout(
                                                          to original subcategory keys.
 
     Returns:
-        html.Div: A Dash Div component containing the layout of tabs for the selected category.
+        html.Div: A Dash Div component containing the layout of tabs for the selected category,
+        a horizontal rule, and a global download button.
     """
     # Convert and standardize category name from the URL
     selected_category_name = selected_category.replace("-", " ")
@@ -149,5 +151,14 @@ def create_tab_layout(
         children=tabs,
     )
 
+    # Create the global download button
+    global_download_button = create_global_download_button()
+
     # Return the tab layout wrapped in a Div
-    return html.Div([tabs_component])
+    return html.Div(
+        [
+            tabs_component,
+            html.Hr(),
+            global_download_button,
+        ]
+    )

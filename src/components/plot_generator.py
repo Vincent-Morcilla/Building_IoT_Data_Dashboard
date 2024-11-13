@@ -15,7 +15,6 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
-from components.download_button import create_global_download_button
 from models.types import (
     DataMappings,
     DataProcessingConfig,
@@ -449,7 +448,6 @@ def create_layout_for_category(
         category-subcategory pair, including:
             - Section title component.
             - Specified UI, plot, table, separator, error, and placeholder components.
-            - A global download button for downloading data.
     """
     components = []
 
@@ -494,11 +492,6 @@ def create_layout_for_category(
             components.append(error_component)
         else:
             raise ValueError(f"Unsupported component type '{comp_type}'")
-
-    components.append(html.Hr())
-
-    global_download_button = create_global_download_button()
-    components.append(global_download_button)
 
     return components
 
