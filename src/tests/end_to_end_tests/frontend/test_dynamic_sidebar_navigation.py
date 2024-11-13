@@ -18,7 +18,7 @@ from app import create_app
 
 # Define the host and port
 HOST = "127.0.0.1"
-PORT = 8051
+PORT = 61523
 BASE_URL = f"http://{HOST}:{PORT}"
 
 # Define a minimal sample_plot_configs within the test file

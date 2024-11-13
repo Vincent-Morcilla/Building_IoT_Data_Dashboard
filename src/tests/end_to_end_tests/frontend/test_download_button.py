@@ -26,7 +26,7 @@ from sampledata.plot_configs import sample_plot_configs
 
 # Define the host and port
 HOST = "127.0.0.1"
-PORT = 8051
+PORT = 61523
 BASE_URL = f"http://{HOST}:{PORT}"
 
 DOWNLOAD_DIR = os.path.join(
