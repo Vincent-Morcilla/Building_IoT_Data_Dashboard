@@ -605,12 +605,13 @@ class WeatherSensitivity:
                 "colorbar": {
                     "title": "Correlation",
                     "orientation": "h",
-                    "yanchor": "bottom",
-                    "y": -0.7,
                     "xanchor": "center",
                     "x": 0.5,
+                    "yanchor": "bottom",
+                    "y": -0.7,
                     "title_side": "bottom",
                 },
+                "hovertemplate": "Date: %{x}<br>Sensor: %{y}<br>Correlation: %{z}<extra></extra>",
                 "zmin": -1,
                 "zmax": 1,
             },
@@ -641,7 +642,6 @@ class WeatherSensitivity:
                 },
             },
             "css": {
-                # "padding": "10px",
                 "width": "49%",
                 "display": "inline-block",
             },
