@@ -568,6 +568,7 @@ sample_plot_configs = {
             },
         ],
     },
+    # Example of a Failed Analysis returning some error message to the user
     ("Failed Analysis", "Error"): {
         "components": [
             {
