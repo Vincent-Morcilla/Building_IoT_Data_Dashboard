@@ -68,6 +68,24 @@ def _detect_step_function_behavior(
 
 
 def _preprocess_to_sensor_rows(db: DBManager):
+    """Preprocess raw sensor data into a standardized DataFrame format.
+
+    This function processes all streams from the database and computes initial metrics including:
+    - Basic statistics (mean, min, max)
+    - Missing value counts
+    - Zero value counts
+    - Step function detection
+    - Outlier detection
+    - Time range information
+
+    Args:
+        db (DBManager): Database manager instance containing sensor streams
+
+    Returns:
+        pd.DataFrame: Preprocessed DataFrame containing rows for each sensor
+
+    Returns empty dict if no streams are found in the database.
+    """
     sensor_data = []
     all_streams = db.get_all_streams()
 
@@ -221,8 +239,14 @@ def _analyse_sensor_gaps(df):
 
 
 def _prepare_data_quality_df(df: pd.DataFrame) -> pd.DataFrame:
-    """Prepare the data quality DataFrame with properly named columns."""
+    """Prepare data quality DataFrame with standardized column names and formats.
 
+    Args:
+        df (pd.DataFrame): Raw data quality metrics DataFrame
+
+    Returns:
+        pd.DataFrame: Processed DataFrame with standardized columns and formats
+    """
     # Debug print to see what columns we actually have
     # print("Available columns:", df.columns.tolist())
 
@@ -263,7 +287,14 @@ def _prepare_data_quality_df(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def _create_summary_table(data_quality_df):
-    """Create a summary table from data quality metrics."""
+    """Create summary statistics table grouped by sensor class.
+
+    Args:
+        data_quality_df (pd.DataFrame): DataFrame containing data quality metrics
+
+    Returns:
+        pd.DataFrame: Summary table with statistics grouped by sensor class
+    """
     summary_table = (
         data_quality_df.groupby("Brick Class")
         .agg(
@@ -313,8 +344,15 @@ def _create_summary_table(data_quality_df):
 
 
 def _get_data_quality_overview(data_quality_df):
-    """
-    Generate overview analysis of data quality.
+    """Generate overview visualizations and statistics for data quality analysis.
+
+    Args:
+        data_quality_df (pd.DataFrame): DataFrame containing data quality metrics for all sensors
+
+    Returns:
+        dict: Dictionary containing:
+            - tables: List of overall statistics tables
+            - timeline: Sensor timeline visualization configuration
     """
     # Create a 'has_outliers' column
     data_quality_df["has_outliers"] = data_quality_df["Outliers"] > 0
@@ -450,7 +488,16 @@ def _detect_outliers(values):
 
 
 def _build_components(df: pd.DataFrame, stream_id: str, title: str) -> list:
-    """Build plot components for a stream."""
+    """Build visualization components for a single sensor stream.
+
+    Args:
+        stream_df (pd.DataFrame): DataFrame containing stream time series data
+        stream_id (str): Identifier for the stream
+        title (str): Title for the visualization
+
+    Returns:
+        dict: Dictionary containing plot configurations and components
+    """
     return [
         {
             "type": "plot",
@@ -543,7 +590,30 @@ def get_column_type(value):
 
 
 def run(db: DBManager) -> dict:
-    """Run all analyses and return the results."""
+    """Run data quality analysis and generate visualization configurations.
+
+    This function processes sensor data through multiple analysis steps:
+    1. Preprocesses raw sensor data
+    2. Analyzes gaps and outliers
+    3. Profiles sensor groups
+    4. Generates visualization configurations
+
+    Args:
+        db (DBManager): Database manager instance containing sensor data
+
+    Returns:
+        dict: A nested dictionary containing three main sections:
+            - ('DataQuality', 'Overview'): Overall statistics and visualizations
+                - Tables
+                - Pie charts (outliers, step functions)
+                - Timeline visualization
+            - ('DataQuality', 'ByClass'): Analysis grouped by sensor class
+                - Interactive timeseries plots
+                - Summary tables
+            - ('DataQuality', 'ByStream'): Individual stream analysis
+                - Detailed metrics table
+                - Interactive timeseries visualization
+    """
     df = _preprocess_to_sensor_rows(db)
 
     # Return empty result if no data
