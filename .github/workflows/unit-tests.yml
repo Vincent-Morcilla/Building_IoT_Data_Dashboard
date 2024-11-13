@@ -25,4 +25,5 @@ jobs:
           pytest src/tests/unit_tests
           # pytest tests --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html
           # pytest tests/unit_tests
+          # pytest --cov-report term-missing --cov=src src/tests/
 

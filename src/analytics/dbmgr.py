@@ -108,15 +108,16 @@ class DBManager:
             ) from exc
 
         # Filter the mapper to only include streams from the specified building
-        if building is not None:
+        if building is not None and "Building" in self._mapper.columns:
             self._mapper = self._mapper[self._mapper["Building"] == building]
 
         # Filter out streams that were not saved to file, i.e., are not in the
         # data zip file
         # pylint: disable=C0121
-        self._mapper = self._mapper[
-            self._mapper["Filename"].str.contains("FILE NOT SAVED") == False
-        ]
+        if "Filename" in self._mapper.columns:
+            self._mapper = self._mapper[
+                self._mapper["Filename"].str.contains("FILE NOT SAVED") == False
+            ]
 
         # the "model" graph is the building model, the "schema" graph is the
         # Brick schema, the "schema+model" graph is the combination of the
@@ -279,7 +280,7 @@ class DBManager:
         try:
             graph = self._g[graph]
         except KeyError as exc:
-            raise KeyError(f"Unknown graph: {graph}") from exc
+            raise KeyError(f"Unknown graph: '{graph}'") from exc
 
         results = graph.query(query_str, **kwargs)
 
@@ -433,6 +434,11 @@ class DBManager:
         if isinstance(uri, rdflib.term.URIRef):
             if "#" in uri:
                 return uri.fragment
+            if "/" in uri:
+                return uri.split("/")[-1]
+        elif isinstance(uri, str):
+            if "#" in uri:
+                return uri.split("#")[-1]
             if "/" in uri:
                 return uri.split("/")[-1]
         return uri
