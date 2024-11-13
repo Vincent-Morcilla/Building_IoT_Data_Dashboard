@@ -4,7 +4,7 @@ Registers callbacks for interactive plot components.
 This module connects user interactions with the appropriate actions, updating
 plots and components dynamically based on user input. It processes the
 interactions defined in the plot configurations, setting up triggers and outputs
-for interactive and responsive visualizations.
+for interactive and responsive visualisations.
 """
 
 from dash import Dash, no_update
