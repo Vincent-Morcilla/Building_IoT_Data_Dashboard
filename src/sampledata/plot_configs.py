@@ -281,7 +281,7 @@ sample_plot_configs = {
         ],
     },
     # Box and Whisker Plot for Data Quality
-    ("DataQuality", "ConsumptionDataQuality"): {
+    ("Consumption", "ConsumptionDataQuality"): {
         "title": None,
         "components": [
             {
@@ -816,121 +816,6 @@ sample_plot_configs = {
                         "overflowX": "auto",
                     },
                     "export_format": "csv",
-                },
-                "css": {
-                    "padding": "10px",
-                },
-            },
-        ],
-    },
-    ("SensorCoverage", "Timeline"): {
-        "title": "Sensor Coverage Timeline",
-        "components": [
-            {
-                "type": "plot",
-                "library": "go",
-                "function": "Figure",
-                "id": "sensor-coverage-timeline",
-                "data_frame": timeline_data,
-                "trace_type": "Bar",
-                "data_mappings": {
-                    "x": "Duration",
-                    "y": "Sensor",
-                    "base": "Start_Timestamp",
-                    "hovertemplate": "Hover_Text",
-                },
-                "kwargs": {
-                    "orientation": "h",
-                    "marker_color": "#3c9639",
-                    "marker_opacity": 0.7,
-                    "width": 0.3,
-                },
-                "layout_kwargs": {
-                    "title": {
-                        "text": "Sensor Coverage Timeline",
-                        "x": 0.5,
-                        "xanchor": "center",
-                    },
-                    "xaxis": {
-                        "title": "Date",
-                        "type": "date",
-                        "showgrid": True,
-                        "gridcolor": "lightgrey",
-                        "tickformat": "%Y-%m-%d",
-                        "range": [
-                            (
-                                timeline_data["Start_Timestamp"].min()
-                                - pd.Timedelta(days=5)
-                            ).strftime("%Y-%m-%d"),
-                            (
-                                timeline_data["End_Timestamp"].max()
-                                + pd.Timedelta(days=5)
-                            ).strftime("%Y-%m-%d"),
-                        ],
-                    },
-                    "yaxis": {
-                        "title": "Sensor",
-                        "showgrid": True,
-                        "gridcolor": "lightgrey",
-                        "automargin": True,
-                        "ticksuffix": " ",
-                    },
-                    "height": max(200, len(timeline_data) * 60),
-                    "margin": {"l": 150, "r": 20, "t": 50, "b": 20},
-                    "showlegend": False,
-                    "plot_bgcolor": "white",
-                    "font_color": "black",
-                    "barmode": "overlay",
-                    "bargap": 0.2,
-                },
-                "css": {
-                    "padding": "10px",
-                },
-            },
-        ],
-    },
-    ("DataAnalysis", "Histogram"): {
-        "title": "Sample Histogram",
-        "components": [
-            {
-                "type": "plot",
-                "library": "px",
-                "function": "bar",
-                "id": "sample-histogram",
-                "kwargs": {
-                    "data_frame": histogram_data,
-                    "x": "Category",
-                    "y": "Count",
-                    "title": "Sample Histogram",
-                    "height": 700,
-                    "color_discrete_sequence": ["#3c9639"],
-                },
-                "layout_kwargs": {
-                    "title": {
-                        "text": "Sample Histogram",
-                        "x": 0.5,
-                        "xanchor": "center",
-                    },
-                    "xaxis_title": "Category",
-                    "yaxis_title": "Count",
-                    "font_color": "black",
-                    "plot_bgcolor": "white",
-                    "bargap": 0.5,
-                    "xaxis": {
-                        "mirror": True,
-                        "ticks": "outside",
-                        "showline": True,
-                        "linecolor": "black",
-                        "gridcolor": "lightgrey",
-                        "tickangle": 45,
-                    },
-                    "yaxis": {
-                        "mirror": True,
-                        "ticks": "outside",
-                        "showline": True,
-                        "linecolor": "black",
-                        "gridcolor": "lightgrey",
-                    },
                 },
                 "css": {
                     "padding": "10px",
