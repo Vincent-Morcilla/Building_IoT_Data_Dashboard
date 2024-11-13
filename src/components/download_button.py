@@ -19,7 +19,7 @@ def create_global_download_button() -> html.Div:
                   styled to be fixed at the bottom right.
     """
     download_button = dbc.Button(
-        "Download All Dataframes as CSVs",
+        "Download All Visualisation Data as CSVs",
         id="global-download-button",
         n_clicks=0,
         className="download-button",

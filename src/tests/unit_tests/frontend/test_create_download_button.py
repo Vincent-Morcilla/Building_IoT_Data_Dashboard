@@ -34,7 +34,7 @@ def test_create_global_download_button_structure():
     assert isinstance(button, dbc.Button), "First child should be a dbc.Button"
     assert button.id == "global-download-button", "Button ID is incorrect"
     assert (
-        button.children == "Download All Dataframes as CSVs"
+        button.children == "Download All Visualisation Data as CSVs"
     ), "Button text is incorrect"
     assert button.className == "download-button", "Button className is incorrect"
     assert button.outline is True, "Button outline should be True"
