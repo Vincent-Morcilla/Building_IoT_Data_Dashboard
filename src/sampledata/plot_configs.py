@@ -187,96 +187,65 @@ histogram_data = pd.DataFrame(
 
 # Plot Configurations
 sample_plot_configs = {
-    ("RoomClimate", "RoomClimate"): {
-        "title": "Room Climate Rooms Data",
+    # Sunburst Chart for Building Structure
+    ("BuildingStructure", "BuildingStructure"): {
+        "title": None,
         "components": [
-            # Placeholder Div for dynamic components
             {
-                "type": "placeholder",
-                "id": "dynamic-components-placeholder",
-            },
-            # Separator
-            {
-                "type": "separator",
-                "style": {"margin": "20px 0"},
-            },
-            # UI Component: DataTable
-            {
-                "type": "UI",
-                "element": "DataTable",
-                "id": "datatable",
-                "label": None,
-                "title": "DataTable",  # UI's can now have the same kind of titles as Tables
-                "title_element": "H4",
+                "type": "plot",
+                "library": "px",
+                "function": "sunburst",
+                "id": "building-structure-sunburst",
                 "kwargs": {
-                    "columns": [
+                    "data_frame": pd.DataFrame(
                         {
-                            "name": " ".join(col.split("_")),
-                            "id": col,
-                            "type": "numeric" if "Metric" in col else "text",
+                            "BuildingID": [
+                                "Building A",
+                                "Building A",
+                                "Building B",
+                                "Building B",
+                            ],
+                            "ParentID": [
+                                "Building A",
+                                "Room 1",
+                                "Building B",
+                                "Room 2",
+                            ],
+                            "EntityType": ["Room", "Device", "Room", "Device"],
+                            "EntityID": ["Room 1", "Device 1", "Room 2", "Device 2"],
                         }
-                        for col in table_data_frame.columns
-                    ],
-                    "data": table_data_frame.to_dict("records"),
-                    "filter_action": "native",
-                    "fixed_columns": {
-                        "headers": True,
-                        "data": 1,
-                    },  # Freeze first column
-                    "row_selectable": "single",
-                    "selected_rows": [0],  # Default to first row
-                    "sort_action": "native",
-                    "style_cell": {
-                        "fontSize": 14,
-                        "textAlign": "left",
-                        "padding": "5px",
-                        "minWidth": "150px",
+                    ),
+                    "path": ["BuildingID", "ParentID", "EntityID"],
+                    "title": "Building Structure",
+                    "height": 1000,
+                    "width": 1000,
+                    "color": "BuildingID",
+                    "color_discrete_map": {
+                        "Building A": "lightgreen",
+                        "Building B": "White",
                     },
-                    "style_data_conditional": [
-                        {
-                            "if": {"row_index": "odd"},
-                            "backgroundColor": "#ddf2dc",
-                        }
-                    ],
-                    "style_header": {
-                        "fontWeight": "bold",
-                        "backgroundColor": "#3c9639",
-                        "color": "white",
+                },
+                "layout_kwargs": {
+                    "title": {
+                        "text": "Building Structure",
+                        "x": 0.5,
+                        "xanchor": "center",
+                        "font": {"size": 35},
                     },
-                    "style_table": {
-                        "overflowX": "auto",
-                        "width": "100%",
-                        "minWidth": "100%",
+                    "font_color": "black",
+                    "plot_bgcolor": "white",
+                    "coloraxis_colorbar": {
+                        "title": "Level",
+                        "orientation": "h",
+                        "yanchor": "top",
+                        "y": -0.2,
+                        "xanchor": "center",
+                        "x": 0.5,
                     },
                 },
                 "css": {
-                    "padding": "5px",  # Changed the padding to match other table
-                    "width": "100%",
+                    "padding": "10px",
                 },
-            },
-        ],
-        "interactions": [
-            {
-                "triggers": [
-                    {
-                        "component_id": "datatable",
-                        "component_property": "selected_rows",
-                        "input_key": "selected_rows",
-                    },
-                ],
-                "outputs": [
-                    {
-                        "component_id": "dynamic-components-placeholder",
-                        "component_property": "children",
-                    },
-                ],
-                "action": "update_components_based_on_table_selection",
-                "data_source": {
-                    "table_data": table_data_frame,
-                    "data_dict": timeseries_data_dict,  # Pass the dictionary of components
-                    "include_data_dict_in_download": True,  # Download all dataframes in data_dict
-                },
-                "index_column": "Stream_IDs",  # The column used as index as it's known in the dataframe not as it's known in the datatable
             },
         ],
     },
@@ -599,66 +568,13 @@ sample_plot_configs = {
             },
         ],
     },
-    # Sunburst Chart for Building Structure
-    ("BuildingStructure", "BuildingStructure"): {
-        "title": None,
+    ("Failed Analysis", "Error"): {
         "components": [
             {
-                "type": "plot",
-                "library": "px",
-                "function": "sunburst",
-                "id": "building-structure-sunburst",
-                "kwargs": {
-                    "data_frame": pd.DataFrame(
-                        {
-                            "BuildingID": [
-                                "Building A",
-                                "Building A",
-                                "Building B",
-                                "Building B",
-                            ],
-                            "ParentID": [
-                                "Building A",
-                                "Room 1",
-                                "Building B",
-                                "Room 2",
-                            ],
-                            "EntityType": ["Room", "Device", "Room", "Device"],
-                            "EntityID": ["Room 1", "Device 1", "Room 2", "Device 2"],
-                        }
-                    ),
-                    "path": ["BuildingID", "ParentID", "EntityID"],
-                    "title": "Building Structure",
-                    "height": 1000,
-                    "width": 1000,
-                    "color": "BuildingID",
-                    "color_discrete_map": {
-                        "Building A": "lightgreen",
-                        "Building B": "White",
-                    },
-                },
-                "layout_kwargs": {
-                    "title": {
-                        "text": "Building Structure",
-                        "x": 0.5,
-                        "xanchor": "center",
-                        "font": {"size": 35},
-                    },
-                    "font_color": "black",
-                    "plot_bgcolor": "white",
-                    "coloraxis_colorbar": {
-                        "title": "Level",
-                        "orientation": "h",
-                        "yanchor": "top",
-                        "y": -0.2,
-                        "xanchor": "center",
-                        "x": 0.5,
-                    },
-                },
-                "css": {
-                    "padding": "10px",
-                },
-            },
+                "type": "error",
+                "message": "I couldn't produce my analysis, here's where I would tell the user why.",
+                "css": {"color": "#a93932", "font-weight": "bold"},
+            }
         ],
     },
     # Pie Charts and Tables for Model Quality - Class Consistency
@@ -823,13 +739,97 @@ sample_plot_configs = {
             },
         ],
     },
-    ("Failed Analysis", "Error"): {
+    ("RoomClimate", "RoomClimate"): {
+        "title": "Room Climate Rooms Data",
         "components": [
+            # Placeholder Div for dynamic components
             {
-                "type": "error",
-                "message": "I couldn't produce my analysis, here's where I would tell the user why.",
-                "css": {"color": "#a93932", "font-weight": "bold"},
-            }
+                "type": "placeholder",
+                "id": "dynamic-components-placeholder",
+            },
+            # Separator
+            {
+                "type": "separator",
+                "style": {"margin": "20px 0"},
+            },
+            # UI Component: DataTable
+            {
+                "type": "UI",
+                "element": "DataTable",
+                "id": "datatable",
+                "label": None,
+                "title": "DataTable",  # UI's can now have the same kind of titles as Tables
+                "title_element": "H4",
+                "kwargs": {
+                    "columns": [
+                        {
+                            "name": " ".join(col.split("_")),
+                            "id": col,
+                            "type": "numeric" if "Metric" in col else "text",
+                        }
+                        for col in table_data_frame.columns
+                    ],
+                    "data": table_data_frame.to_dict("records"),
+                    "filter_action": "native",
+                    "fixed_columns": {
+                        "headers": True,
+                        "data": 1,
+                    },  # Freeze first column
+                    "row_selectable": "single",
+                    "selected_rows": [0],  # Default to first row
+                    "sort_action": "native",
+                    "style_cell": {
+                        "fontSize": 14,
+                        "textAlign": "left",
+                        "padding": "5px",
+                        "minWidth": "150px",
+                    },
+                    "style_data_conditional": [
+                        {
+                            "if": {"row_index": "odd"},
+                            "backgroundColor": "#ddf2dc",
+                        }
+                    ],
+                    "style_header": {
+                        "fontWeight": "bold",
+                        "backgroundColor": "#3c9639",
+                        "color": "white",
+                    },
+                    "style_table": {
+                        "overflowX": "auto",
+                        "width": "100%",
+                        "minWidth": "100%",
+                    },
+                },
+                "css": {
+                    "padding": "5px",  # Changed the padding to match other table
+                    "width": "100%",
+                },
+            },
+        ],
+        "interactions": [
+            {
+                "triggers": [
+                    {
+                        "component_id": "datatable",
+                        "component_property": "selected_rows",
+                        "input_key": "selected_rows",
+                    },
+                ],
+                "outputs": [
+                    {
+                        "component_id": "dynamic-components-placeholder",
+                        "component_property": "children",
+                    },
+                ],
+                "action": "update_components_based_on_table_selection",
+                "data_source": {
+                    "table_data": table_data_frame,
+                    "data_dict": timeseries_data_dict,  # Pass the dictionary of components
+                    "include_data_dict_in_download": True,  # Download all dataframes in data_dict
+                },
+                "index_column": "Stream_IDs",  # The column used as index as it's known in the dataframe not as it's known in the datatable
+            },
         ],
     },
 }
