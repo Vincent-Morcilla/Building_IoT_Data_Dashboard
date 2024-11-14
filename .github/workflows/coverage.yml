@@ -70,7 +70,8 @@ jobs:
           mv coverage/* .  # Adjust path if needed
           git add .
           git commit -m "Update coverage report"
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY
           git push -f origin coverage-report
         env:
-            GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        #   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            # GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
