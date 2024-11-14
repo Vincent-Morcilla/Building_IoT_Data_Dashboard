@@ -27,7 +27,7 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          pytest --cov-report=html --cov=src src/tests/
+          pytest --cov=src --cov-report=html src/tests/
         env:
           CI: true
 
@@ -36,6 +36,9 @@ jobs:
         with:
           name: coverage-report
           path: htmlcov  # The directory pytest-cov saves HTML reports to
+
+      - name: Debug coverage report directory
+        run: ls -R htmlcov || echo "No coverage report generated"
 
   push-coverage:
     runs-on: ubuntu-latest
