@@ -17,7 +17,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.12'  # Adjust as needed
+          python-version: '3.x'
 
       - name: Install dependencies
         run: |
@@ -28,7 +28,8 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          pytest --cov-report=html term-missing --cov=src src/tests/
+          pytest --cov-report=html --cov=src src/tests/
+        #   pytest --cov-report=html term-missing --cov=src src/tests/
         #   pytest --cov=src --cov-report=html  # Adjust with your package name
         env:
           CI: true
