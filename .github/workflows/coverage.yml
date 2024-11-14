@@ -52,7 +52,7 @@ jobs:
           persist-credentials: false
 
       - name: Download coverage report
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: coverage-report
           path: coverage
@@ -65,6 +65,7 @@ jobs:
           mv coverage/htmlcov/* .  # Adjust path if needed
           git add .
           git commit -m "Update coverage report"
-          git push -f origin coverage-report
+          git push --set-upstream origin coverage-report -f
+        #   git push -f origin coverage-report
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
