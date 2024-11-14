@@ -37,9 +37,6 @@ jobs:
           name: coverage-report
           path: htmlcov  # The directory pytest-cov saves HTML reports to
 
-      - name: Debug coverage report directory
-        run: ls -R htmlcov || echo "No coverage report generated"
-
   push-coverage:
     runs-on: ubuntu-latest
     needs: test
@@ -57,21 +54,15 @@ jobs:
           name: coverage-report
           path: coverage
 
-      - name: Debug downloaded coverage report directory
-        run: ls -R coverage/ || echo "No coverage report downloaded"
-             ls -R htmlcov || echo "No htmlcov report generated"
-
       - name: Commit coverage report
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git checkout -B coverage-report
-          ls
-          mv coverage/* .  # Adjust path if needed
+          mv coverage tests  # Adjust path if needed
           git add .
           git commit -m "Update coverage report"
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY
           git push -f origin coverage-report
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-            # GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
