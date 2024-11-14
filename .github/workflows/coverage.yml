@@ -2,9 +2,9 @@ name: Test and Coverage Report
 
 on:
   push:
-#     branches:
-#       - main
-#   pull_request:
+    branches:
+      - main
+  pull_request:
 
 jobs:
   test:
@@ -24,13 +24,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install -r src/tests/requirements.txt
-        #   pip install pytest-cov
 
       - name: Run tests with coverage
         run: |
           pytest --cov-report=html --cov=src src/tests/
-        #   pytest --cov-report=html term-missing --cov=src src/tests/
-        #   pytest --cov=src --cov-report=html  # Adjust with your package name
         env:
           CI: true
 
@@ -65,7 +62,7 @@ jobs:
           mv coverage/htmlcov/* .  # Adjust path if needed
           git add .
           git commit -m "Update coverage report"
-          git push --set-upstream origin coverage-report -f
-        #   git push -f origin coverage-report
+          git push -f origin coverage-report
+        #   git push --set-upstream origin coverage-report -f
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
