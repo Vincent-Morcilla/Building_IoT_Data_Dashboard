@@ -71,5 +71,5 @@ jobs:
           git add .
           git commit -m "Update coverage report"
           git push -f origin coverage-report
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # env:
+        #   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
