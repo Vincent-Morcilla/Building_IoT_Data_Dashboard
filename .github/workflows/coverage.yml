@@ -65,12 +65,12 @@ jobs:
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY
           git push -f origin coverage-report
         env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    
-      - name: Deploy coverage report to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          folder: htmlcov  # This folder contains the coverage report
-          target_branch: gh-pages  # The branch where the report will be published
-        env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    #   - name: Deploy coverage report to GitHub Pages
+    #     uses: peaceiris/actions-gh-pages@v3
+    #     with:
+    #       folder: htmlcov  # This folder contains the coverage report
+    #       target_branch: gh-pages  # The branch where the report will be published
+    #     env:
+    #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
