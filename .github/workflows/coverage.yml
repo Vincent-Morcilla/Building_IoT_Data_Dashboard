@@ -59,7 +59,7 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git checkout -B coverage-report
-          mv coverage tests  # Adjust path if needed
+          mv coverage src/tests  # Adjust path if needed
           git add .
           git commit -m "Update coverage report"
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY
