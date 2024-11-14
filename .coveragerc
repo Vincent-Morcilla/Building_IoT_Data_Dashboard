@@ -2,4 +2,3 @@
 omit = src/tests/*
        src/sampledata/*
        */__init__.py
-       src/analytics/modules/systemarchitecture.py
