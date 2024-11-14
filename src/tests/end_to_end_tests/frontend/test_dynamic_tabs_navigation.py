@@ -69,12 +69,12 @@ sample_plot_configs = {
 def run_app():
     """Create and run the Dash application."""
     app = create_app(sample_plot_configs)
-    app.run_server(debug=False, host=HOST, port=PORT)
+    app.run(debug=False, host=HOST, port=PORT)
 
 
 @pytest.fixture(scope="module")
 def driver():
-    """Initialize the Selenium WebDriver for Chrome.
+    """Initialise the Selenium WebDriver for Chrome.
 
     Yields:
         selenium.webdriver.Chrome: The Chrome WebDriver instance.

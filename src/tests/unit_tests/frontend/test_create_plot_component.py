@@ -1,3 +1,4 @@
+import pytest
 import pandas as pd
 from dash import dcc
 from components.plot_generator import create_plot_component, process_data_frame
@@ -101,3 +102,38 @@ def test_create_plot_component_go():
     """Test creating a Plotly GO plot component with trace configuration."""
     plot_component_go = create_plot_component(component_config_go)
     assert isinstance(plot_component_go, dcc.Graph)
+
+
+def test_create_plot_component_with_library_none():
+    """Test that create_plot_component raises an error when 'library' is None."""
+    component_config = {
+        "id": "test-plot-missing-library",
+        "type": "plot",
+        "library": None,  # This should trigger the ValueError
+        "function": "bar",
+        "kwargs": {},
+        "layout_kwargs": {},
+        "css": {},
+    }
+    with pytest.raises(ValueError) as exc_info:
+        create_plot_component(component_config)
+    assert str(exc_info.value) == "Plot component must have a 'library' field."
+
+
+def test_create_plot_component_with_invalid_library():
+    """Test that create_plot_component raises an error when 'library' is invalid."""
+    component_config = {
+        "id": "test-plot-invalid-library",
+        "type": "plot",
+        "library": "invalid_library",  # This should trigger the ValueError
+        "function": "bar",
+        "kwargs": {},
+        "layout_kwargs": {},
+        "css": {},
+    }
+    with pytest.raises(ValueError) as exc_info:
+        create_plot_component(component_config)
+    assert (
+        str(exc_info.value)
+        == "Unsupported library 'invalid_library'. Use 'px' or 'go'."
+    )

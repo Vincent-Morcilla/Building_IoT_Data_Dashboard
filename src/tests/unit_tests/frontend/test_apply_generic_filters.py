@@ -102,3 +102,18 @@ def test_apply_generic_filters_nonexistent_column():
     pd.testing.assert_frame_equal(
         result_df.reset_index(drop=True), expected_df.reset_index(drop=True)
     )
+
+
+def test_apply_generic_filters_in_single_value():
+    """Test apply_generic_filters with 'in' condition and a single value."""
+    data = {"Category": ["A", "B", "C", "D"], "Value": [1, 2, 3, 4]}
+    df = pd.DataFrame(data)
+    filters = {"Category": {"in": "selected_category"}}
+    input_mapping = {"selected_category": "A"}  # Single value, not a list
+
+    result_df = apply_generic_filters(df, filters, input_mapping)
+    expected_df = df[df["Category"] == "A"]
+
+    pd.testing.assert_frame_equal(
+        result_df.reset_index(drop=True), expected_df.reset_index(drop=True)
+    )
