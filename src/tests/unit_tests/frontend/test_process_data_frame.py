@@ -104,3 +104,83 @@ def test_process_data_frame_invalid_column_in_explode():
         match="Column 'Category' cannot be exploded. Ensure it contains lists.",
     ):
         process_data_frame(sample_data_frame, data_processing_config)
+
+
+def test_process_data_frame_filter_with_list():
+    """Test filtering with a list of values."""
+
+    data_processing_config = {
+        "filter": {"Category": ["A", "B"]},  # Filter to Category 'A' and 'B'
+    }
+    expected_data_frame = sample_data_frame[
+        sample_data_frame["Category"].isin(["A", "B"])
+    ].reset_index(drop=True)
+
+    processed_data_frame = process_data_frame(
+        sample_data_frame, data_processing_config
+    ).reset_index(drop=True)
+
+    pd.testing.assert_frame_equal(processed_data_frame, expected_data_frame)
+
+
+def test_process_data_frame_missing_groupby_columns():
+    """Test process_data_frame when groupby columns are missing from DataFrame."""
+
+    data_processing_config = {
+        "filter": {"Category": "A"},
+        "groupby": ["NonExistentColumn"],  # Column not in DataFrame
+        "aggregation": {"TotalValue": ("Value", "sum")},
+    }
+
+    expected_data_frame = sample_data_frame[
+        sample_data_frame["Category"] == "A"
+    ].reset_index(drop=True)
+
+    processed_data_frame = process_data_frame(
+        sample_data_frame, data_processing_config
+    ).reset_index(drop=True)
+
+    pd.testing.assert_frame_equal(processed_data_frame, expected_data_frame)
+
+
+def test_process_data_frame_missing_aggregation_column():
+    """Test process_data_frame when aggregation column is missing from DataFrame."""
+
+    data_processing_config = {
+        "filter": {"Category": "A"},
+        "groupby": ["Subcategory"],
+        "aggregation": {"TotalValue": ("NonExistentColumn", "sum")},
+    }
+
+    expected_data_frame = sample_data_frame[
+        sample_data_frame["Category"] == "A"
+    ].reset_index(drop=True)
+
+    processed_data_frame = process_data_frame(
+        sample_data_frame, data_processing_config
+    ).reset_index(drop=True)
+
+    pd.testing.assert_frame_equal(processed_data_frame, expected_data_frame)
+
+
+def test_process_data_frame_no_valid_aggregations():
+    """Test process_data_frame when all aggregation columns are missing."""
+
+    data_processing_config = {
+        "filter": {"Category": "A"},
+        "groupby": ["Subcategory"],
+        "aggregation": {
+            "TotalValue": ("NonExistentColumn1", "sum"),
+            "AverageValue": ("NonExistentColumn2", "mean"),
+        },
+    }
+
+    expected_data_frame = sample_data_frame[
+        sample_data_frame["Category"] == "A"
+    ].reset_index(drop=True)
+
+    processed_data_frame = process_data_frame(
+        sample_data_frame, data_processing_config
+    ).reset_index(drop=True)
+
+    pd.testing.assert_frame_equal(processed_data_frame, expected_data_frame)

@@ -1,3 +1,4 @@
+import pytest
 import pandas as pd
 import plotly.graph_objects as go
 from components.plot_generator import process_data_frame, create_traces
@@ -79,3 +80,46 @@ def setup_test_data():
     }
 
     return df_processed, component
+
+
+def test_create_traces_empty_dataframe():
+    """Test that `create_traces` returns an empty list for an empty DataFrame."""
+    empty_df = pd.DataFrame()  # Empty DataFrame
+    component = {
+        "trace_type": "Bar",
+        "data_processing": {"data_mappings": {"x": "Subcategory", "y": "TotalValue"}},
+    }
+    traces = create_traces(empty_df, component)
+    assert traces == [], "Expected no traces for an empty DataFrame"
+
+
+def test_create_traces_missing_trace_type():
+    """Test that `create_traces` raises ValueError if `trace_type` is not specified."""
+    df_processed, component = setup_test_data()
+    del component["trace_type"]  # Remove `trace_type`
+    with pytest.raises(
+        ValueError, match="For 'go' plots, 'trace_type' must be specified."
+    ):
+        create_traces(df_processed, component)
+
+
+def test_create_traces_missing_columns():
+    """Test that `create_traces` warns about missing columns."""
+    df_processed, component = setup_test_data()
+    component["data_processing"]["data_mappings"][
+        "y"
+    ] = "NonExistentColumn"  # Introduce a missing column
+    traces = create_traces(df_processed, component)
+    assert traces == [], "Expected no traces due to missing columns in the DataFrame"
+
+
+def test_create_traces_missing_split_by_column():
+    """Test that `create_traces` warns when `split_by` column is missing."""
+    df_processed, component = setup_test_data()
+    component["data_processing"][
+        "split_by"
+    ] = "NonExistentSplitColumn"  # Set a non-existent split_by column
+    traces = create_traces(df_processed, component)
+    assert (
+        traces == []
+    ), "Expected no traces due to missing `split_by` column in the DataFrame"

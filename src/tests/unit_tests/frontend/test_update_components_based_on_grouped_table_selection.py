@@ -1,5 +1,6 @@
 import pytest
 from unittest.mock import MagicMock, patch
+import warnings
 from dash import html, no_update
 import pandas as pd
 from actions.update_components_based_on_grouped_table_selection import (
@@ -183,3 +184,163 @@ def test_exception_during_processing(setup_data):
     component = result[0][0]
     assert isinstance(component, html.Div)
     assert "Error Processing Data" in component.children[0].children
+
+
+def test_stream_df_empty(setup_data):
+    """
+    Test the function when stream_df is empty for a stream.
+    """
+
+    # Modify db.get_stream to return an empty DataFrame with correct columns
+    def get_stream_empty(stream_id):
+        return pd.DataFrame(columns=["time", "value"])
+
+    setup_data["db"].get_stream.side_effect = get_stream_empty
+
+    input_values = [[0]]  # Selected row
+
+    result = update_components_based_on_grouped_table_selection_action(
+        setup_data["plot_configs"],
+        input_values,
+        setup_data["outputs"],
+        setup_data["interaction"],
+        setup_data["triggers"],
+    )
+
+    # Check that the "No Data Available" message is returned
+    assert isinstance(result, list)
+    assert len(result) == 1
+    component = result[0][0]
+    assert isinstance(component, html.Div)
+    assert "No Data Available" in component.children[0].children
+
+
+def test_stream_processing_exception(setup_data):
+    """
+    Test the function when an exception occurs during stream processing.
+    """
+
+    # Simulate an exception in the stream processing by providing invalid date formats
+    def get_stream_invalid_data(stream_id):
+        return pd.DataFrame({"time": ["invalid_date"] * 10, "value": range(10)})
+
+    setup_data["db"].get_stream.side_effect = get_stream_invalid_data
+
+    input_values = [[0]]  # Selected row
+
+    with warnings.catch_warnings():
+        # Suppress the UserWarning triggered by invalid date parsing during the test
+        warnings.simplefilter("ignore", UserWarning)
+        result = update_components_based_on_grouped_table_selection_action(
+            setup_data["plot_configs"],
+            input_values,
+            setup_data["outputs"],
+            setup_data["interaction"],
+            setup_data["triggers"],
+        )
+
+    # Should handle the exception and proceed without crashing
+    assert isinstance(result, list)
+    assert len(result) == 1
+    component = result[0][0]
+    assert isinstance(component, html.Div)
+    assert "No Data Available" in component.children[0].children
+
+
+def test_should_highlight_else_branch(setup_data):
+    """
+    Test the function where step_function_pct > 50 to execute the else branch.
+    """
+    # Modify the Step Function Percentage to be greater than 50 and not equal to 100
+    setup_data["grouped_table_data"]["Step Function Percentage"] = [60, 100]
+    setup_data["interaction"]["data_source"]["grouped_table_data"] = setup_data[
+        "grouped_table_data"
+    ]
+
+    input_values = [[0]]  # Selected row
+
+    with patch(
+        "actions.update_components_based_on_grouped_table_selection.create_plot_component"
+    ) as mock_create_plot_component:
+        # Mock the plot component creation
+        mock_create_plot_component.return_value = html.Div("Plot Component")
+
+        # Call the function
+        result = update_components_based_on_grouped_table_selection_action(
+            setup_data["plot_configs"],
+            input_values,
+            setup_data["outputs"],
+            setup_data["interaction"],
+            setup_data["triggers"],
+        )
+
+        # Ensure the mock was called
+        mock_create_plot_component.assert_called()
+        args, kwargs = mock_create_plot_component.call_args
+
+        # Extract plot_component from args
+        plot_component = args[0]
+
+        # Access the color sequence from the plot_component
+        color_sequence = plot_component["kwargs"]["color_discrete_sequence"]
+
+        # Since 'Is Step Function' is [True, False], 'not is_step' should invert it
+        expected_colors = [
+            "#808080" if not is_step else None
+            for is_step in setup_data["table_data"]["Is Step Function"]
+        ]
+
+        assert color_sequence == expected_colors
+
+
+def test_invalid_configuration_no_db(setup_data):
+    """
+    Test the function when the database connection is not provided.
+    """
+    setup_data["interaction"]["data_source"]["db"] = None
+
+    input_values = [[0]]  # Selected row
+
+    result = update_components_based_on_grouped_table_selection_action(
+        setup_data["plot_configs"],
+        input_values,
+        setup_data["outputs"],
+        setup_data["interaction"],
+        setup_data["triggers"],
+    )
+
+    # Should return a configuration error message
+    assert isinstance(result, list)
+    assert len(result) == 1
+    component = result[0][0]
+    assert isinstance(component, html.Div)
+    assert "Configuration Error" in component.children[0].children
+    assert "Database connection not provided" in component.children[1].children
+
+
+def test_invalid_configuration_wrong_index_column(setup_data):
+    """
+    Test the function when index_column is not 'Brick Class'.
+    """
+    setup_data["interaction"]["index_column"] = "Wrong Column"
+
+    input_values = [[0]]  # Selected row
+
+    result = update_components_based_on_grouped_table_selection_action(
+        setup_data["plot_configs"],
+        input_values,
+        setup_data["outputs"],
+        setup_data["interaction"],
+        setup_data["triggers"],
+    )
+
+    # Should return a configuration error message
+    assert isinstance(result, list)
+    assert len(result) == 1
+    component = result[0][0]
+    assert isinstance(component, html.Div)
+    assert "Configuration Error" in component.children[0].children
+    assert (
+        "Expected index_column 'Brick Class' but got 'Wrong Column'"
+        in component.children[1].children
+    )

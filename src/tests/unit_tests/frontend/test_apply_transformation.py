@@ -91,3 +91,27 @@ def test_apply_transformation_invalid_type():
     pd.testing.assert_frame_equal(
         result_df.reset_index(drop=True), expected_df.reset_index(drop=True)
     )
+
+
+def test_apply_transformation_explode_missing_column(capsys):
+    """
+    Test the explode transformation when a specified column is not in the DataFrame.
+    """
+    data = {"ID": [1, 2], "ListValues": [[10, 20], [30, 40]]}
+    df = pd.DataFrame(data)
+    transformation = {"type": "explode", "columns": ["NonExistentColumn"]}
+    input_mapping = {}
+
+    result_df = apply_transformation(df, transformation, input_mapping)
+    expected_df = df.copy()
+
+    pd.testing.assert_frame_equal(
+        result_df.reset_index(drop=True),
+        expected_df.reset_index(drop=True),
+    )
+
+    captured = capsys.readouterr()
+    assert (
+        "Warning: Column 'NonExistentColumn' not found in DataFrame for exploding."
+        in captured.out
+    )

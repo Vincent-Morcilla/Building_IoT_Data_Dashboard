@@ -88,3 +88,73 @@ def test_create_go_figure_missing_trace_type():
         ValueError, match="Trace type is required in 'component' to create the figure"
     ):
         create_go_figure(df, data_processing, missing_trace_component, kwargs)
+
+
+def test_create_go_figure_with_nested_data_mappings():
+    """Test that nested data mappings are correctly applied to the figure."""
+    df_nested = pd.DataFrame(
+        {
+            "Category": ["A", "B", "C"],
+            "Value": [10, 20, 30],
+            "Colors": ["red", "green", "blue"],
+        }
+    )
+
+    component_nested = {
+        "trace_type": "Bar",
+        "data_mappings": {
+            "x": "Category",
+            "y": "Value",
+            "marker.color": "Colors",  # Nested key
+        },
+        "layout_kwargs": {"title": "Nested Data Mappings Test"},
+    }
+
+    data_processing_nested = {}
+    kwargs_nested = {}
+
+    fig = create_go_figure(
+        df_nested, data_processing_nested, component_nested, kwargs_nested
+    )
+
+    # Check that marker.color has been set correctly
+    assert list(fig.data[0].marker.color) == [
+        "red",
+        "green",
+        "blue",
+    ], "Marker color should match 'Colors' column"
+
+
+def test_create_go_figure_with_missing_column_in_data_mappings():
+    """Test that missing columns in data mappings are handled gracefully."""
+    df_missing_col = pd.DataFrame(
+        {
+            "Category": ["A", "B", "C"],
+            "Value": [10, 20, 30],
+        }
+    )
+
+    component_missing_col = {
+        "trace_type": "Bar",
+        "data_mappings": {
+            "x": "Category",
+            "y": "Value",
+            "text": "NonExistentColumn",  # Column does not exist
+        },
+        "layout_kwargs": {"title": "Missing Column Test"},
+    }
+
+    data_processing_missing_col = {}
+    kwargs_missing_col = {}
+
+    fig = create_go_figure(
+        df_missing_col,
+        data_processing_missing_col,
+        component_missing_col,
+        kwargs_missing_col,
+    )
+
+    # Since 'NonExistentColumn' is not in df, the 'text' property should be None
+    assert (
+        fig.data[0].text is None
+    ), "Text attribute should be None when column is missing"

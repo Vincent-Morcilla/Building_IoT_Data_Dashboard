@@ -155,3 +155,39 @@ def test_create_layout_for_category_missing_dataframe_in_table():
 
     with pytest.raises(ValueError, match="Table component requires a 'dataframe'."):
         create_layout_for_category(config)
+
+
+def test_create_layout_for_category_error_component():
+    """Test `create_layout_for_category` with an error component."""
+    config = {
+        "title": "Test Error Component",
+        "title_element": "H2",
+        "components": [
+            {
+                "type": "error",
+                "message": "This is a test error message.",
+                "css": {"color": "red", "fontWeight": "bold"},
+            },
+        ],
+    }
+
+    layout = create_layout_for_category(config)
+
+    # There should be 2 components: the title and the error component
+    assert len(layout) == 2, f"Expected 2 components, got {len(layout)}."
+
+    # Validate title component
+    title_component = layout[0]
+    assert isinstance(title_component, html.H2), "Title should be of type `H2`."
+    assert title_component.children == config["title"], "Title text mismatch."
+
+    # Validate error component
+    error_component = layout[1]
+    assert isinstance(
+        error_component, html.Div
+    ), "Error component should be `html.Div`."
+    expected_error_message = f"Error: {config['components'][0]['message']}"
+    assert error_component.children == expected_error_message, "Error message mismatch."
+    assert (
+        error_component.style == config["components"][0]["css"]
+    ), "Error CSS style mismatch."
