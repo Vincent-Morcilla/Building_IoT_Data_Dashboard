@@ -57,12 +57,17 @@ jobs:
           name: coverage-report
           path: coverage
 
+      - name: Debug downloaded coverage report directory
+        run: ls -R coverage/ || echo "No coverage report downloaded"
+             ls -R htmlcov || echo "No htmlcov report generated"
+
       - name: Commit coverage report
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git checkout -B coverage-report
-          mv coverage/htmlcov/* .  # Adjust path if needed
+          ls
+          mv coverage/* .  # Adjust path if needed
           git add .
           git commit -m "Update coverage report"
           git push -f origin coverage-report
