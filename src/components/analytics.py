@@ -130,7 +130,7 @@ def create_go_figure(
         if "." in key:
             # Split the nested keys
             keys = key.split(".")
-            # Initialize nested dicts as needed
+            # Initialise nested dicts as needed
             current_level = updated_kwargs
             for subkey in keys[:-1]:
                 if subkey not in current_level:

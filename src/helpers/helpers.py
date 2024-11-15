@@ -8,7 +8,7 @@ used in the app's sidebar navigation based on the plot configurations.
 """
 
 import re
-from typing import Dict, List, Tuple
+from typing import Tuple
 
 from models.types import PlotConfigsKeys
 from models.types import Categories

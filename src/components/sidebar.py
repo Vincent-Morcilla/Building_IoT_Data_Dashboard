@@ -10,7 +10,7 @@ sections of the application easily.
 from dash import html
 import dash_bootstrap_components as dbc
 
-from models.types import Categories, NavLinks
+from models.types import Categories
 
 
 def generate_sidebar(categories: Categories) -> html.Div:
@@ -30,7 +30,7 @@ def generate_sidebar(categories: Categories) -> html.Div:
     nav_links.append(dbc.NavLink("Home", href="/", active="exact"))
 
     # Loop through categories and generate navigation links
-    for category, subcategories in categories.items():
+    for category in categories:
         if category != "Home":  # Skip "Home" as it's already added
             nav_links.append(
                 dbc.NavLink(

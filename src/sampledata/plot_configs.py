@@ -176,14 +176,6 @@ timeline_data["Hover_Text"] = timeline_data.apply(
     axis=1,
 )
 
-# Mock Data for Histogram Plot
-histogram_data = pd.DataFrame(
-    {
-        "Category": ["Category A", "Category B", "Category C", "Category D"],
-        "Count": [23, 17, 35, 29],
-    }
-)
-
 
 # Plot Configurations
 sample_plot_configs = {
