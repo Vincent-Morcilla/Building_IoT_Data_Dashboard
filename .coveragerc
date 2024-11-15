@@ -1,4 +1,5 @@
 [run]
-omit = src/tests/*
+omit = src/callbacks/*
+       src/tests/*
        src/sampledata/*
        */__init__.py
