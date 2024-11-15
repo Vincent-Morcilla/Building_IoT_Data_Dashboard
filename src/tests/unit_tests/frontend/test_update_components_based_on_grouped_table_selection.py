@@ -126,6 +126,78 @@ def test_valid_input(setup_data):
         assert component.children == "Plot Component"
 
 
+def test_no_selected_rows_empty_list(setup_data):
+    """
+    Test the function when selected_rows is an empty list.
+    """
+    input_values = [[]]  # No rows selected
+
+    result = update_components_based_on_grouped_table_selection_action(
+        setup_data["plot_configs"],
+        input_values,
+        setup_data["outputs"],
+        setup_data["interaction"],
+        setup_data["triggers"],
+    )
+
+    # Should return [no_update] * len(outputs)
+    assert result == [no_update] * len(setup_data["outputs"])
+
+
+def test_no_selected_rows_none(setup_data):
+    """
+    Test the function when selected_rows is None.
+    """
+    input_values = [None]  # selected_rows is None
+
+    result = update_components_based_on_grouped_table_selection_action(
+        setup_data["plot_configs"],
+        input_values,
+        setup_data["outputs"],
+        setup_data["interaction"],
+        setup_data["triggers"],
+    )
+
+    # Should return [no_update] * len(outputs)
+    assert result == [no_update] * len(setup_data["outputs"])
+
+
+def test_no_input_values_empty(setup_data):
+    """
+    Test the function when input_values is an empty list.
+    """
+    input_values = []  # input_values is empty
+
+    result = update_components_based_on_grouped_table_selection_action(
+        setup_data["plot_configs"],
+        input_values,
+        setup_data["outputs"],
+        setup_data["interaction"],
+        setup_data["triggers"],
+    )
+
+    # Should return [no_update] * len(outputs)
+    assert result == [no_update] * len(setup_data["outputs"])
+
+
+def test_no_input_values_none(setup_data):
+    """
+    Test the function when input_values is None.
+    """
+    input_values = None  # input_values is None
+
+    result = update_components_based_on_grouped_table_selection_action(
+        setup_data["plot_configs"],
+        input_values,
+        setup_data["outputs"],
+        setup_data["interaction"],
+        setup_data["triggers"],
+    )
+
+    # Should return [no_update] * len(outputs)
+    assert result == [no_update] * len(setup_data["outputs"])
+
+
 def test_no_streams_data(setup_data):
     """
     Test the function when no streams data is available.
@@ -344,48 +416,3 @@ def test_invalid_configuration_wrong_index_column(setup_data):
         "Expected index_column 'Brick Class' but got 'Wrong Column'"
         in component.children[1].children
     )
-
-
-def test_no_selected_rows(setup_data):
-    """
-    Test the function when no rows are selected.
-    """
-    input_values = [[]]  # No rows selected
-
-    result = update_components_based_on_grouped_table_selection_action(
-        setup_data["plot_configs"],
-        input_values,
-        setup_data["outputs"],
-        setup_data["interaction"],
-        setup_data["triggers"],
-    )
-
-    # Should return [no_update] * len(outputs)
-    assert result == [no_update] * len(setup_data["outputs"])
-
-
-def test_no_input_values(setup_data):
-    """
-    Test the function when input_values is empty or None.
-    """
-    # Test with empty input_values
-    input_values = []
-    result = update_components_based_on_grouped_table_selection_action(
-        setup_data["plot_configs"],
-        input_values,
-        setup_data["outputs"],
-        setup_data["interaction"],
-        setup_data["triggers"],
-    )
-    assert result == [no_update] * len(setup_data["outputs"])
-
-    # Test with input_values as None
-    input_values = None
-    result = update_components_based_on_grouped_table_selection_action(
-        setup_data["plot_configs"],
-        input_values,
-        setup_data["outputs"],
-        setup_data["interaction"],
-        setup_data["triggers"],
-    )
-    assert result == [no_update] * len(setup_data["outputs"])
