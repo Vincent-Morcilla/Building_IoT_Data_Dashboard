@@ -62,15 +62,11 @@ def test_building_meters_and_default_units(mocker):
 
     # Verify that the default unit is correctly assigned as "Cubic meters" for missing units
     assert (
-        config[("Consumption", "BuildingWaterMeter")]["components"][0]["kwargs"][
-            "data_frame"
-        ]["Sensor"].iloc[0]
+        config[("Consumption", "BuildingWaterMeter")]["components"][0]["kwargs"]["data_frame"]["Sensor"].iloc[0]
         == "Building water meter Combined (Cubic meters)"
     )
     assert (
-        config[("Consumption", "BuildingGasMeter")]["components"][0]["kwargs"][
-            "data_frame"
-        ]["Sensor"].iloc[0]
+        config[("Consumption", "BuildingGasMeter")]["components"][0]["kwargs"]["data_frame"]["Sensor"].iloc[0]
         == "Building gas meter Combined (Cubic meters)"
     )
 
