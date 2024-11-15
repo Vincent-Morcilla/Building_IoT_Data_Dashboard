@@ -123,3 +123,23 @@ def test_create_traces_missing_split_by_column():
     assert (
         traces == []
     ), "Expected no traces due to missing `split_by` column in the DataFrame"
+
+
+def test_create_traces_with_split_by():
+    """Test that `create_traces` correctly splits data when `split_by` is specified."""
+    df_processed, component = setup_test_data()
+    # Add a valid `split_by` that exists in the DataFrame
+    component["data_processing"]["split_by"] = "Subcategory"
+    traces = create_traces(df_processed, component)
+
+    # Check that the number of traces matches the number of unique values in 'Subcategory'
+    unique_subcategories = df_processed["Subcategory"].unique()
+    assert len(traces) == len(
+        unique_subcategories
+    ), "Number of traces should match unique subcategories"
+
+    # Verify properties of each trace
+    for trace in traces:
+        assert (
+            trace.name in unique_subcategories
+        ), "Trace name should be one of the subcategories"

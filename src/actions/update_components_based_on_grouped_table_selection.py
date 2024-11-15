@@ -4,7 +4,7 @@ Updates components when a selection is made in a grouped table.
 This module defines the action to update components based on the user's selection
 in a grouped table. It processes the selected data, retrieves relevant information,
 and updates associated plots or components, providing detailed insights and
-drill-down capabilities in the app's visualizations.
+drill-down capabilities in the app's visualisations.
 """
 
 from typing import List, Dict, Any
@@ -50,7 +50,7 @@ def update_components_based_on_grouped_table_selection_action(
     db = data_source.get("db")
     index_column = interaction.get("index_column")
 
-    # Handle DB-based visualization (Brick Class view)
+    # Handle DB-based visualisation (Brick Class view)
     if db is not None and index_column == "Brick Class":
         try:
             grouped_table_data = grouped_table_data.sort_values(
