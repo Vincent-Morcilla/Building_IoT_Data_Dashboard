@@ -11,7 +11,7 @@ from dash import html
 import dash_bootstrap_components as dbc
 
 from components.download_button import create_global_download_button
-from components.plot_generator import create_layout_for_category
+from components.analytics import create_layout_for_category
 from models.types import (
     PlotConfig,
     Categories,

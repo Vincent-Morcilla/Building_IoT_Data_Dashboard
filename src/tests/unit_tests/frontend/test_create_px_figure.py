@@ -1,7 +1,7 @@
 import pytest
 import pandas as pd
 from plotly.graph_objects import Figure
-from components.plot_generator import create_px_figure
+from components.analytics import create_px_figure
 
 
 def test_create_px_figure_returns_figure_instance():

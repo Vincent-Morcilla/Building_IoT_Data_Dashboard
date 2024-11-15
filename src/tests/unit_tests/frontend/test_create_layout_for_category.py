@@ -1,6 +1,6 @@
 import pytest
 from dash import html, dcc
-from components.plot_generator import create_layout_for_category
+from components.analytics import create_layout_for_category
 
 
 # Positive test configuration

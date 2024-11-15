@@ -12,7 +12,7 @@ from typing import List, Dict, Any
 from dash import html
 import pandas as pd
 
-from components.plot_generator import (
+from components.analytics import (
     create_plot_component,
     create_ui_component,
     create_table_component,

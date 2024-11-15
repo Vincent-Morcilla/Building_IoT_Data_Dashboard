@@ -1,7 +1,7 @@
 import pytest
 import pandas as pd
 import plotly.graph_objects as go
-from components.plot_generator import process_data_frame, create_traces
+from components.analytics import process_data_frame, create_traces
 
 
 def test_create_traces_returns_list():

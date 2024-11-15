@@ -17,7 +17,7 @@ from actions.update_components_based_on_grouped_table_selection import (
 from actions.update_components_based_on_table_selection import (
     update_components_based_on_table_selection_action,
 )
-from components.plot_generator import find_component_by_id
+from components.analytics import find_component_by_id
 from models.types import PlotConfig
 
 

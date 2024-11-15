@@ -1,6 +1,6 @@
 import pytest
 import pandas as pd
-from components.plot_generator import process_data_frame
+from components.analytics import process_data_frame
 
 
 # Sample DataFrame for testing

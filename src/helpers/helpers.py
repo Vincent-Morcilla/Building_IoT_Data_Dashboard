@@ -11,6 +11,9 @@ import re
 from typing import Dict, List, Tuple
 
 from models.types import PlotConfigsKeys
+from models.types import Categories
+from models.types import CategoryKeyMapping
+from models.types import SubcategoryKeyMapping
 
 
 def pascal_to_words(text: str) -> str:
@@ -42,9 +45,9 @@ def sanitise_filename(text: str) -> str:
 def create_category_structure(
     plot_configs_keys: PlotConfigsKeys,
 ) -> Tuple[
-    Dict[str, List[str]],  # categories
-    Dict[str, str],  # category_key_mapping
-    Dict[Tuple[str, str], str],  # subcategory_key_mapping
+    Categories,  # Dict[str, List[str]]
+    CategoryKeyMapping,  # Dict[str, str]
+    SubcategoryKeyMapping,  # Dict[Tuple[str, str], str]
 ]:
     """
     Create a dictionary structure for categories and subcategories from plot_configs keys.
