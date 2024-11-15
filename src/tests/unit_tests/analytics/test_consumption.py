@@ -9,42 +9,70 @@ from analytics.dbmgr import DBManager
 import analytics.modules.consumption as cons
 
 
-def test_get_building_meters_success(mocker):
+def test_building_meters_and_default_units(mocker):
     """
     Unit test for the `_get_building_meters` function in the consumption module.
     This test verifies that the function correctly retrieves building meter data
-    from a mock DBManager instance with sample data.
+    from a mock DBManager instance with sample data. ensures default units are
+    assigned for gas and water meters when missing.
     """
     # Mock DBManager instance and query results
     mock_db = mocker.Mock(spec=DBManager)
 
     # Sample data simulating a database response
-    expected_df = pd.DataFrame(
+    meter_data = pd.DataFrame(
         {
-            "equipment": ["meter1", "meter2"],
-            "equipment_type": ["ElectricalMeter", "GasMeter"],
-            "sensor": ["sensor1", "sensor2"],
-            "sensor_type": ["ElectricalPowerSensor", "UsageSensor"],
-            "unit": ["kWh", "cubic meters"],
-            "stream_id": ["stream1", "stream2"],
+            "equipment": ["meter1", "meter2", "meter3"],
+            "equipment_type": [
+                "ElectricalMeter",
+                "Building_Water_Meter",
+                "Building_Gas_Meter",
+            ],
+            "sensor": ["sensor1", "sensor2", "sensor3"],
+            "sensor_type": ["Electrical_Power_Sensor", "Usage_Sensor", "Usage_Sensor"],
+            "unit": [
+                "kWh",
+                None,
+                None,
+            ],  # Units missing for water and gas to trigger default assignment
+            "stream_id": ["stream1", "stream2", "stream3"],
         }
     )
 
     # Configure the mock DBManager to return the sample data
-    mock_db.query.return_value = expected_df
+    mock_db.query.return_value = meter_data
+    mock_db.get_stream.return_value = pd.DataFrame(
+        {
+            "time": pd.date_range(start="2024-01-01", periods=10, freq="10min"),
+            "brick_class": ["value"] * 10,
+            "value": range(10),
+        }
+    )
 
-    # Call the function
+    # Call the function to retrieve building meters
     result_df = cons._get_building_meters(mock_db)
 
-    # Assertions
-    # Check that the result is a DataFrame
+    # Assertions for data retrieval
     assert isinstance(result_df, pd.DataFrame), "Expected a DataFrame result"
-
-    # Check that the result matches the sample data structure and values
-    pd.testing.assert_frame_equal(result_df, expected_df)
-
-    # Verify the database query was called as expected
+    pd.testing.assert_frame_equal(result_df, meter_data)
     mock_db.query.assert_called_once()
+
+    # Run the main consumption configuration to check default unit assignment
+    config = cons.run(mock_db)
+
+    # Verify that the default unit is correctly assigned as "Cubic meters" for missing units
+    assert (
+        config[("Consumption", "BuildingWaterMeter")]["components"][0]["kwargs"][
+            "data_frame"
+        ]["Sensor"].iloc[0]
+        == "Building water meter Combined (Cubic meters)"
+    )
+    assert (
+        config[("Consumption", "BuildingGasMeter")]["components"][0]["kwargs"][
+            "data_frame"
+        ]["Sensor"].iloc[0]
+        == "Building gas meter Combined (Cubic meters)"
+    )
 
 
 def test_get_building_meters_empty_result(mocker):

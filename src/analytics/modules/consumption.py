@@ -236,7 +236,7 @@ def run(db: DBManager) -> dict:
                 }
 
         else:
-            # Skip or log a warning if there is no combined data for this group
+            # Skip if there is no combined data for this group
             continue
 
     return config
