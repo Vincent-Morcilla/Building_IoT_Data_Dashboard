@@ -5,28 +5,28 @@ from components.plot_generator import process_data_frame, create_traces
 
 
 def test_create_traces_returns_list():
-    """Test that create_traces returns a list."""
+    """Test that `create_traces` returns a list."""
     df_processed, component = setup_test_data()
     traces = create_traces(df_processed, component)
     assert isinstance(traces, list), "Expected traces to be a list"
 
 
 def test_create_traces_single_trace():
-    """Test that create_traces returns a list with a single trace."""
+    """Test that `create_traces` returns a list with a single trace."""
     df_processed, component = setup_test_data()
     traces = create_traces(df_processed, component)
     assert len(traces) == 1, "Expected one trace in the list"
 
 
 def test_create_traces_trace_type():
-    """Test that create_traces returns a Bar trace."""
+    """Test that `create_traces` returns a Bar trace."""
     df_processed, component = setup_test_data()
     traces = create_traces(df_processed, component)
     assert isinstance(traces[0], go.Bar), "Expected trace to be a Bar instance"
 
 
 def test_create_traces_trace_properties():
-    """Test that create_traces generates a trace with correct properties."""
+    """Test that `create_traces` generates a trace with correct properties."""
     df_processed, component = setup_test_data()
     traces = create_traces(df_processed, component)
     trace = traces[0]
@@ -36,7 +36,7 @@ def test_create_traces_trace_properties():
 
 
 def test_create_traces_marker_configured():
-    """Test that create_traces includes a marker property in the trace."""
+    """Test that `create_traces` includes a marker property in the trace."""
     df_processed, component = setup_test_data()
     traces = create_traces(df_processed, component)
     trace = traces[0]
@@ -45,7 +45,7 @@ def test_create_traces_marker_configured():
 
 def setup_test_data():
     """
-    Set up sample data for testing create_traces.
+    Set up sample data for testing `create_traces`.
 
     Returns:
         tuple: A tuple containing the processed DataFrame and component configuration.
@@ -83,7 +83,7 @@ def setup_test_data():
 
 
 def test_create_traces_empty_dataframe():
-    """Test that create_traces returns an empty list for an empty DataFrame."""
+    """Test that `create_traces` returns an empty list for an empty DataFrame."""
     empty_df = pd.DataFrame()  # Empty DataFrame
     component = {
         "trace_type": "Bar",
@@ -94,7 +94,7 @@ def test_create_traces_empty_dataframe():
 
 
 def test_create_traces_missing_trace_type():
-    """Test that create_traces raises ValueError if trace_type is not specified."""
+    """Test that `create_traces` raises ValueError if `trace_type` is not specified."""
     df_processed, component = setup_test_data()
     del component["trace_type"]  # Remove trace_type
     with pytest.raises(
@@ -104,7 +104,7 @@ def test_create_traces_missing_trace_type():
 
 
 def test_create_traces_missing_columns():
-    """Test that create_traces warns about missing columns."""
+    """Test that `create_traces` warns about missing columns."""
     df_processed, component = setup_test_data()
     component["data_processing"]["data_mappings"][
         "y"
@@ -114,7 +114,7 @@ def test_create_traces_missing_columns():
 
 
 def test_create_traces_missing_split_by_column():
-    """Test that create_traces warns when split_by column is missing."""
+    """Test that `create_traces` warns when split_by column is missing."""
     df_processed, component = setup_test_data()
     component["data_processing"][
         "split_by"
@@ -122,7 +122,7 @@ def test_create_traces_missing_split_by_column():
     traces = create_traces(df_processed, component)
     assert (
         traces == []
-    ), "Expected no traces due to missing split_by column in the DataFrame"
+    ), "Expected no traces due to missing `split_by` column in the DataFrame"
 
 
 def test_create_traces_with_split_by():
@@ -150,11 +150,11 @@ def test_create_traces_with_split_by():
     }
 
     traces = create_traces(df, component)
-    assert len(traces) == 2, "Expected two traces due to split_by 'Category'"
+    assert len(traces) == 2, "Expected two traces due to `split_by` 'Category'"
     trace_names = [trace.name for trace in traces]
     assert (
         "A" in trace_names and "B" in trace_names
-    ), "Trace names should correspond to split_by values"
+    ), "Trace names should correspond to `split_by` values"
     for trace in traces:
         assert isinstance(trace, go.Bar), "Each trace should be an instance of go.Bar"
         assert trace.name in ["A", "B"], "Trace names should be 'A' or 'B'"
