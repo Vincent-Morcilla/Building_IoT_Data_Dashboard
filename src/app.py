@@ -99,6 +99,7 @@ def parse_args(arg_list: list[str] | None):
         "--port",
         help="Port used to serve the application (default: %(default)s)",
         default=8050,
+        type=int,
     )
     parser.add_argument(
         "-b",

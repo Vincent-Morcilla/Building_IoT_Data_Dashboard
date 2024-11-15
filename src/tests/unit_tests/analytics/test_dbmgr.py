@@ -1,16 +1,19 @@
 """Unit tests for the DBManager class in the analytics.dbmgr module."""
 
+import zipfile
 from unittest.mock import MagicMock, patch
 
 import pandas as pd
 import pytest
 import rdflib
 
-
-from analytics.dbmgr import DBManager
-from analytics.dbmgr import DBManagerFileNotFoundError
-from analytics.dbmgr import DBManagerBadCsvFile
-from analytics.dbmgr import DBManagerBadRdfFile
+from analytics.dbmgr import (
+    DBManager,
+    DBManagerBadCsvFile,
+    DBManagerBadRdfFile,
+    DBManagerBadZipFile,
+    DBManagerFileNotFoundError,
+)
 
 # Suppress pylint warnings for fixtures
 # pylint: disable=protected-access
@@ -227,6 +230,7 @@ def db_manager(disable_tqdm):
                     "file1.pkl",
                     "file2.pkl",
                     "file3.pkl",
+                    "file4.txt",
                 ]
                 # Patch pickle.loads to return the sample stream data
                 with patch(
@@ -257,6 +261,45 @@ def test_initialisation(db_manager):
     assert str(db_manager._schema_path) == SCHEMA_PATH
     assert "stream1" in db_manager.mapper["StreamID"].values
     assert BUILDING in db_manager.mapper["Building"].values
+
+
+@patch(
+    "pandas.read_csv",
+    return_value=pd.DataFrame(
+        {"Filename": ["file1.pkl", "file2.pkl"], "Building": ["A", "B"]}
+    ),
+)
+@patch(
+    "pathlib.Path.is_file", return_value=True
+)  # Mocking is_file to always return True
+@patch("brickschema.Graph")  # Mock the Graph class
+@patch.object(DBManager, "_load_db", return_value=None)  # Mock the _load_db method
+def test_load_brick_nightly(mock_load_db, mock_graph, mock_is_file, mock_read_csv):
+    """
+    Test DBManager initialisation when no Brick schema is provided and it should
+    instead use the nightly Brick schema build.
+    """
+    # Setup the mock behavior for brickschema.Graph
+    mock_instance = MagicMock()
+    mock_graph.return_value = mock_instance
+
+    # Create the DBManager instance
+    manager = DBManager(
+        data_zip_path="/path/to/data.zip",  # No need for the actual file to exist
+        mapper_path="/path/to/mapper.csv",
+        model_path="/path/to/model.ttl",
+        schema_path=None,
+        building=None,
+    )
+
+    # Assertions to verify the behavior
+    mock_graph.assert_called_with(load_brick_nightly=True)
+    assert "schema" in manager._g
+    assert "schema+model" in manager._g
+    assert "expanded_model" in manager._g
+
+    # Ensure that _load_db is not called (since we've mocked it)
+    mock_load_db.assert_called_once()
 
 
 def test_len(db_manager):
@@ -457,6 +500,55 @@ def test_query_return_df(db_manager):
         pd.testing.assert_frame_equal(df, expected_df)
 
 
+def test_query_patched_graph_query():
+    """
+    Test the query method of the DBManager class when returning a defragmented
+    Dataframe.
+    """
+    # Create a mock instance of DBManager
+    mock_db_manager = MagicMock()
+
+    # Mock the `_g` attribute to simulate the graph dictionary
+    mock_graph = MagicMock()
+    mock_db_manager._g = {"model": mock_graph}
+
+    # Define the expected bindings and vars
+    mock_bindings = [
+        {"entity_id": rdflib.URIRef("brick#e1"), "value": rdflib.URIRef("brick#v1")},
+        {"entity_id": rdflib.URIRef("brick#e2"), "value": rdflib.URIRef("brick#v2")},
+    ]
+    mock_vars = ["entity_id", "value"]
+
+    # Create a mock Result object
+    mock_result = MagicMock()
+    mock_result.bindings = mock_bindings
+    mock_result.vars = mock_vars
+
+    # Patch `graph.query` to return the mocked result
+    mock_graph.query.return_value = mock_result
+
+    # Run the function we're testing
+    df = DBManager.query(
+        mock_db_manager,
+        query_str="SELECT ?entity_id ?value WHERE { ?entity_id a ?value }",
+        graph="model",
+        return_df=True,
+        defrag=True,
+    )
+
+    # Verify that `graph.query` was called with the correct query string
+    mock_graph.query.assert_called_once_with(
+        "SELECT ?entity_id ?value WHERE { ?entity_id a ?value }"
+    )
+
+    # Assert the df matches the expected return value from the mnock graph
+    assert len(df) == 2
+    assert df["entity_id"].iloc[0] == "e1"
+    assert df["entity_id"].iloc[1] == "e2"
+    assert df["value"].iloc[0] == "v1"
+    assert df["value"].iloc[1] == "v2"
+
+
 def test_query_keyerror(db_manager):
     """Test the query method of the DBManager class with a KeyError."""
     graph = "unknown"
@@ -523,3 +615,24 @@ def test_defrag_uri_non_uri_string():
     """
     uri = "not_a_uri"
     assert DBManager.defrag_uri(uri) == "not_a_uri"
+
+
+def test_load_db_raises_dbmanager_badzipfile():
+    """
+    Test that the _load_db method of the DBManager class raises
+    DBManagerBadZipFile when a zipfile.BadZipFile is encountered
+    while reading the data ZIP file.
+    """
+    # Mock the _data_zip_path attribute of the instance
+    mock_instance = MagicMock()
+    mock_instance._data_zip_path = "/path/to/fake.zip"
+
+    # Patch the zipfile.ZipFile constructor to raise BadZipFile
+    with patch("zipfile.ZipFile", side_effect=zipfile.BadZipFile):
+        # Expect the custom DBManagerBadZipFile to be raised
+        with pytest.raises(DBManagerBadZipFile) as excinfo:
+            DBManager._load_db(mock_instance)
+
+        # Optionally, verify the exception message
+        assert "Error reading zip file" in str(excinfo.value)
+        assert mock_instance._data_zip_path in str(excinfo.value)
