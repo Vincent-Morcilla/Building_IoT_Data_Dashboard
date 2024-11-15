@@ -269,6 +269,98 @@ def test_build_master_df(mock_db_manager):
     assert df["brick_class_is_consistent"].iloc[2] == None
 
 
+def test_build_master_df_with_empty_query(mocker):
+    """
+    Unit test for the _build_master_df function in the modelquality module
+    where querying the database produces an empty response.
+    """
+    mock_db = mocker.Mock(spec=DBManager)
+    mock_db.query.return_value = pd.DataFrame()
+
+    df = mq._build_master_df(mock_db)
+
+    assert len(df) == 0
+
+
+def test_build_master_df_with_missing_stream_id(mock_db_manager):
+    """
+    Unit test for the _build_master_df function in the modelquality module
+    where the stream_id is missing in the database response.
+    """
+    # Modify the query return value for this specific test
+    mock_db_manager.query.return_value = pd.DataFrame(
+        [
+            {
+                "entity_id": "e4",
+                "brick_class": URIRef("brick#ClassD"),
+                "stream_id": None,
+                "named_unit": None,
+                "anonymous_unit": None,
+            }
+        ]
+    )
+
+    # Call the function with the modified mock
+    df = mq._build_master_df(mock_db_manager)
+
+    # Assertions
+    assert len(df) == 1
+    assert "stream_id" in df.columns
+    assert df["stream_id"].iloc[0] == None
+    assert df["entity_id"].iloc[0] == "e4"
+    assert df["brick_class"].iloc[0] == "ClassD"
+
+
+def test_build_master_df_with_no_named_unit(mock_db_manager):
+    """
+    Unit test for the _build_master_df function in the modelquality module
+    where the there is no named_unit column in the database response.
+    """
+    # Modify the query return value for this specific test
+    mock_db_manager.query.return_value = pd.DataFrame(
+        [
+            {
+                "entity_id": "e5",
+                "brick_class": URIRef("brick#ClassE"),
+                "stream_id": "s5",
+                "anonymous_unit": None,
+            }
+        ]
+    )
+
+    # Call the function with the modified mock
+    df = mq._build_master_df(mock_db_manager)
+
+    # Assertions
+    assert len(df) == 1
+    assert "named_unit" in df.columns
+
+
+def test_build_master_df_with_no_anomymous_unit(mock_db_manager):
+    """
+    Unit test for the _build_master_df function in the modelquality module
+    where the there is no anonymous_unit column in the database response.
+    """
+    # Modify the query return value for this specific test
+    mock_db_manager.query.return_value = pd.DataFrame(
+        [
+            {
+                "entity_id": "e6",
+                "brick_class": URIRef("brick#ClassF"),
+                "stream_id": "s6",
+                "named_unit": None,
+            }
+        ]
+    )
+
+    # Call the function with the modified mock
+    df = mq._build_master_df(mock_db_manager)
+
+    # Assertions
+    assert len(df) == 1
+    assert "anonymous_unit" in df.columns
+
+
 def test_recognised_entity_analysis(mock_db_manager):
     """
     Unit test for the _recognised_entity_analysis function in the modelquality
