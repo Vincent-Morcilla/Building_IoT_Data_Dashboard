@@ -138,7 +138,7 @@ def test_create_traces_with_split_by():
         unique_subcategories
     ), "Number of traces should match unique subcategories"
 
-    # Optionally, verify properties of each trace
+    # Verify properties of each trace
     for trace in traces:
         assert (
             trace.name in unique_subcategories
