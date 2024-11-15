@@ -17,7 +17,7 @@ from actions.update_components_based_on_grouped_table_selection import (
 from actions.update_components_based_on_table_selection import (
     update_components_based_on_table_selection_action,
 )
-from components.plot_generator import find_component_by_id
+from components.analytics import find_component_by_id
 from models.types import PlotConfig
 
 
@@ -34,7 +34,7 @@ def register_plot_callbacks(app: Dash, plot_configs: PlotConfig) -> None:
         "update_components_based_on_grouped_table_selection": update_components_based_on_grouped_table_selection_action,
     }
 
-    for category_key, config in plot_configs.items():
+    for _, config in plot_configs.items():
         interactions = config.get("interactions", [])
         for interaction in interactions:
             triggers = interaction.get("triggers", [])

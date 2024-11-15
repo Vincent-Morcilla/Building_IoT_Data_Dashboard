@@ -1,7 +1,7 @@
 import pytest
 import pandas as pd
 from dash import dcc
-from components.plot_generator import create_plot_component, process_data_frame
+from components.analytics import create_plot_component, process_data_frame
 
 
 # Test DataFrame with a list column for data processing example

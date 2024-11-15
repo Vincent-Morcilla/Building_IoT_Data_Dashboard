@@ -1,5 +1,5 @@
 import pytest
-from components.plot_generator import find_component_by_id
+from components.analytics import find_component_by_id
 
 
 # Sample plot configuration for testing

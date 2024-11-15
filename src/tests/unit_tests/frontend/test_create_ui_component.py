@@ -1,6 +1,6 @@
 import pytest
 from dash import dcc, html
-from components.plot_generator import create_ui_component
+from components.analytics import create_ui_component
 
 
 # Define the input component

@@ -29,7 +29,7 @@ def create_layout(categories_structure: CategoriesStructure) -> html.Div:
         html.Div: A Div component representing the overall layout of the application.
     """
     # Unpack the categories structure
-    categories, category_key_mapping, subcategory_key_mapping = categories_structure
+    categories, _, _ = categories_structure
 
     # Generate the sidebar
     sidebar = generate_sidebar(categories)

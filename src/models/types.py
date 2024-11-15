@@ -61,7 +61,7 @@ Transformation = Dict[
     str, Any
 ]  # Configuration for transformations in `apply_transformation`
 
-# Type aliases for components in `plot_generator.py`
+# Type aliases for components in `analytics.py`
 
 PlotComponentConfig = Dict[str, Any]  # Configuration for plot components
 KwargsConfig = Dict[str, Any]  # Configuration for keyword argments
