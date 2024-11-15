@@ -96,7 +96,7 @@ def test_create_traces_empty_dataframe():
 def test_create_traces_missing_trace_type():
     """Test that `create_traces` raises ValueError if `trace_type` is not specified."""
     df_processed, component = setup_test_data()
-    del component["trace_type"]  # Remove `trace_type`
+    del component["trace_type"]  # Remove trace_type
     with pytest.raises(
         ValueError, match="For 'go' plots, 'trace_type' must be specified."
     ):
@@ -114,7 +114,7 @@ def test_create_traces_missing_columns():
 
 
 def test_create_traces_missing_split_by_column():
-    """Test that `create_traces` warns when `split_by` column is missing."""
+    """Test that `create_traces` warns when split_by column is missing."""
     df_processed, component = setup_test_data()
     component["data_processing"][
         "split_by"
@@ -126,20 +126,40 @@ def test_create_traces_missing_split_by_column():
 
 
 def test_create_traces_with_split_by():
-    """Test that `create_traces` correctly splits data when `split_by` is specified."""
-    df_processed, component = setup_test_data()
-    # Add a valid `split_by` that exists in the DataFrame
-    component["data_processing"]["split_by"] = "Subcategory"
-    traces = create_traces(df_processed, component)
+    """Test that `create_traces` correctly handles the `split_by` parameter."""
+    df = pd.DataFrame(
+        {
+            "Category": ["A", "A", "B", "B"],
+            "Subcategory": ["X", "Y", "X", "Y"],
+            "Value": [10, 20, 30, 40],
+        }
+    )
 
-    # Check that the number of traces matches the number of unique values in 'Subcategory'
-    unique_subcategories = df_processed["Subcategory"].unique()
-    assert len(traces) == len(
-        unique_subcategories
-    ), "Number of traces should match unique subcategories"
+    data_processing = {
+        "data_mappings": {
+            "x": "Subcategory",
+            "y": "Value",
+        },
+        "split_by": "Category",
+        "trace_kwargs": {},
+    }
 
-    # Verify properties of each trace
+    component = {
+        "trace_type": "Bar",
+        "data_processing": data_processing,
+    }
+
+    traces = create_traces(df, component)
+    assert len(traces) == 2, "Expected two traces due to `split_by` 'Category'"
+    trace_names = [trace.name for trace in traces]
+    assert (
+        "A" in trace_names and "B" in trace_names
+    ), "Trace names should correspond to `split_by` values"
     for trace in traces:
+        assert isinstance(trace, go.Bar), "Each trace should be an instance of go.Bar"
+        assert trace.name in ["A", "B"], "Trace names should be 'A' or 'B'"
+        assert list(trace.x) == ["X", "Y"], "Trace x values should match Subcategory"
+        expected_y = [10, 20] if trace.name == "A" else [30, 40]
         assert (
-            trace.name in unique_subcategories
-        ), "Trace name should be one of the subcategories"
+            list(trace.y) == expected_y
+        ), f"Trace y values do not match expected data for Category {trace.name}"
