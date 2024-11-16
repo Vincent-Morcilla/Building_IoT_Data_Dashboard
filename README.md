@@ -10,7 +10,7 @@
     - [Run in Docker](#run-in-docker)
     - [Run Natively](#run-natively)
     - [App Usage](#app-usage)
-  - [Testing](#testing)
+  - [Test Suite](#test-suite)
 
 
 ## Installation Manual
@@ -54,6 +54,9 @@ Open [http://127.0.0.1:8050](http://127.0.0.1:8050) in your browser.
 
 ### Run Natively
 
+The app was developed and tested with Python 3.12, and it is recommended to use 
+the same version for compatibility.
+
 Create a virtual environment for the app:
 
 ```sh
@@ -83,7 +86,8 @@ python src/app.py --building B \
 ```
 
 It may take a minute to ingest the dataset and run the analyses.  You'll see 
-a progress meter in the terminal, but once complete you should see that `Dash is running on http://127.0.0.1:8050/`.
+a progress meter in the terminal, but once complete you should see that 
+`Dash is running on http://127.0.0.1:8050/`.
 
 Open [http://127.0.0.1:8050](http://127.0.0.1:8050) in your browser.
 
@@ -112,7 +116,7 @@ options:
   -t, --test-mode       Run the app using built-in sample data (default: False)
 ```
 
-## Testing
+## Test Suite
 
 A comprehensive test suite is provided, requiring additional dependencies to be 
 installed:
@@ -121,11 +125,19 @@ installed:
 pip install -r src/tests/requirements.txt
 ```
 
-Once installed, all tests can be run:
+Once installed, from the root directory all tests can be run with:
 
 ```sh
-pytest src
+pytest
 ```
+
+A test coverage report may be generated while running the tests with:
+
+```sh
+pytest --cov=src
+```
+
+Please note, end-to-end tests assume [Chrome](https://www.google.com/intl/en_au/chrome/dr/download/) is installed.
 
 ---
 
