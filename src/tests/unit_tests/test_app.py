@@ -13,6 +13,9 @@ from app import parse_args
 from models.types import PlotConfig
 from analytics.dbmgr import DBManagerFileNotFoundError
 
+# Suppress pylint warnings for fixtures
+# pylint: disable=redefined-outer-name
+
 
 @patch("sys.argv", ["program_name"])
 def test_parse_args_default():
@@ -193,9 +196,9 @@ def mock_main_dependencies():
     # Mock the necessary functions that are called in the main function
     with patch("app.parse_args") as mock_parse_args, patch(
         "app.create_app"
-    ) as mock_create_app, patch("app.DBManager") as mock_DBManager, patch(
+    ) as mock_create_app, patch("app.DBManager") as mock_db_manager, patch(
         "app.AnalyticsManager"
-    ) as mock_AnalyticsManager, patch(
+    ) as mock_analytics_manager, patch(
         "sys.exit"
     ) as mock_sys_exit:
 
@@ -214,16 +217,16 @@ def mock_main_dependencies():
 
         # Mock the DBManager and AnalyticsManager objects so they don't perform any real actions
         mock_db_instance = MagicMock()
-        mock_DBManager.return_value = mock_db_instance
+        mock_db_manager.return_value = mock_db_instance
 
         mock_analytics_instance = MagicMock()
-        mock_AnalyticsManager.return_value = mock_analytics_instance
+        mock_analytics_manager.return_value = mock_analytics_instance
 
         # Mock create_app to return a mock app instance
         mock_create_app.return_value = MagicMock()
 
         # Yield the mocks for use in the test
-        yield mock_parse_args, mock_create_app, mock_DBManager, mock_AnalyticsManager, mock_sys_exit
+        yield mock_parse_args, mock_create_app, mock_db_manager, mock_analytics_manager, mock_sys_exit
 
 
 def test_main(mock_main_dependencies):
@@ -232,8 +235,8 @@ def test_main(mock_main_dependencies):
     (
         mock_parse_args,
         mock_create_app,
-        mock_DBManager,
-        mock_AnalyticsManager,
+        mpck_db_manager,
+        mock_analytics_manager,
         mock_sys_exit,
     ) = mock_main_dependencies
 
@@ -244,12 +247,12 @@ def test_main(mock_main_dependencies):
     mock_parse_args.assert_called_once()
 
     # Assert DBManager was called with the expected arguments
-    mock_DBManager.assert_called_once_with(
+    mpck_db_manager.assert_called_once_with(
         "data.zip", "mapper.csv", "model.ttl", None, None
     )
 
     # Assert AnalyticsManager was created and its methods weren't actually run (mocked)
-    mock_AnalyticsManager.assert_called_once()
+    mock_analytics_manager.assert_called_once()
 
     # Assert create_app was called with the correct plot_configs (mock return value from AnalyticsManager)
     mock_create_app.assert_called_once()

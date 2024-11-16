@@ -1,6 +1,7 @@
 """Unit tests for the modelquality module in the analytics package."""
 
 from unittest.mock import MagicMock
+
 import pandas as pd
 import pytest
 from rdflib import URIRef
