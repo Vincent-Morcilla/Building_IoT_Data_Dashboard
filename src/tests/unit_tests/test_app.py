@@ -1,10 +1,11 @@
 """Unit tests for the app module."""
 
+import shlex
+import subprocess
 from unittest.mock import patch, MagicMock
 
 from dash import Dash, html
 import pytest
-
 
 from app import create_app
 from app import main
@@ -289,3 +290,18 @@ def test_main_raises_dbmanagerfilenotfounderror():
             with pytest.raises(SystemExit) as exc_info:
                 main(mock_args)
                 assert exc_info.type == SystemExit
+
+
+def test_if_name_equals_main():
+    """
+    Test the main() function is called when the app module is run as a script.
+    """
+    # Run the app module as a script
+    result = subprocess.run(
+        shlex.split("python src/app.py"),
+        stdout=subprocess.PIPE,
+        check=False,
+    )
+
+    # Assert that the script ran unsuccessfully (due to missing args)
+    assert result.returncode != 0
