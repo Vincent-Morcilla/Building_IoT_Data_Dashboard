@@ -4,8 +4,7 @@ name: Deploy Coverage Report to GitHub Pages
 on:
   # Runs on pushes targeting the default branch
   push:
-    branches:
-          - coverage-report
+    branches: ["coverage-report"]
         # branches: [$default-branch]
 
   # Allows you to run this workflow manually from the Actions tab
@@ -38,7 +37,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: 'src/tests/coverage'
+          path: 'docs/coverage'
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
