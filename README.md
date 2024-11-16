@@ -125,23 +125,42 @@ pytest --cov=src
 
 Please note, end-to-end tests assume [Chrome](https://www.google.com/intl/en_au/chrome/dr/download/) is installed.
 
+A test coverage report is published to GitHub Pages:
+
+[https://fluffy-broccoli-nvjrm9y.pages.github.io/](https://fluffy-broccoli-nvjrm9y.pages.github.io/)
+
+This report does not include callback functions, which are challenging to unit 
+test due to their inherent connection to the UI and interdependent components, 
+meaning they’re likely not fully captured by coverage reports.  These functions 
+are, however, still tested as part of the end-to-end testing suite.
+
 
 ## Demos
 
 ### Dataset Abstraction
 
-TODO
+All analytical modules share a common abstraction of the dataset, provided by 
+[src/analytics/dbmgr.py](blob/main/src/analytics/dbmgr.py).
+
+A Jupyter Notebook is provided in [demos/dbmgr.ipynb](blob/main/demos/dbmgr.ipynb) 
+to demonstrate its main capabilities and usage.
+
+This requires additional depencencies, which may be installed by running:
+
+```sh
+pip install -r demos/requirements.txt
+```
 
 ### Running the App in Test Mode
 
-TODO
+The app may be run in test mode by passing the `-t` or `--test-mode` options, 
+e.g.:
 
----
+```sh
+python src/app.py -t
+```
 
-
-Much more TODO
-
-
----
-
-
+This will utilise sample data and plot configurations, as found in 
+[src/sampledata/plot_configs.py](blobs/main/src/sampledata/plot_configs.py), 
+and is useful to understand how analytical results can be transformed into 
+UI components.
