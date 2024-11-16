@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Main application module for the Dash web app.
 
