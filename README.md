@@ -140,10 +140,10 @@ are, however, still tested as part of the end-to-end testing suite.
 ### Dataset Abstraction
 
 All analytical modules share a common abstraction of the dataset, provided by 
-[src/analytics/dbmgr.py](blob/main/src/analytics/dbmgr.py).
+`src/analytics/dbmgr.py`.
 
-A Jupyter Notebook is provided in [demos/dbmgr.ipynb](blob/main/demos/dbmgr.ipynb) 
-to demonstrate its main capabilities and usage.
+A Jupyter Notebook is provided in `demos/dbmgr.ipynb` to demonstrate its main 
+capabilities and usage.
 
 This requires additional depencencies, which may be installed by running:
 
@@ -161,6 +161,5 @@ python src/app.py -t
 ```
 
 This will utilise sample data and plot configurations, as found in 
-[src/sampledata/plot_configs.py](blobs/main/src/sampledata/plot_configs.py), 
-and is useful to understand how analytical results can be transformed into 
-UI components.
+`src/sampledata/plot_configs.py`, and is useful to understand how analytical 
+results can be transformed into UI components.
