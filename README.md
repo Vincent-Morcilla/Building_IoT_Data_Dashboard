@@ -11,6 +11,9 @@
     - [Run Natively](#run-natively)
     - [App Usage](#app-usage)
   - [Test Suite](#test-suite)
+  - [Demos](#demos)
+    - [Dataset Abstraction](#dataset-abstraction)
+    - [Running the App in Test Mode](#running-the-app-in-test-mode)
 
 
 ## Installation Manual
@@ -93,27 +96,10 @@ Open [http://127.0.0.1:8050](http://127.0.0.1:8050) in your browser.
 
 ### App Usage
 
-Help is available by passing the `-h` or `--help` options:
+Help is available by passing the `-h` or `--help` options, e.g.:
 
 ```sh
-usage: app.py [-h] [-d] [-a HOST] [-p PORT] [-b BUILDING] [-t] [data] [mapper] [model] [schema]
-
-Building Time Series Visualization
-
-positional arguments:
-  data                  Path to the timeseries zip file
-  mapper                Path to the mapper csv file
-  model                 Path to the model ttl file
-  schema                Path to the schema ttl file (default: None, load latest Brick schema)
-
-options:
-  -h, --help            show this help message and exit
-  -d, --debug           Enable Flask debug mode (default: False)
-  -a HOST, --host HOST  Host address used to serve the application (default: 127.0.0.1)
-  -p PORT, --port PORT  Port used to serve the application (default: 8050)
-  -b BUILDING, --building BUILDING
-                        Filter mapper and data based on building (default: None)
-  -t, --test-mode       Run the app using built-in sample data (default: False)
+python src/app.py -h
 ```
 
 ## Test Suite
@@ -138,6 +124,17 @@ pytest --cov=src
 ```
 
 Please note, end-to-end tests assume [Chrome](https://www.google.com/intl/en_au/chrome/dr/download/) is installed.
+
+
+## Demos
+
+### Dataset Abstraction
+
+TODO
+
+### Running the App in Test Mode
+
+TODO
 
 ---
 
