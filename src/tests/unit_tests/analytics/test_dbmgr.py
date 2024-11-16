@@ -100,7 +100,7 @@ def db_manager_notfound_files(request, disable_tqdm):
                         )
 
 
-# Parameterize with individual file existence combinations
+# Parameterise with individual file existence combinations
 @pytest.mark.parametrize(
     "db_manager_notfound_files",
     [
@@ -254,7 +254,7 @@ def db_manager(disable_tqdm):
 
 def test_initialisation(db_manager):
     """Test DBManager initialisation with the db_manager fixture."""
-    # Assertions to confirm initialization paths and data
+    # Assertions to confirm initialisation paths and data
     assert str(db_manager._data_zip_path) == DATA_ZIP_PATH
     assert str(db_manager._mapper_path) == MAPPER_PATH
     assert str(db_manager._model_path) == MODEL_PATH
