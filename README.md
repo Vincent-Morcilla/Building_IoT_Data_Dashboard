@@ -145,7 +145,7 @@ All analytical modules share a common abstraction of the dataset, provided by
 A Jupyter Notebook is provided in `demos/dbmgr.ipynb` to demonstrate its main 
 capabilities and usage.
 
-This requires additional depencencies, which may be installed by running:
+This requires additional dependencies, which may be installed by running:
 
 ```sh
 pip install -r demos/requirements.txt
