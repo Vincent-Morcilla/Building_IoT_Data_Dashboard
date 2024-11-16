@@ -137,6 +137,8 @@ A test coverage report may be generated while running the tests with:
 pytest --cov=src
 ```
 
+Please note, end-to-end tests assume [Chrome](https://www.google.com/intl/en_au/chrome/dr/download/) is installed.
+
 ---
 
 
