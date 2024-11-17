@@ -562,6 +562,7 @@ def _associated_units_analysis(master_df: pd.DataFrame) -> PlotConfig:
             [
                 {"name": "Brick Class", "id": "brick_class"},
                 {"name": "Stream ID", "id": "stream_id"},
+                {"name": "Unit", "id": "unit"},
             ],
             30 if len(streams_without_units) > 0 else None,
         )
