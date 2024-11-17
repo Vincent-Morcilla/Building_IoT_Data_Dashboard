@@ -63,7 +63,6 @@ def main(arg_list: list[str] | None = None) -> None:
     create_app(plot_configs).run(debug=args.debug, host=args.host, port=args.port)
 
 
-# pylint: disable=unused-argument
 def parse_args(arg_list: list[str] | None):
     """
     Parse command-line arguments.
@@ -128,7 +127,7 @@ def parse_args(arg_list: list[str] | None):
         default=None,  # Will load the latest Brick schema if not provided
     )
 
-    args = parser.parse_args()
+    args = parser.parse_args(arg_list)
 
     # Custom validation logic for mutual exclusivity
     if args.test_mode:
