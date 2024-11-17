@@ -1,8 +1,7 @@
 name: greeninsight
 
 services:
-  greeninsight:
+  app:
     build: .
-    image: greeninsight
     ports:
       - "127.0.0.1:8050:8050"
