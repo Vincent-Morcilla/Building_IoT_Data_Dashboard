@@ -1,16 +1,16 @@
 """
-Actions module for processing interactive data updates.
+Actions package for processing interactive data updates.
 
-This module contains reusable functions that handle specific 
+This package contains reusable functions that handle specific 
 interactive actions for updating plots and components based on 
 user inputs.
 
 Modules:
-    - process_interaction: Processes and applies filters and transformations to data 
+    - `process_interaction`: Processes and applies filters and transformations to data 
                            based on user interactions.
-    - update_components_based_on_grouped_table_selection: Updates grouped table components 
+    - `update_components_based_on_grouped_table_selection`: Updates grouped table components 
                                                           according to selected row data.
-    - update_components_based_on_table_selection: Manages updates to components when 
+    - `update_components_based_on_table_selection`: Manages updates to components when 
                                                   rows in a table are selected.
 
 Customisation:
