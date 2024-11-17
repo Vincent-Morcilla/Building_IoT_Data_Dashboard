@@ -512,7 +512,6 @@ def run(db: DBManager) -> dict:
                     "layout_kwargs": {
                         "font_color": "black",
                         "plot_bgcolor": "white",
-                        "annotations": annotations,
                         "margin": {"t": 0, "b": 0, "l": 0, "r": 0},
                     },
                     "css": {
