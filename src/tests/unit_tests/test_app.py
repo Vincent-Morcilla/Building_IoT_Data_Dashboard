@@ -92,8 +92,8 @@ def mock_create_app_dependencies():
     ) as mock_register_download_callbacks, patch(
         "app.register_general_callbacks"
     ) as mock_register_general_callbacks, patch(
-        "app.register_plot_callbacks"
-    ) as mock_register_plot_callbacks:
+        "app.register_analytics_callbacks"
+    ) as mock_register_analytics_callbacks:
 
         mock_create_category_structure.return_value = (
             {"category1": "Category 1", "category2": "Category 2"},
@@ -108,7 +108,7 @@ def mock_create_app_dependencies():
         plot_configs = MagicMock(PlotConfig)
 
         # Yield the mock objects for use in the test
-        yield mock_create_category_structure, mock_create_layout, mock_register_download_callbacks, mock_register_general_callbacks, mock_register_plot_callbacks, plot_configs
+        yield mock_create_category_structure, mock_create_layout, mock_register_download_callbacks, mock_register_general_callbacks, mock_register_analytics_callbacks, plot_configs
 
 
 def test_create_app(mock_create_app_dependencies):
@@ -119,7 +119,7 @@ def test_create_app(mock_create_app_dependencies):
         mock_create_layout,
         mock_register_download_callbacks,
         mock_register_general_callbacks,
-        mock_register_plot_callbacks,
+        mock_register_analytics_callbacks,
         plot_configs,
     ) = mock_create_app_dependencies
 
@@ -140,7 +140,7 @@ def test_create_app(mock_create_app_dependencies):
     mock_register_general_callbacks.assert_called_once_with(
         app, plot_configs, mock_create_category_structure.return_value
     )
-    mock_register_plot_callbacks.assert_called_once_with(app, plot_configs)
+    mock_register_analytics_callbacks.assert_called_once_with(app, plot_configs)
 
     # Assert that the app has the correct title
     assert app.title == "Green InSight"

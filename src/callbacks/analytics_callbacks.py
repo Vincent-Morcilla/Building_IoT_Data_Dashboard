@@ -1,5 +1,5 @@
 """
-Registers callbacks for interactive plot components.
+Registers callbacks for interactive analytics components.
 
 This module connects user interactions with the appropriate actions, updating
 plots and components dynamically based on user input. It processes the
@@ -21,7 +21,7 @@ from components.analytics import find_component_by_id
 from models.types import PlotConfig
 
 
-def register_plot_callbacks(app: Dash, plot_configs: PlotConfig) -> None:
+def register_analytics_callbacks(app: Dash, plot_configs: PlotConfig) -> None:
     """Register callbacks for the plot configurations.
 
     Args:

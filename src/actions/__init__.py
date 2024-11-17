@@ -16,6 +16,6 @@ Modules:
 Customisation:
     Custom functions can be added to this folder as needed to handle specific 
     interactive actions. Any new functions should be integrated into 
-    `callbacks/plot_callbacks.py` to enable their use as part of the app's callback 
+    `callbacks/analytics_callbacks.py` to enable their use as part of the app's callback 
     system.
 """
