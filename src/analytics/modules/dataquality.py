@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 
 from analytics.dbmgr import DBManager
+from models.types import PlotConfig  # only imported for type hinting
 
 
 def _detect_step_function_behavior(
@@ -589,7 +590,7 @@ def _get_column_type(value):
     return "any"
 
 
-def run(db: DBManager) -> dict:
+def run(db: DBManager) -> PlotConfig:
     """Run data quality analysis and generate visualization configurations.
 
     This function processes sensor data through multiple analysis steps:
@@ -602,7 +603,7 @@ def run(db: DBManager) -> dict:
         db (DBManager): Database manager instance containing sensor data
 
     Returns:
-        dict: A nested dictionary containing three main sections:
+        PlotConfig: A nested dictionary containing three main sections:
             - ('DataQuality', 'Overview'): Overall statistics and visualizations
                 - Tables
                 - Pie charts (outliers, step functions)

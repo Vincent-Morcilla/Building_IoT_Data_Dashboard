@@ -446,8 +446,9 @@ def create_layout_for_category(
     Returns:
         List[html.Div]: A list of Dash components representing the layout for the specific
         category-subcategory pair, including:
-            - Section title component.
-            - Specified UI, plot, table, separator, error, and placeholder components.
+
+        - Section title component.
+        - Specified UI, plot, table, separator, error, and placeholder components.
     """
     components = []
 

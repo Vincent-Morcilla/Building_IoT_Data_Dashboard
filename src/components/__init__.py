@@ -1,14 +1,14 @@
 """
-Components module for UI elements and layout generation.
+Components package for UI elements and layout generation.
 
-This module provides reusable components and functions to dynamically create 
+This package provides reusable components and functions to dynamically create 
 layout elements, such as sidebars, tabs, and plot generators, within the app.
 
-Files:
-    download_button.py: Defines the download button component, allowing users 
+Modules:
+    - `analytics`: Provides functions to create Plotly-based plot components.
+    - `download_button`: Defines the download button component, allowing users 
                         to download data as CSVs.
-    layout.py: Generates the main layout for the app, including the sidebar and content areas.
-    analytics.py: Provides functions to create Plotly-based plot components.
-    sidebar.py: Generates the navigation sidebar with category links.
-    tabs.py: Creates tabbed content areas for different categories within the app.
+    - `layout`: Generates the main layout for the app, including the sidebar and content areas.
+    - `sidebar`: Generates the navigation sidebar with category links.
+    - `tabs`: Creates tabbed content areas for different categories within the app.
 """
