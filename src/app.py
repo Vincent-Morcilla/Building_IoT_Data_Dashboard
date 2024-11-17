@@ -22,7 +22,7 @@ from analytics.dbmgr import DBManagerBadRdfFile
 from analytics.dbmgr import DBManagerBadZipFile
 from callbacks.download_button_callbacks import register_download_callbacks
 from callbacks.general_callbacks import register_general_callbacks
-from callbacks.plot_callbacks import register_plot_callbacks
+from callbacks.analytics_callbacks import register_analytics_callbacks
 from components.layout import create_layout
 from helpers.helpers import create_category_structure
 from models.types import PlotConfig
@@ -148,7 +148,7 @@ def parse_args(arg_list: list[str] | None):
 
 def create_app(plot_configs: PlotConfig) -> Dash:
     """
-    Initialize and configure the Dash application.
+    Initialise and configure the Dash application.
 
     Returns:
         Dash: Configured Dash application instance.
@@ -173,7 +173,7 @@ def create_app(plot_configs: PlotConfig) -> Dash:
     # Register download, general and plot-related callbacks
     register_download_callbacks(app, plot_configs)
     register_general_callbacks(app, plot_configs, categories_structure)
-    register_plot_callbacks(app, plot_configs)
+    register_analytics_callbacks(app, plot_configs)
 
     return app
 
