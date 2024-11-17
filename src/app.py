@@ -170,7 +170,7 @@ def create_app(plot_configs: PlotConfig) -> Dash:
     # Set the app layout
     app.layout = create_layout(categories_structure)
 
-    # Register download, general and plot-related callbacks
+    # Register download, general and analytics-related callbacks
     register_download_callbacks(app, plot_configs)
     register_general_callbacks(app, plot_configs, categories_structure)
     register_analytics_callbacks(app, plot_configs)
