@@ -13,6 +13,9 @@ import sys
 import pandas as pd
 from scipy import stats
 
+from analytics.dbmgr import DBManager  # only imported for type hinting
+from models.types import PlotConfig  # only imported for type hinting
+
 
 def _get_electric_energy_query_str():
     """
@@ -680,12 +683,12 @@ class WeatherSensitivity:
         }
         return data_for_vis
 
-    def get_weather_sensitivity_data(self):
+    def get_weather_sensitivity_data(self) -> PlotConfig:
         """
         Calculates weather sensitivity from sensor data and prepares dashboard visualizations.
 
         Returns:
-            dict: Dashboard configuration with weather sensitivity analysis
+            PlotConfig: Dashboard configuration with weather sensitivity analysis
         """
         self._get_data_from_rdf()
         sensors_data = self._get_sensor_data()
@@ -703,7 +706,7 @@ class WeatherSensitivity:
         return WeatherSensitivity._get_data_for_dash(weather_sensitivity_results)
 
 
-def run(db):
+def run(db: DBManager) -> PlotConfig:
     """Entry point for the module which encapuslate all the functionality"""
     ws = WeatherSensitivity(db)
     data = ws.get_weather_sensitivity_data()

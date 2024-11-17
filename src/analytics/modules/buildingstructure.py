@@ -16,6 +16,7 @@ interactively.
 import pandas as pd
 
 from analytics.dbmgr import DBManager  # only imported for type hinting
+from models.types import PlotConfig  # only imported for type hinting
 
 
 def _get_building_hierarchy(db: DBManager) -> pd.DataFrame:
@@ -364,7 +365,7 @@ def _get_building_area(db: DBManager) -> pd.DataFrame:
     return db.query(query, graph="schema+model", return_df=True, defrag=True)
 
 
-def run(db: DBManager) -> dict:
+def run(db: DBManager) -> PlotConfig:
     """
     Executes the building structure analysis by generating hierarchical
     representations for building elements such as locations, systems,
@@ -377,7 +378,7 @@ def run(db: DBManager) -> dict:
 
     Returns
     -------
-    dict
+    PlotConfig
         A dictionary containing configurations for the building structure
         visualizations.
     """
