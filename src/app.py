@@ -153,7 +153,7 @@ def create_app(plot_configs: PlotConfig) -> Dash:
     Returns:
         Dash: Configured Dash application instance.
     """
-    # Initialize the Dash app with Bootstrap styling
+    # Initialise the Dash app with Bootstrap styling
     app = Dash(
         __name__,
         external_stylesheets=[dbc.themes.BOOTSTRAP],
