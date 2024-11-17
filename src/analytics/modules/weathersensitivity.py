@@ -242,6 +242,7 @@ class WeatherSensitivity:
         Retrieves data from the RDF database and stores it in a dictionary.
 
         This method queries the database for various types of data, including:
+
         - Electric energy consumption
         - Electric power consumption
         - Gas consumption
@@ -287,11 +288,11 @@ class WeatherSensitivity:
         Retrieves sensor data from the previously loaded RDF data.
 
         This method iterates through the data stored in `self.rdf_data` and uses the
-        `load_sensors_from_db()` method to load the sensor data for each data type.
+        `_load_sensors_from_db()` method to load the sensor data for each data type.
 
         The sensor data is stored in a dictionary, where the keys correspond to the
-        data types (e.g., "electric_energy", "electric_power", "gas", "water", "chiller",
-        "boiler", "outside_temp") and the values are the corresponding sensor data.
+        data types (e.g., `electric_energy`, `electric_power`, `gas`, `water`, `chiller`,
+        `boiler`, `outside_temp`) and the values are the corresponding sensor data.
 
         Returns:
             dict: A dictionary containing the sensor data for each data type.
@@ -309,15 +310,15 @@ class WeatherSensitivity:
         Calculates the daily median outside air temperature from the provided data.
 
         This function takes a dictionary of outside air temperature data, which is
-        expected to have a "sensor_data" key that contains a list of dictionaries,
-        each with "timestamps" and "values" keys.
+        expected to have a `sensor_data` key that contains a list of dictionaries,
+        each with `timestamps` and `values` keys.
 
         Args:
             df_outside_air_temp_data (dict): A dictionary containing the outside
-            air temperature data, with a "sensor_data" key.
+            air temperature data, with a `sensor_data` key.
 
         Returns:
-            pd.DataFrame: A DataFrame with two columns: "date" and "outside_temp",
+            pd.DataFrame: A DataFrame with two columns: `date` and `outside_temp`,
             containing the daily median outside air temperature.
         """
         df_outside_temperature = pd.DataFrame(
@@ -343,12 +344,12 @@ class WeatherSensitivity:
         the results into a single DataFrame.
 
         This function takes a dictionary of sensor data, which is expected to
-        have a "sensor_data" key that contains a list of dictionaries, each with
-        "timestamps" and "values" keys.
+        have a `sensor_data` key that contains a list of dictionaries, each with
+        `timestamps` and `values` keys.
 
         Args:
             df_sensors_data (dict): A dictionary containing the sensor data, with
-            a "sensor_data" key.
+            a `sensor_data` key.
 
         Returns:
             pd.DataFrame: A DataFrame with columns for the daily median values of
@@ -386,17 +387,17 @@ class WeatherSensitivity:
     def _combine_meter_outside_temp_data(cls, df_meters_data, df_outside_temp):
         """
         Combines meter data with outside temperature data, merging the data on
-        the "date" column.
+        the `date` column.
 
         Args:
             df_meters_data (pd.DataFrame): A DataFrame containing meter data,
-            with a "date" column.
+            with a `date` column.
             df_outside_temp (pd.DataFrame): A DataFrame containing outside
-            temperature data, with a "date" column.
+            temperature data, with a `date` column.
 
         Returns:
             pd.DataFrame: A DataFrame containing the combined meter and outside
-            temperature data, with the "date" column converted to datetime.
+            temperature data, with the `date` column converted to datetime.
         """
         df_meter_outside_temperature_data = df_meters_data.merge(
             df_outside_temp, on="date", how="inner"
@@ -412,12 +413,12 @@ class WeatherSensitivity:
         Calculates the monthly Spearman correlation between sensor data and outside temperature.
 
         This function takes a DataFrame containing sensor data and outside temperature data,
-        with a 'date' column. It calculates the monthly Spearman correlation between each
+        with a `date` column. It calculates the monthly Spearman correlation between each
         sensor column and the outside temperature column, and returns a DataFrame with the results.
 
         Args:
             df_sensor_outside_data (pd.DataFrame): A DataFrame containing sensor data and outside
-            temperature data, with a 'date' column.
+            temperature data, with a `date` column.
 
         Returns:
             pd.DataFrame: A DataFrame with columns for each sensor, containing the monthly
@@ -502,7 +503,8 @@ class WeatherSensitivity:
         Returns
         dict
             A dictionary where:
-            - Keys are the original meter keys (excluding 'outside_temp')
+
+            - Keys are the original meter keys (excluding `outside_temp`)
             - Values are DataFrames containing combined meter and temperature data
 
         """
@@ -532,6 +534,7 @@ class WeatherSensitivity:
         Returns
         dict
             Dictionary containing weather sensitivity results where:
+
             - Keys are the original meter identifiers
             - Values are DataFrames with weather sensitivity calculations
             - NaN values are filled with 0
@@ -556,9 +559,10 @@ class WeatherSensitivity:
         Returns
         pandas.DataFrame
             Transformed DataFrame with columns:
-            - 'Date': Timestamp of the measurement
-            - 'Sensor ID': Identifier of the sensor
-            - 'Correlation': Correlation value for that sensor and date
+
+            - `Date`: Timestamp of the measurement
+            - `Sensor ID`: Identifier of the sensor
+            - `Correlation`: Correlation value for that sensor and date
         """
         df = df.reset_index(drop=True)
         sensor_cols = [col for col in df.columns if "sensor" in col.lower()]
