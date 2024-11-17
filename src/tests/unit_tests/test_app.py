@@ -143,7 +143,7 @@ def test_create_app(mock_create_app_dependencies):
     mock_register_plot_callbacks.assert_called_once_with(app, plot_configs)
 
     # Assert that the app has the correct title
-    assert app.title == "Green Insight"
+    assert app.title == "Green InSight"
 
 
 # Test the main function for command-line execution

@@ -29,12 +29,12 @@ from models.types import PlotConfig
 from sampledata.plot_configs import sample_plot_configs
 
 # Name of the application
-APP_NAME = "Green Insight"
+APP_NAME = "Green InSight"
 
 
 def main(arg_list: list[str] | None = None) -> None:
     """
-    Main function for running the 'Green Insight' Building Time Series
+    Main function for running the 'Green InSight' Building Time Series
     Visualisation application.
 
     Parses command-line arguments, initialises the dashboard, and runs
