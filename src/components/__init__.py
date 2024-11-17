@@ -5,7 +5,7 @@ This package provides reusable components and functions to dynamically create
 layout elements, such as sidebars, tabs, and plot generators, within the app.
 
 Modules:
-    - `analytics`: Provides functions to create Plotly-based plot components.
+    - `analytics`: Provides functions to create Plotly and Dash based components.
     - `download_button`: Defines the download button component, allowing users 
                         to download data as CSVs.
     - `layout`: Generates the main layout for the app, including the sidebar and content areas.

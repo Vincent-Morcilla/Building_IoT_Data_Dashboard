@@ -220,7 +220,7 @@ class DBManager:
 
     @property
     def expanded_model(self) -> brickschema.Graph:
-        """The building model and brick schema after inference a knowledge graph.
+        """The building model and brick schema after inference as a knowledge graph.
 
         Returns:
             brickschema.Graph: The expanded building model in RDF format.
@@ -229,10 +229,10 @@ class DBManager:
 
     @property
     def data(self) -> dict[str, pd.DataFrame]:
-        """The database of streams.
+        """The timeseries data.
 
         Returns:
-            dict[str, pd.DataFrame]: The database of streams.
+            dict[str, pd.DataFrame]: The timeseries data keyed by stream ID.
         """
         return self._db
 
