@@ -63,7 +63,6 @@ def main(arg_list: list[str] | None = None) -> None:
     create_app(plot_configs).run(debug=args.debug, host=args.host, port=args.port)
 
 
-# pylint: disable=unused-argument
 def parse_args(arg_list: list[str] | None):
     """
     Parse command-line arguments.
@@ -128,7 +127,7 @@ def parse_args(arg_list: list[str] | None):
         default=None,  # Will load the latest Brick schema if not provided
     )
 
-    args = parser.parse_args()
+    args = parser.parse_args(arg_list)
 
     # Custom validation logic for mutual exclusivity
     if args.test_mode:
@@ -153,7 +152,7 @@ def create_app(plot_configs: PlotConfig) -> Dash:
     Returns:
         Dash: Configured Dash application instance.
     """
-    # Initialize the Dash app with Bootstrap styling
+    # Initialise the Dash app with Bootstrap styling
     app = Dash(
         __name__,
         external_stylesheets=[dbc.themes.BOOTSTRAP],
@@ -170,7 +169,7 @@ def create_app(plot_configs: PlotConfig) -> Dash:
     # Set the app layout
     app.layout = create_layout(categories_structure)
 
-    # Register download, general and plot-related callbacks
+    # Register download, general and analytics-related callbacks
     register_download_callbacks(app, plot_configs)
     register_general_callbacks(app, plot_configs, categories_structure)
     register_analytics_callbacks(app, plot_configs)
