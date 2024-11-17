@@ -14,7 +14,7 @@ import pandas as pd
 from scipy import stats
 
 
-def get_electric_energy_query_str():
+def _get_electric_energy_query_str():
     """
     Returns a SPARQL query string to retrieve information about electrical energy sensors
     and their associated meters in the building model.
@@ -41,7 +41,7 @@ def get_electric_energy_query_str():
             """
 
 
-def get_electric_power_query_str():
+def _get_electric_power_query_str():
     """
     Returns a SPARQL query string to retrieve information about electrical power sensors
     and their associated meters in the building model.
@@ -68,7 +68,7 @@ def get_electric_power_query_str():
             """
 
 
-def get_gas_query_str():
+def _get_gas_query_str():
     """
     Returns a SPARQL query string to retrieve information about gas usage sensors
     and their associated gas meters in the building model.
@@ -90,7 +90,7 @@ def get_gas_query_str():
         """
 
 
-def get_chiller_query_str():
+def _get_chiller_query_str():
     """
     Returns a SPARQL query string to retrieve information about chilled water
     differential temperature sensors and their associated chillers in the building model.
@@ -112,7 +112,7 @@ def get_chiller_query_str():
             """
 
 
-def get_water_query_str():
+def _get_water_query_str():
     """
     Returns a SPARQL query string to retrieve information about water usage sensors
     and their associated water meters in the building model.
@@ -134,7 +134,7 @@ def get_water_query_str():
             """
 
 
-def get_boiler_query_str():
+def _get_boiler_query_str():
     """
         Returns a SPARQL query string to retrieve information about water temperature sensors
     and their associated hot water systems (boilers) in the building model.
@@ -156,7 +156,7 @@ def get_boiler_query_str():
             """
 
 
-def get_outside_air_temperature_query_str():
+def _get_outside_air_temperature_query_str():
     """
     Returns a SPARQL query string to retrieve information about outside air temperature sensors
     and their associated weather stations in the building model.
@@ -185,7 +185,7 @@ class WeatherSensitivity:
         self.db = db
         self.rdf_data = None
 
-    def load_sensors_from_db(self, df):
+    def _load_sensors_from_db(self, df):
         """
         Load sensor data from the database for each stream ID in the provided DataFrame.
 
@@ -207,7 +207,7 @@ class WeatherSensitivity:
         df["stream_id"] = df["stream_id"].astype(str).str.lower()
 
         # Function to retrieve sensor data from the database for a given stream ID
-        def get_sensor_data_for_stream(stream_id):
+        def _get_sensor_data_for_stream(stream_id):
             if pd.isna(stream_id):  # Handle missing stream_id
                 return None
 
@@ -234,10 +234,10 @@ class WeatherSensitivity:
                 return None
 
         # Apply the function to load sensor data for each stream ID
-        df["sensor_data"] = df["stream_id"].apply(get_sensor_data_for_stream)
+        df["sensor_data"] = df["stream_id"].apply(_get_sensor_data_for_stream)
         return df
 
-    def get_data_from_rdf(self):
+    def _get_data_from_rdf(self):
         """
         Retrieves data from the RDF database and stores it in a dictionary.
 
@@ -258,18 +258,18 @@ class WeatherSensitivity:
         """
 
         df_electric_energy = self.db.query(
-            get_electric_energy_query_str(), return_df=True
+            _get_electric_energy_query_str(), return_df=True
         )
         df_electric_power = self.db.query(
-            get_electric_power_query_str(), return_df=True
+            _get_electric_power_query_str(), return_df=True
         )
-        df_gas = self.db.query(get_gas_query_str(), return_df=True)
-        df_water = self.db.query(get_water_query_str(), return_df=True)
-        df_chiller = self.db.query(get_chiller_query_str(), return_df=True)
-        df_boiler = self.db.query(get_boiler_query_str(), return_df=True)
+        df_gas = self.db.query(_get_gas_query_str(), return_df=True)
+        df_water = self.db.query(_get_water_query_str(), return_df=True)
+        df_chiller = self.db.query(_get_chiller_query_str(), return_df=True)
+        df_boiler = self.db.query(_get_boiler_query_str(), return_df=True)
 
         df_outside_air_temp = self.db.query(
-            get_outside_air_temperature_query_str(), return_df=True
+            _get_outside_air_temperature_query_str(), return_df=True
         )
 
         self.rdf_data = {
@@ -282,7 +282,7 @@ class WeatherSensitivity:
             "outside_temp": df_outside_air_temp,
         }
 
-    def get_sensor_data(self):
+    def _get_sensor_data(self):
         """
         Retrieves sensor data from the previously loaded RDF data.
 
@@ -299,12 +299,12 @@ class WeatherSensitivity:
         sensor_data = {}
         if self.rdf_data:
             for sensor, data in self.rdf_data.items():
-                sensor_data[sensor] = self.load_sensors_from_db(data)
+                sensor_data[sensor] = self._load_sensors_from_db(data)
 
         return sensor_data
 
     @classmethod
-    def get_daily_median_outside_temperature(cls, df_outside_air_temp_data):
+    def _get_daily_median_outside_temperature(cls, df_outside_air_temp_data):
         """
         Calculates the daily median outside air temperature from the provided data.
 
@@ -337,7 +337,7 @@ class WeatherSensitivity:
         return daily_median_outside_temperature
 
     @classmethod
-    def get_daily_median_sensor_data(cls, df_sensors_data):
+    def _get_daily_median_sensor_data(cls, df_sensors_data):
         """
         Calculates the daily median values for multiple sensors and combines
         the results into a single DataFrame.
@@ -383,7 +383,7 @@ class WeatherSensitivity:
         return df_sensor_data_combined
 
     @classmethod
-    def combine_meter_outside_temp_data(cls, df_meters_data, df_outside_temp):
+    def _combine_meter_outside_temp_data(cls, df_meters_data, df_outside_temp):
         """
         Combines meter data with outside temperature data, merging the data on
         the "date" column.
@@ -407,7 +407,7 @@ class WeatherSensitivity:
         return df_meter_outside_temperature_data
 
     @classmethod
-    def get_weather_sensitivity(cls, df_sensor_outside_data):
+    def _get_weather_sensitivity(cls, df_sensor_outside_data):
         """
         Calculates the monthly Spearman correlation between sensor data and outside temperature.
 
@@ -428,8 +428,8 @@ class WeatherSensitivity:
             "date"
         ].dt.to_period("M")
 
-        def calculate_monthly_correlation(dataframe, sensor_column):
-            def correlation_or_nan(sub_df):
+        def _calculate_monthly_correlation(dataframe, sensor_column):
+            def _correlation_or_nan(sub_df):
                 if (
                     sub_df["outside_temp"].nunique() <= 1
                     or sub_df[sensor_column].nunique() <= 1
@@ -437,7 +437,7 @@ class WeatherSensitivity:
                     return float("nan")
                 return stats.spearmanr(sub_df["outside_temp"], sub_df[sensor_column])[0]
 
-            return dataframe.groupby("year_month").apply(correlation_or_nan)
+            return dataframe.groupby("year_month").apply(_correlation_or_nan)
 
         sensor_columns = {}
         for i in range(1, df_sensor_outside_data.shape[1] - 2):
@@ -449,7 +449,7 @@ class WeatherSensitivity:
         monthly_correlations = {}
 
         for sensor, sensor_id in sensor_columns.items():
-            monthly_correlations[sensor_id] = calculate_monthly_correlation(
+            monthly_correlations[sensor_id] = _calculate_monthly_correlation(
                 df_sensor_outside_data, sensor
             )
 
@@ -463,7 +463,7 @@ class WeatherSensitivity:
         return result_df
 
     @classmethod
-    def get_daily_median_data(cls, sensors_data):
+    def _get_daily_median_data(cls, sensors_data):
         """
         Calculates the daily median values for each sensor and outside temperature
         data by calling two functions.
@@ -479,19 +479,19 @@ class WeatherSensitivity:
         sensors_daily_median_data = {}
         for sensor in sensors_data.keys():
             if sensor == "outside_temp":
-                df = WeatherSensitivity.get_daily_median_outside_temperature(
+                df = WeatherSensitivity._get_daily_median_outside_temperature(
                     sensors_data[sensor]
                 )
                 sensors_daily_median_data[sensor] = df
             else:
-                df = WeatherSensitivity.get_daily_median_sensor_data(
+                df = WeatherSensitivity._get_daily_median_sensor_data(
                     sensors_data[sensor]
                 )
                 sensors_daily_median_data[sensor] = df
         return sensors_daily_median_data
 
     @classmethod
-    def combine_meter_weather_data(cls, sensors_data):
+    def _combine_meter_weather_data(cls, sensors_data):
         """
         Combines meter data with outside temperature data for weather sensitivity analysis.
 
@@ -512,14 +512,14 @@ class WeatherSensitivity:
             if meter == "outside_temp":
                 continue
             combine_meter_outside_data[meter] = (
-                WeatherSensitivity.combine_meter_outside_temp_data(
+                WeatherSensitivity._combine_meter_outside_temp_data(
                     sensors_data[meter], df_outside_temp
                 )
             )
         return combine_meter_outside_data
 
     @classmethod
-    def get_weather_sensitivity_results(cls, combine_meter_outside_data):
+    def _get_weather_sensitivity_results(cls, combine_meter_outside_data):
         """
         Calculates weather sensitivity results for multiple meters.
 
@@ -539,14 +539,14 @@ class WeatherSensitivity:
         weather_sensitivity_results = {}
         for meter in combine_meter_outside_data.keys():
             weather_sensitivity_results[meter] = (
-                WeatherSensitivity.get_weather_sensitivity(
+                WeatherSensitivity._get_weather_sensitivity(
                     combine_meter_outside_data[meter]
                 ).fillna(0)
             )
         return weather_sensitivity_results
 
     @classmethod
-    def transpose_dataframe_for_vis(cls, df):
+    def _transpose_dataframe_for_vis(cls, df):
         """
         Transforms a sensor data DataFrame into a format suitable for visualization.
 
@@ -575,7 +575,7 @@ class WeatherSensitivity:
         return df_vis
 
     @classmethod
-    def prepare_data_for_vis(cls, df, meter, title):
+    def _prepare_data_for_vis(cls, df, meter, title):
         """
         Prepares sensor correlation data for heatmap visualization.
 
@@ -648,7 +648,7 @@ class WeatherSensitivity:
         }
 
     @classmethod
-    def get_data_for_dash(cls, weather_sensitivity_results):
+    def _get_data_for_dash(cls, weather_sensitivity_results):
         """
         Creates dashboard configuration from weather sensitivity results.
 
@@ -661,10 +661,10 @@ class WeatherSensitivity:
         data_for_vis = {}
         result = []
         for meter in weather_sensitivity_results.keys():
-            transpose_df = WeatherSensitivity.transpose_dataframe_for_vis(
+            transpose_df = WeatherSensitivity._transpose_dataframe_for_vis(
                 weather_sensitivity_results[meter]
             )
-            df_vis = WeatherSensitivity.prepare_data_for_vis(
+            df_vis = WeatherSensitivity._prepare_data_for_vis(
                 transpose_df,
                 meter,
                 # f"Correlation between {meter.title().replace('_',' ')} Usage and Outside Temperature",
@@ -683,20 +683,20 @@ class WeatherSensitivity:
         Returns:
             dict: Dashboard configuration with weather sensitivity analysis
         """
-        self.get_data_from_rdf()
-        sensors_data = self.get_sensor_data()
-        sensors_daily_median_data = WeatherSensitivity.get_daily_median_data(
+        self._get_data_from_rdf()
+        sensors_data = self._get_sensor_data()
+        sensors_daily_median_data = WeatherSensitivity._get_daily_median_data(
             sensors_data
         )
-        combine_meter_outside_data = WeatherSensitivity.combine_meter_weather_data(
+        combine_meter_outside_data = WeatherSensitivity._combine_meter_weather_data(
             sensors_daily_median_data
         )
         weather_sensitivity_results = (
-            WeatherSensitivity.get_weather_sensitivity_results(
+            WeatherSensitivity._get_weather_sensitivity_results(
                 combine_meter_outside_data
             )
         )
-        return WeatherSensitivity.get_data_for_dash(weather_sensitivity_results)
+        return WeatherSensitivity._get_data_for_dash(weather_sensitivity_results)
 
 
 def run(db):

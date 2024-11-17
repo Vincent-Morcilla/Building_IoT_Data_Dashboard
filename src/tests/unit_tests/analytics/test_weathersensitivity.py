@@ -4,15 +4,17 @@ import sys
 import pandas as pd
 from analytics.dbmgr import DBManager
 
+# Silence irrelevant warnings
+# pylint: disable=protected-access
 
 from analytics.modules.weathersensitivity import (
-    get_electric_energy_query_str,
-    get_electric_power_query_str,
-    get_gas_query_str,
-    get_chiller_query_str,
-    get_water_query_str,
-    get_boiler_query_str,
-    get_outside_air_temperature_query_str,
+    _get_electric_energy_query_str,
+    _get_electric_power_query_str,
+    _get_gas_query_str,
+    _get_chiller_query_str,
+    _get_water_query_str,
+    _get_boiler_query_str,
+    _get_outside_air_temperature_query_str,
     WeatherSensitivity,
 )
 
@@ -37,7 +39,7 @@ def test_get_electric_energy_query_str():
             ORDER BY ?meter
             """
 
-    assert expected == get_electric_energy_query_str()
+    assert expected == _get_electric_energy_query_str()
 
 
 def test_get_electric_power_query_str():
@@ -58,7 +60,7 @@ def test_get_electric_power_query_str():
             ORDER BY ?meter
             """
 
-    assert expected == get_electric_power_query_str()
+    assert expected == _get_electric_power_query_str()
 
 
 def test_get_gas_query_str():
@@ -73,7 +75,7 @@ def test_get_gas_query_str():
             }
             ORDER BY ?meter
         """
-    assert expected == get_gas_query_str()
+    assert expected == _get_gas_query_str()
 
 
 def test_get_chiller_query_str():
@@ -88,7 +90,7 @@ def test_get_chiller_query_str():
             }
             ORDER BY ?meter
             """
-    assert expected == get_chiller_query_str()
+    assert expected == _get_chiller_query_str()
 
 
 def test_get_water_query_str():
@@ -103,7 +105,7 @@ def test_get_water_query_str():
             }
             ORDER BY ?meter
             """
-    assert expected == get_water_query_str()
+    assert expected == _get_water_query_str()
 
 
 def test_get_boiler_query_str():
@@ -118,7 +120,7 @@ def test_get_boiler_query_str():
             }
             ORDER BY ?meter
             """
-    assert expected == get_boiler_query_str()
+    assert expected == _get_boiler_query_str()
 
 
 def test_get_outside_air_temperature_query_str():
@@ -134,7 +136,7 @@ def test_get_outside_air_temperature_query_str():
         }
         ORDER BY ?stream_id
         """
-    assert expected == get_outside_air_temperature_query_str()
+    assert expected == _get_outside_air_temperature_query_str()
 
 
 def test_transpose_dataframe_for_vis():
@@ -155,7 +157,7 @@ def test_transpose_dataframe_for_vis():
         }
     )
 
-    df_output = WeatherSensitivity.transpose_dataframe_for_vis(df_input)
+    df_output = WeatherSensitivity._transpose_dataframe_for_vis(df_input)
     pd.testing.assert_frame_equal(df_output, df_expected)
 
 
@@ -230,7 +232,7 @@ def test_prepare_data_for_vis():
         },
     }
 
-    output = WeatherSensitivity.prepare_data_for_vis(df_input, meter, title)
+    output = WeatherSensitivity._prepare_data_for_vis(df_input, meter, title)
 
     pd.testing.assert_frame_equal(
         output["data_frame"].reset_index(drop=True),
@@ -261,7 +263,7 @@ def test_combine_meter_outside_temp_data():
         }
     )
 
-    result = WeatherSensitivity.combine_meter_outside_temp_data(
+    result = WeatherSensitivity._combine_meter_outside_temp_data(
         df_meters_data, df_outside_temp
     )
 
@@ -303,7 +305,7 @@ def test_get_daily_median_sensor_data():
         }
     )
 
-    result = WeatherSensitivity.get_daily_median_sensor_data(df_sensors_data)
+    result = WeatherSensitivity._get_daily_median_sensor_data(df_sensors_data)
 
     result["date"] = result["date"].astype("datetime64[ns]")
     expected_result["date"] = expected_result["date"].astype("datetime64[ns]")
@@ -325,7 +327,7 @@ def test_load_sensors_from_db(mocker):
     ws = WeatherSensitivity(mock_db)
 
     # Call the load_sensors_from_db method
-    result_df = ws.load_sensors_from_db(sample_df)
+    result_df = ws._load_sensors_from_db(sample_df)
     assert isinstance(result_df, pd.DataFrame), "Expected a DataFrame result"
     assert "sensor_data" in result_df.columns, "sensor_data column expected"
 
@@ -339,7 +341,7 @@ def test_get_data_from_rdf(mocker):
 
     ws = WeatherSensitivity(db=mock_db)
 
-    ws.get_data_from_rdf()
+    ws._get_data_from_rdf()
 
     assert isinstance(ws.rdf_data, dict)
     keys = ws.rdf_data.keys()
@@ -360,5 +362,5 @@ def test_get_sensor_data(mocker):
     mock_db = mocker.Mock(spec=DBManager)
 
     ws = WeatherSensitivity(db=mock_db)
-    sensor_data = ws.get_sensor_data()
+    sensor_data = ws._get_sensor_data()
     assert isinstance(sensor_data, dict)
