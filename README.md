@@ -126,7 +126,8 @@ pytest --cov=src
 
 Please note, end-to-end tests assume [Chrome](https://www.google.com/intl/en_au/chrome/dr/download/) is installed.
 
-A test coverage report is published to GitHub Pages:
+The test suite is automatically run upon changes to the `main` branch, and the 
+updated coverage report is published on GitHub Pages:
 
 [https://fluffy-broccoli-nvjrm9y.pages.github.io/](https://fluffy-broccoli-nvjrm9y.pages.github.io/)
 
