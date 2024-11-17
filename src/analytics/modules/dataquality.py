@@ -575,7 +575,7 @@ def _generate_green_scale(n_colors):
     return colors
 
 
-def get_column_type(value):
+def _get_column_type(value):
     """Determine the column type based on Python type."""
     python_type = type(value)
     if python_type == str:
