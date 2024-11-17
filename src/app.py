@@ -148,7 +148,7 @@ def parse_args(arg_list: list[str] | None):
 
 def create_app(plot_configs: PlotConfig) -> Dash:
     """
-    Initialize and configure the Dash application.
+    Initialise and configure the Dash application.
 
     Returns:
         Dash: Configured Dash application instance.
