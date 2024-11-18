@@ -4,10 +4,13 @@ name: Deploy Coverage Report to GitHub Pages
 on:
   # Runs on pushes targeting the default branch
   push:
-    branches: [$default-branch]
+    branches:
+      - main
+    # branches: [$default-branch]
     # branches: ["coverage-report"]
   pull_request:
-    branches: [$default-branch]
+    branches:
+      - main
     types:
       - closed
 
