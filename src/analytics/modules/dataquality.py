@@ -459,14 +459,24 @@ def _deduce_granularity(timestamps):
 
     # Upgrade granularity
     if granularity % 86400 == 0:  # 86400 seconds = 1 day
-        return f"{granularity // 86400} days"
-    if granularity % 3600 == 0:  # 3600 seconds = 1 hour
-        return f"{granularity // 3600} hours"
-    if 0 <= granularity % 60 < 5:  # 60 seconds = 1 minute
-        return f"{granularity // 60} minutes"
-    if granularity % 60 > 55:
-        return f"{1 + granularity // 60} minutes"
-    return f"{granularity} seconds"
+        granularity //= 86400
+        unit = "day"
+    elif granularity % 3600 == 0:  # 3600 seconds = 1 hour
+        granularity //= 3600
+        unit = "hour"
+    elif 0 <= granularity % 60 < 5:  # 60 seconds = 1 minute
+        granularity //= 60
+        unit = "minute"
+    elif granularity % 60 > 55:
+        granularity = 1 + granularity // 60
+        unit = "minute"
+    else:
+        unit = "second"
+
+    if granularity != 1:
+        unit += "s"
+
+    return f"{granularity} {unit}"
 
 
 def _detect_outliers(values):

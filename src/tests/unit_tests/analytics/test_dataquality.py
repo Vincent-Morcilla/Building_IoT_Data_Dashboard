@@ -8,6 +8,10 @@ import pytest
 from analytics.dbmgr import DBManager
 import analytics.modules.dataquality as dq
 
+# Silence irrelevant warnings
+# pylint: disable=protected-access
+# pylint: disable=redefined-outer-name
+
 
 @pytest.fixture
 def mock_db(mocker):
@@ -37,13 +41,35 @@ def test_detect_outliers_edge_cases():
 
 def test_deduce_granularity():
     """Test granularity deduction from timestamps."""
+    # Test second data
+    timestamps = pd.date_range(start="2024-01-01", periods=5, freq="10s")
+    assert dq._deduce_granularity(timestamps) == "10 seconds"
+
+    # Test minute data
+    timestamps = pd.date_range(start="2024-01-01", periods=5, freq="min")
+    assert dq._deduce_granularity(timestamps) == "1 minute"
+
+    timestamps = pd.date_range(start="2024-01-01", periods=5, freq="2min")
+    assert dq._deduce_granularity(timestamps) == "2 minutes"
+
+    timestamps = pd.to_datetime(
+        ["2024-01-01 00:00:00", "2024-01-01 00:04:59", "2024-01-01 00:09:58"]
+    )
+    assert dq._deduce_granularity(timestamps) == "5 minutes"
+
     # Test hourly data
     timestamps = pd.date_range(start="2024-01-01", periods=5, freq="h")
-    assert dq._deduce_granularity(timestamps) == "1 hours"
+    assert dq._deduce_granularity(timestamps) == "1 hour"
+
+    timestamps = pd.date_range(start="2024-01-01", periods=5, freq="2h")
+    assert dq._deduce_granularity(timestamps) == "2 hours"
 
     # Test daily data
     timestamps = pd.date_range(start="2024-01-01", periods=5, freq="D")
-    assert dq._deduce_granularity(timestamps) == "1 days"
+    assert dq._deduce_granularity(timestamps) == "1 day"
+
+    timestamps = pd.date_range(start="2024-01-01", periods=5, freq="2D")
+    assert dq._deduce_granularity(timestamps) == "2 days"
 
     # Test empty data
     timestamps = pd.Series([], dtype="datetime64[ns]")
@@ -76,6 +102,30 @@ def test_analyse_sensor_gaps():
     assert result["Total_Gaps"].iloc[0] == 1
 
 
+def test_analyse_sensor_gaps_insufficient_samples():
+    """Test gap analysis when there are fewer than 2 samples."""
+    # Create timestamps with a gap in the middle
+    timestamps = pd.date_range(start="2024-01-01", periods=1, freq="h")
+
+    df = pd.DataFrame(
+        {
+            "Timestamps": pd.Series([timestamps]),
+            "Deduced_Granularity": ["1 hours"],
+            "Values": [[1.0] * len(timestamps)],
+        },
+        index=[0],
+    )
+
+    result = dq._analyse_sensor_gaps(df)
+
+    # Add assertions to verify gap detection
+    assert isinstance(result, pd.DataFrame)
+    assert "Small_Gap_Count" in result.columns
+    assert result["Small_Gap_Count"].iloc[0] == 0
+    assert "Total_Gaps" in result.columns
+    assert result["Total_Gaps"].iloc[0] == 0
+
+
 def test_profile_groups():
     """Test group profiling and outlier detection."""
     n_normal = 20
@@ -104,6 +154,30 @@ def test_profile_groups():
     )
 
 
+def test_profile_groups_no_standard_deviation():
+    """Test group profiling with no standard deviation."""
+    n_normal = 20
+    df = pd.DataFrame(
+        {
+            "Label": ["Temp"] * n_normal,
+            "Sensor_Mean": [1.0] * n_normal,
+            "stream_id": [f"s{i}" for i in range(1, n_normal + 1)],
+            "Values": [[1.0]] * n_normal,
+            "Timestamps": [pd.date_range("2024-01-01", periods=1)] * n_normal,
+            "Value_Count": [100] * n_normal,
+            "Missing": [0] * n_normal,
+            "Zeros": [0] * n_normal,
+        }
+    )
+
+    result = dq._profile_groups(df)
+    assert "Flagged For Removal" in result.columns
+    assert (
+        result.loc[result["stream_id"] == f"s{n_normal}", "Flagged For Removal"].iloc[0]
+        == 0
+    )
+
+
 def test_preprocess_to_sensor_rows(mocker):
     """Test preprocessing of sensor data."""
     mock_db = mocker.Mock(spec=DBManager)
@@ -125,6 +199,51 @@ def test_preprocess_to_sensor_rows(mocker):
     assert "stream_id" in result.columns
     assert "Label" in result.columns
     assert "Is_Step_Function" in result.columns
+
+
+def test_preprocess_to_sensor_rows_no_data(mocker):
+    """Test preprocessing of sensor data when there is no data."""
+    mock_db = mocker.Mock(spec=DBManager)
+
+    mock_db.get_all_streams.return_value = {}
+
+    result = dq._preprocess_to_sensor_rows(mock_db)
+
+    assert not result
+
+
+def test_preprocess_to_sensor_rows_missing_data(mocker):
+    """Test preprocessing of sensor data when there is no timeseries data."""
+    mock_db = mocker.Mock(spec=DBManager)
+
+    mock_db.get_all_streams.return_value = {"stream1": pd.DataFrame()}
+    mock_db.get_label.return_value = "Temperature_Sensor"
+
+    result = dq._preprocess_to_sensor_rows(mock_db)
+
+    assert isinstance(result, pd.DataFrame)
+    assert result.empty
+
+
+def test_preprocess_to_sensor_rows_keyerror(mocker):
+    """Test preprocessing of sensor data when there is a KeyError."""
+    mock_db = mocker.Mock(spec=DBManager)
+
+    # Mock stream data
+    stream_data = pd.DataFrame(
+        {
+            "time": pd.date_range(start="2024-01-01", periods=5, freq="h"),
+            "value": [1.0, 1.0, 2.0, 2.0, 2.0],
+        }
+    )
+
+    mock_db.get_all_streams.return_value = {"stream1": stream_data}
+    mock_db.get_label.side_effect = KeyError
+
+    result = dq._preprocess_to_sensor_rows(mock_db)
+
+    assert isinstance(result, pd.DataFrame)
+    assert result.empty
 
 
 def test_prepare_data_quality_df():
@@ -242,6 +361,45 @@ def test_create_summary_table():
     assert "Gap Percentage" in result.columns
     assert "Step Function Percentage" in result.columns
     assert len(result) == 2  # Should have 2 groups (Temp and Humidity)
+
+
+def test_generate_green_scale_correct_number_of_colors():
+    """Test generation of green color scale."""
+    result = dq._generate_green_scale(5)
+    assert len(result) == 5
+
+
+def test_generate_green_scale_interpolation_between_endpoints():
+    """Test interpolation between dark and light green."""
+    result = dq._generate_green_scale(3)
+    expected_colors = ["#1e4c1d", "#3c9639", "#b8e4b7"]
+    assert result[0] == expected_colors[0]  # Dark green
+    assert result[-1] == expected_colors[-1]  # Light green
+
+
+def test_generate_green_scale_single_color():
+    """Test generation of a single color."""
+    result = dq._generate_green_scale(1)
+    assert len(result) == 1
+    assert result[0] == "#1e4c1d"  # Dark green
+
+
+def test_generate_green_scale_two_colors():
+    """Test generation of two colors."""
+    result = dq._generate_green_scale(2)
+    assert len(result) == 2
+    assert result[0] == "#1e4c1d"  # Dark green
+    assert result[1] == "#b8e4b7"  # Light green
+
+
+def test_get_column_type():
+    """Test column type detection."""
+    assert dq._get_column_type(1) == "numeric"
+    assert dq._get_column_type(1.0) == "numeric"
+    assert dq._get_column_type("a") == "text"
+    assert dq._get_column_type(True) == "boolean"
+    assert dq._get_column_type(pd.Timestamp("2024-01-01 00:00:00")) == "datetime"
+    assert dq._get_column_type(None) == "any"
 
 
 def test_run_empty_db(mocker):
