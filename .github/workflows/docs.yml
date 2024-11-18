@@ -3,7 +3,7 @@ name: Generate Documentation
 on:
   push:
     branches:
-      - main
+      - tim-docs
   # pull_request:
 
 jobs:
