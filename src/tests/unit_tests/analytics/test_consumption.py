@@ -8,6 +8,7 @@ import pandas as pd
 from analytics.dbmgr import DBManager
 import analytics.modules.consumption as cons
 
+
 def test_building_meters_and_default_units(mocker):
     """
     Unit test for the `_get_building_meters` function in the consumption module.
@@ -155,7 +156,11 @@ def test_run_with_meters(mocker):
             "equipment": ["meter1", "meter1", "meter2"],
             "equipment_type": ["Electrical_Meter", "Electrical_Meter", "Gas_Meter"],
             "sensor": ["sensor1", "sensor2", "sensor3"],
-            "sensor_type": ["Electrical_Power_Sensor", "Electrical_Power_Sensor", "Usage_Sensor"],
+            "sensor_type": [
+                "Electrical_Power_Sensor",
+                "Electrical_Power_Sensor",
+                "Usage_Sensor",
+            ],
             "unit": ["kWh", "kWh", "cubic meters"],
             "stream_id": ["stream1", "stream2", "stream3"],
         }
@@ -202,11 +207,15 @@ def test_run_with_meters(mocker):
     assert ("Consumption", "GasMeter") in config
 
     # Verify the combined_data logic
-    electrical_data = config[("Consumption", "ElectricalMeter")]["components"][0]["kwargs"]["data_frame"]
-    assert electrical_data["Usage"].iloc[0] == 5 
+    electrical_data = config[("Consumption", "ElectricalMeter")]["components"][0][
+        "kwargs"
+    ]["data_frame"]
+    assert electrical_data["Usage"].iloc[0] == 5
     assert electrical_data["Usage"].iloc[1] == 7
 
-    gas_data = config[("Consumption", "GasMeter")]["components"][0]["kwargs"]["data_frame"]
+    gas_data = config[("Consumption", "GasMeter")]["components"][0]["kwargs"][
+        "data_frame"
+    ]
     assert gas_data["Usage"].iloc[0] == 10
 
     # Check that each key has the necessary component structure
@@ -232,7 +241,11 @@ def test_run_with_meters_cover_branches(mocker):
             "equipment": ["meter1", "meter1", "meter2"],
             "equipment_type": ["Electrical_Meter", "Electrical_Meter", "Gas_Meter"],
             "sensor": ["sensor1", "sensor2", "sensor3"],
-            "sensor_type": ["Electrical_Power_Sensor", "Electrical_Energy_Sensor", "Usage_Sensor"],
+            "sensor_type": [
+                "Electrical_Power_Sensor",
+                "Electrical_Energy_Sensor",
+                "Usage_Sensor",
+            ],
             "unit": ["kWh", "kWh", "cubic meters"],
             "stream_id": ["stream1", "stream2", "stream3"],
         }
@@ -273,8 +286,12 @@ def test_run_with_meters_cover_branches(mocker):
     assert ("Consumption", "GasMeter") not in config  # GasMeter has no combined data
 
     # Verify that multiple components are appended for ElectricalMeter
-    electrical_meter_components = config[("Consumption", "ElectricalMeter")]["components"]
-    assert len(electrical_meter_components) > 1, "Expected multiple components for ElectricalMeter"
+    electrical_meter_components = config[("Consumption", "ElectricalMeter")][
+        "components"
+    ]
+    assert (
+        len(electrical_meter_components) > 1
+    ), "Expected multiple components for ElectricalMeter"
 
     # Verify combined values for the first sensor in ElectricalMeter
     electrical_data = electrical_meter_components[0]["kwargs"]["data_frame"]

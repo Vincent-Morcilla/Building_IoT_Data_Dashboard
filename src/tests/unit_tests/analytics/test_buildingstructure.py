@@ -106,6 +106,7 @@ def test_run_empty_hierarchy(mocker):
         not result
     ), "Expected an empty dictionary when no hierarchy data is available"
 
+
 def test_run_empty_area(mocker):
     """
     Unit test for the `run` function in the buildingstructure module with an empty
@@ -139,9 +140,7 @@ def test_run_empty_area(mocker):
     result = bldg.run(mock_db)
 
     # Assertion: Check that the function returns an empty dictionary
-    assert (
-        not result
-    ), "Expected an empty dictionary when no area data is available"
+    assert not result, "Expected an empty dictionary when no area data is available"
 
 
 def test_run_with_hierarchy_and_area(mocker):
