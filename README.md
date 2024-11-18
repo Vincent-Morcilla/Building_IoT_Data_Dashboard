@@ -1,7 +1,7 @@
 # Building Time Series Visualization
 [![Python: 3.12](https://img.shields.io/badge/python-3.12-yellow?logo=python&logoColor=yellow
 )](https://www.python.org/)
-[![Coverage: 100%](https://img.shields.io/badge/coverage-100%25-green)](https://fluffy-broccoli-nvjrm9y.pages.github.io/)
+[![Coverage: 100%](https://img.shields.io/badge/coverage-100%25-green)](https://fluffy-broccoli-nvjrm9y.pages.github.io/coverage/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 - [Building Time Series Visualization](#building-time-series-visualization)
@@ -129,7 +129,7 @@ Please note, end-to-end tests assume [Chrome](https://www.google.com/intl/en_au/
 The test suite is automatically run upon changes to the `main` branch, and the 
 updated coverage report is published on GitHub Pages:
 
-[https://fluffy-broccoli-nvjrm9y.pages.github.io/](https://fluffy-broccoli-nvjrm9y.pages.github.io/)
+[https://fluffy-broccoli-nvjrm9y.pages.github.io/](https://fluffy-broccoli-nvjrm9y.pages.github.io/coverage/)
 
 This report does not include callback functions, which are challenging to unit 
 test due to their inherent connection to the UI and interdependent components, 
