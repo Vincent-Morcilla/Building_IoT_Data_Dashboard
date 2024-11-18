@@ -312,6 +312,7 @@ def _create_summary_table(data_quality_df):
                 "Medium Gaps": "sum",
                 "Large Gaps": "sum",
                 "Total Gaps": "sum",
+                "Gap Percentage": "mean",
                 "Group Mean": "first",
                 "Group Std": "first",
                 "Total Gap Size (s)": "sum",
@@ -325,13 +326,7 @@ def _create_summary_table(data_quality_df):
     )
 
     # Calculate gap percentage for the group
-    summary_table["Gap Percentage"] = (
-        summary_table["Total Gap Size (s)"]
-        / (
-            summary_table["End Timestamp"] - summary_table["Start Timestamp"]
-        ).dt.total_seconds()
-        * 100
-    ).round(2)
+    summary_table["Gap Percentage"] = summary_table["Gap Percentage"].round(3)
     summary_table = summary_table.rename(
         columns={
             "Stream ID": "Number of Streams",
