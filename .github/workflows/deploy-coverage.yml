@@ -4,8 +4,8 @@ name: Deploy Coverage Report to GitHub Pages
 on:
   # Runs on pushes targeting the default branch
   push:
-    branches: ["coverage-report"]
-        # branches: [$default-branch]
+    branches: [$default-branch]
+    # branches: ["coverage-report"]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
