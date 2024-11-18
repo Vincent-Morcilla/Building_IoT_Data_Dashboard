@@ -2,7 +2,7 @@
 This module performs data quality analysis on sensor data.
 
 It includes functions for preprocessing sensor data, analyzing gaps,
-detecting outliers, and generating summary statistics and visualizations.
+detecting outliers, and generating summary statistics and visualisations.
 """
 
 import datetime
@@ -312,6 +312,7 @@ def _create_summary_table(data_quality_df):
                 "Medium Gaps": "sum",
                 "Large Gaps": "sum",
                 "Total Gaps": "sum",
+                "Gap Percentage": "mean",
                 "Group Mean": "first",
                 "Group Std": "first",
                 "Total Gap Size (s)": "sum",
@@ -325,13 +326,7 @@ def _create_summary_table(data_quality_df):
     )
 
     # Calculate gap percentage for the group
-    summary_table["Gap Percentage"] = (
-        summary_table["Total Gap Size (s)"]
-        / (
-            summary_table["End Timestamp"] - summary_table["Start Timestamp"]
-        ).dt.total_seconds()
-        * 100
-    ).round(2)
+    summary_table["Gap Percentage"] = summary_table["Gap Percentage"].round(3)
     summary_table = summary_table.rename(
         columns={
             "Stream ID": "Number of Streams",
@@ -345,7 +340,7 @@ def _create_summary_table(data_quality_df):
 
 
 def _get_data_quality_overview(data_quality_df):
-    """Generate overview visualizations and statistics for data quality analysis.
+    """Generate overview visualisations and statistics for data quality analysis.
 
     Args:
         data_quality_df (pd.DataFrame): DataFrame containing data quality metrics for all sensors
@@ -353,7 +348,7 @@ def _get_data_quality_overview(data_quality_df):
     Returns:
         dict: Dictionary containing:
             - tables: List of overall statistics tables
-            - timeline: Sensor timeline visualization configuration
+            - timeline: Sensor timeline visualisation configuration
     """
     # Create a 'has_outliers' column
     data_quality_df["has_outliers"] = data_quality_df["Outliers"] > 0
@@ -499,12 +494,12 @@ def _detect_outliers(values):
 
 
 def _build_components(df: pd.DataFrame, stream_id: str, title: str) -> list:
-    """Build visualization components for a single sensor stream.
+    """Build visualisation components for a single sensor stream.
 
     Args:
         stream_df (pd.DataFrame): DataFrame containing stream time series data
         stream_id (str): Identifier for the stream
-        title (str): Title for the visualization
+        title (str): Title for the visualisation
 
     Returns:
         dict: Dictionary containing plot configurations and components
@@ -601,29 +596,29 @@ def _get_column_type(value):
 
 
 def run(db: DBManager) -> PlotConfig:
-    """Run data quality analysis and generate visualization configurations.
+    """Run data quality analysis and generate visualisation configurations.
 
     This function processes sensor data through multiple analysis steps:
     1. Preprocesses raw sensor data
     2. Analyzes gaps and outliers
     3. Profiles sensor groups
-    4. Generates visualization configurations
+    4. Generates visualisation configurations
 
     Args:
         db (DBManager): Database manager instance containing sensor data
 
     Returns:
         PlotConfig: A nested dictionary containing three main sections:
-            - ('DataQuality', 'Overview'): Overall statistics and visualizations
+            - ('DataQuality', 'Overview'): Overall statistics and visualisations
                 - Tables
                 - Pie charts (outliers, step functions)
-                - Timeline visualization
+                - Timeline visualisation
             - ('DataQuality', 'ByClass'): Analysis grouped by sensor class
                 - Interactive timeseries plots
                 - Summary tables
             - ('DataQuality', 'ByStream'): Individual stream analysis
                 - Detailed metrics table
-                - Interactive timeseries visualization
+                - Interactive timeseries visualisation
     """
     df = _preprocess_to_sensor_rows(db)
 

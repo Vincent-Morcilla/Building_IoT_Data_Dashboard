@@ -347,6 +347,7 @@ def test_create_summary_table():
             "Medium Gaps": [0, 1, 0],
             "Large Gaps": [0, 0, 1],
             "Total Gaps": [1, 1, 2],
+            "Gap Percentage": [0.1, 0.1, 0.2],
             "Group Mean": [22.5, 22.5, 45.0],
             "Group Std": [1.5, 1.5, 2.0],
             "Total Gap Size (s)": [3600, 7200, 14400],
