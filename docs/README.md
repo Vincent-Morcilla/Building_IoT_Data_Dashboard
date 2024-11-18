@@ -1,6 +1,6 @@
 # Documentation
 
-Green InSight uses [Sphinx] to generate code documentation, which is published 
+Green InSight uses [Sphinx](https://www.sphinx-doc.org/) to generate code documentation, which is published 
 on GitHub Pages at:
 
 [https://fluffy-broccoli-nvjrm9y.pages.github.io/](https://fluffy-broccoli-nvjrm9y.pages.github.io/)
