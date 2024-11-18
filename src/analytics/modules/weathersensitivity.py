@@ -211,12 +211,15 @@ class WeatherSensitivity:
 
         # Function to retrieve sensor data from the database for a given stream ID
         def _get_sensor_data_for_stream(stream_id):
-            if pd.isna(stream_id):  # Handle missing stream_id
+            if (
+                pd.isna(stream_id) or isinstance(stream_id, str) and stream_id == "none"
+            ):  # Handle missing stream_id
                 return None
 
             # Fetch the sensor data from the database using the provided stream ID
             try:
                 sensor_df = self.db.get_stream(stream_id).dropna()
+
                 if sensor_df.empty:
                     print(f"No data found for Stream ID: {stream_id}", file=sys.stderr)
                     return None
@@ -481,7 +484,7 @@ class WeatherSensitivity:
             sensor names as keys and DataFrames as values.
         """
         sensors_daily_median_data = {}
-        for sensor in sensors_data.keys():
+        for sensor in sensors_data:
             if sensor == "outside_temp":
                 df = WeatherSensitivity._get_daily_median_outside_temperature(
                     sensors_data[sensor]
@@ -513,7 +516,7 @@ class WeatherSensitivity:
         """
         df_outside_temp = sensors_data["outside_temp"]
         combine_meter_outside_data = {}
-        for meter in sensors_data.keys():
+        for meter in sensors_data:
             if meter == "outside_temp":
                 continue
             combine_meter_outside_data[meter] = (
@@ -543,7 +546,7 @@ class WeatherSensitivity:
             - NaN values are filled with 0
         """
         weather_sensitivity_results = {}
-        for meter in combine_meter_outside_data.keys():
+        for meter in combine_meter_outside_data:
             weather_sensitivity_results[meter] = (
                 WeatherSensitivity._get_weather_sensitivity(
                     combine_meter_outside_data[meter]
@@ -667,14 +670,13 @@ class WeatherSensitivity:
         """
         data_for_vis = {}
         result = []
-        for meter in weather_sensitivity_results.keys():
+        for meter in weather_sensitivity_results:
             transpose_df = WeatherSensitivity._transpose_dataframe_for_vis(
                 weather_sensitivity_results[meter]
             )
             df_vis = WeatherSensitivity._prepare_data_for_vis(
                 transpose_df,
                 meter,
-                # f"Correlation between {meter.title().replace('_',' ')} Usage and Outside Temperature",
                 f"{meter.title().replace('_',' ')} Usage and Outside Temperature",
             )
             result.append(df_vis)
