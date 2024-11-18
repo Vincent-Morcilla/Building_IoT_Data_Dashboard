@@ -97,6 +97,39 @@ def test_run_empty_hierarchy(mocker):
         "analytics.modules.buildingstructure._get_building_hierarchy",
         return_value=pd.DataFrame(),
     )
+
+    # Run the function and capture the result
+    result = bldg.run(mock_db)
+
+    # Assertion: Check that the function returns an empty dictionary
+    assert (
+        not result
+    ), "Expected an empty dictionary when no hierarchy data is available"
+
+def test_run_empty_area(mocker):
+    """
+    Unit test for the `run` function in the buildingstructure module with an empty
+    database response for building area data. Ensures that the function returns an
+    empty configuration dictionary when no hierarchy data is available.
+    """
+    # Mock DBManager instance
+    mock_db = mocker.Mock(spec=DBManager)
+
+    # Mock `_get_building_hierarchy` to return valid data
+    mocker.patch(
+        "analytics.modules.buildingstructure._get_building_hierarchy",
+        return_value=pd.DataFrame(
+            {
+                "parent": ["Building"],
+                "parentLabel": ["Main Building"],
+                "child": ["Floor"],
+                "childLabel": ["Floor 1"],
+                "entityType": ["Location"],
+            }
+        ),
+    )
+
+    # Patch `_get_building_hierarchy` and `_get_building_area` to return empty DataFrames
     mocker.patch(
         "analytics.modules.buildingstructure._get_building_area",
         return_value=pd.DataFrame(),
@@ -108,7 +141,7 @@ def test_run_empty_hierarchy(mocker):
     # Assertion: Check that the function returns an empty dictionary
     assert (
         not result
-    ), "Expected an empty dictionary when no hierarchy data is available"
+    ), "Expected an empty dictionary when no area data is available"
 
 
 def test_run_with_hierarchy_and_area(mocker):
