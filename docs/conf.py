@@ -32,4 +32,4 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "tests", "test"]
 html_theme = "alabaster"
 html_static_path = ["_static"]
 html_logo = "../src/assets/logo.svg"
-html_favicon = "../src/assets/favicon.png"
+html_favicon = "../src/assets/favicon.ico"
