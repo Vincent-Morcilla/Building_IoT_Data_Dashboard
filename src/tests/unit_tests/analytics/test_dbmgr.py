@@ -541,7 +541,7 @@ def test_query_patched_graph_query():
         "SELECT ?entity_id ?value WHERE { ?entity_id a ?value }"
     )
 
-    # Assert the df matches the expected return value from the mnock graph
+    # Assert the df matches the expected return value from the mock graph
     assert len(df) == 2
     assert df["entity_id"].iloc[0] == "e1"
     assert df["entity_id"].iloc[1] == "e2"
